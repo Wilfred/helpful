@@ -46,3 +46,13 @@
   "If a function docstring only has usage, do not return it."
   (should (null (helpful--docstring #'test-foo-usage-docstring))))
 
+(defun test-foo-no-properties ()
+  nil)
+
+(ert-deftest helpful--no-symbol-properties ()
+  "Helpful should handle functions without any symbol properties."
+  ;; Interactively evaluating this file will set edebug properties on
+  ;; test-foo, so remove all properties.
+  (setplist #'test-foo-no-properties nil)
+
+  (should (helpful #'test-foo-no-properties)))
