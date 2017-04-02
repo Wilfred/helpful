@@ -31,3 +31,9 @@
     (helpful--docstring #'test-foo-advised)
     "Docstring here too.")))
 
+(defun test-foo-no-docstring ()
+  nil)
+
+(ert-deftest helpful--no-docstring ()
+  "We should not crash on a function without a docstring."
+  (should (null (helpful--docstring #'test-foo-no-docstring))))

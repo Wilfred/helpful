@@ -99,7 +99,8 @@ state of the current symbol."
     (insert
      (format "Symbol: %s\n\n" helpful--sym)
      (helpful--heading "Documentation\n")
-     (helpful--docstring helpful--sym)
+     (or (helpful--docstring helpful--sym)
+         "No docstring.")
      (helpful--heading "\n\nSymbol Properties\n")
      (helpful--format-properties helpful--sym)
      (helpful--heading "\n\nTools\n")
@@ -115,13 +116,12 @@ state of the current symbol."
 
 (defun helpful--docstring (sym)
   "Get the docstring for SYM."
-  (let* ((docstring (documentation sym))
-         (docstring-with-usage (help-split-fundoc docstring sym)))
-    (when docstring-with-usage
+  (-when-let (docstring (documentation sym))
+    (-when-let (docstring-with-usage (help-split-fundoc docstring sym))
       (setq docstring (cdr docstring-with-usage))
       ;; Advice mutates the docstring, see
       ;; `advice--make-docstring'. Undo that.
-      ;; TODO: Only do this if the function is adviced.
+      ;; TODO: Only do this if the function is advised.
       (setq docstring (helpful--skip-advice docstring)))
     docstring))
 
