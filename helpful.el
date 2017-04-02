@@ -89,12 +89,33 @@ This allows us to distinguish strings from symbols."
      :type 'helpful-forget-button)
     (buffer-string)))
 
+;; TODO: consider advising eval-buffer to add the current directory to
+;; load-path.
+;; TODO: looks like we need to byte-compile the file too, load-path
+;; isn't sufficient.
+(defun helpful--source (sym)
+  "Return the source code of SYM.
+If the source code cannot be found, return the sexp used."
+  (condition-case _err
+      (pcase-let ((`(,buf . ,start-pos) (find-function-noselect sym)))
+        (with-current-buffer buf
+          (save-excursion
+            (goto-char start-pos)
+            (forward-sexp)
+            (buffer-substring start-pos (point)))))
+    ;; Could not find source -- probably defined interactively, or via
+    ;; a macro, or file has changed, or a primitive.
+    ;; TODO: offer to download C sources for current version.
+    (error
+     (indirect-function sym))))
+
 (defun helpful-update ()
   "Update the current *Helpful* buffer to the latest
 state of the current symbol."
   (interactive)
   (let ((inhibit-read-only t)
-        (start-pos (point)))
+        (start-pos (point))
+        (source (helpful--source helpful--sym)))
     (erase-buffer)
     (insert
      (format "Symbol: %s\n\n" helpful--sym)
@@ -104,7 +125,11 @@ state of the current symbol."
      (helpful--heading "\n\nSymbol Properties\n")
      (helpful--format-properties helpful--sym)
      (helpful--heading "\n\nTools\n")
-     (helpful--forget-button))
+     (helpful--forget-button)
+     (helpful--heading "\n\nDefinition\n")
+     (if (stringp source)
+         source
+       (helpful--pretty-print source)))
     (goto-char start-pos)))
 
 (defun helpful--skip-advice (docstring)
