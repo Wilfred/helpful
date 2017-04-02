@@ -49,7 +49,18 @@
                           nil nil nil nil
                           (symbol-name (symbol-at-point)))))
   (switch-to-buffer (helpful--buffer symbol))
+  (helpful-mode)
+  (setq-local helpful--sym symbol)
   (helpful--update symbol))
+
+(define-derived-mode helpful-mode special-mode "Helpful")
+
+(defun helpful-update ()
+  (interactive)
+  (helpful--update helpful--sym))
+
+(define-key helpful-mode-map (kbd "g") #'helpful-update)
+
 
 (provide 'helpful)
 ;;; helpful.el ends here
