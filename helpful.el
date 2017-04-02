@@ -171,12 +171,17 @@ state of the current symbol."
         (setq docstring (helpful--skip-advice docstring))))
     docstring))
 
+(defun helpful--read-fn-symbol ()
+  (let ((sym-here (symbol-at-point)))
+    (read (completing-read "Symbol: " obarray
+                           nil nil nil nil
+                           (when (fboundp sym-here)
+                             (symbol-name sym-here))))))
+
 (defun helpful (symbol)
   "Show Help for SYMBOL."
   (interactive
-   (list (read (completing-read "Symbol: " obarray
-                                nil nil nil nil
-                                (symbol-name (symbol-at-point))))))
+   (list (helpful--read-fn-symbol)))
   (switch-to-buffer (helpful--buffer symbol))
   (helpful-update))
 
