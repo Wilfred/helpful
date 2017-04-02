@@ -67,6 +67,28 @@ This allows us to distinguish strings from symbols."
     (when lines
       (s-join "\n" lines))))
 
+(define-button-type 'helpful-forget-button
+  'action #'helpful--forget
+  'follow-link t
+  'help-echo "Unbind this function")
+
+;; TODO: it would be nice to optionally delete the source code too.
+(defun helpful--forget (_button)
+  "Unbind the current symbol."
+  (when (functionp helpful--sym)
+    (fmakunbound helpful--sym))
+  (makunbound helpful--sym)
+  (message "Forgot function %s" helpful--sym)
+  (kill-buffer (current-buffer)))
+
+(defun helpful--forget-button ()
+  "Return a button that unbinds the current symbol"
+  (with-temp-buffer
+    (insert-text-button
+     "Forget"
+     :type 'helpful-forget-button)
+    (buffer-string)))
+
 (defun helpful-update ()
   "Update the current *Helpful* buffer to the latest
 state of the current symbol."
@@ -79,7 +101,9 @@ state of the current symbol."
      (helpful--heading "Documentation\n")
      (helpful--docstring helpful--sym)
      (helpful--heading "\n\nSymbol Properties\n")
-     (helpful--format-properties helpful--sym))
+     (helpful--format-properties helpful--sym)
+     (helpful--heading "\n\nTools\n")
+     (helpful--forget-button))
     (goto-char start-pos)))
 
 (defun helpful--skip-advice (docstring)
