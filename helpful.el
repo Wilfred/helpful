@@ -45,6 +45,28 @@
   "Propertize TEXT as a heading."
   (propertize text 'face 'bold))
 
+(defun helpful--pretty-print (val)
+  "Pretty-print VALUE.
+This allows us to distinguish strings from symbols."
+  (with-temp-buffer
+    (cl-prettyprint val)
+    (s-trim (buffer-string))))
+
+(defun helpful--format-properties (symbol)
+  "Return a string describing all the properties of SYMBOL."
+  (let* ((syms-and-vals
+          (-partition 2 (symbol-plist symbol)))
+         (lines
+          (--map
+           (-let [(sym val) it]
+             (format "%s %s"
+                     (propertize (symbol-name sym)
+                                 'face 'font-lock-constant-face)
+                     (helpful--pretty-print val)))
+           syms-and-vals)))
+    (when lines
+      (s-join "\n" lines))))
+
 (defun helpful-update ()
   "Update the current *Helpful* buffer to the latest
 state of the current symbol."
@@ -55,7 +77,9 @@ state of the current symbol."
     (insert
      (format "Symbol: %s\n\n" helpful--sym)
      (helpful--heading "Documentation\n")
-     (helpful--docstring helpful--sym))
+     (helpful--docstring helpful--sym)
+     (helpful--heading "\n\nSymbol Properties\n")
+     (helpful--format-properties helpful--sym))
     (goto-char start-pos)))
 
 (defun helpful--skip-advice (docstring)
