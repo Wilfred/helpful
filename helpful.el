@@ -135,7 +135,7 @@ state of the current symbol."
         (source (helpful--source helpful--sym)))
     (erase-buffer)
     (insert
-     (format "Symbol: %s\n\n" helpful--sym)
+     (format "Usage: %s\n\n" (helpful--usage helpful--sym))
      (helpful--heading "Documentation\n")
      (or (helpful--docstring helpful--sym)
          "No docstring.")
@@ -158,6 +158,35 @@ state of the current symbol."
          (relevant-lines
           (--drop-while (s-starts-with-p ":around advice:" it) lines)))
     (s-trim (s-join "\n" relevant-lines))))
+
+(defun helpful--format-argument (arg)
+  "Format ARG (a symbol) according to Emacs help conventions."
+  (let ((arg-str (symbol-name arg)))
+    (if (s-starts-with-p "&" arg-str)
+        arg-str
+      (s-upcase arg-str))))
+
+(defun helpful--usage (sym)
+  "Get the usage for SYM, as a string.
+For example, \"(some-func FOO &optional BAR)\"."
+  (let (docstring-usage
+        source-usage)
+    ;; Get the usage from the function definition.
+    (let ((formatted-args
+           (-map #'helpful--format-argument
+                 (help-function-arglist sym))))
+      (setq source-usage
+            (if formatted-args
+                (format "(%s %s)" sym
+                        (s-join " " formatted-args))
+              (format "(%s)" sym))))
+    
+    ;; If the docstring ends with (fn FOO BAR), extract that.
+    (-when-let (docstring (documentation sym))
+      (-when-let (docstring-with-usage (help-split-fundoc docstring sym))
+        (setq docstring-usage (car docstring-with-usage))))
+    
+    (or docstring-usage source-usage)))
 
 (defun helpful--docstring (sym)
   "Get the docstring for SYM."
