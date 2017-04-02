@@ -29,17 +29,22 @@
 (defun helpful--buffer (symbol)
   "Return a buffer to show help for SYMBOL in."
   (let ((buf (get-buffer-create
-              (format "*helpful: %s" symbol))))
+              (format "*helpful: %s*" symbol))))
     (with-current-buffer buf
-      (setq helpful--sym symbol))))
+      (helpful-mode)
+      (setq helpful--sym symbol))
+    buf))
 
-(defun helpful--update (fn-symbol)
-  "Update the current *insight* buffer to the latest state of FN-SYMBOL."
+(defun helpful-update ()
+  "Update the current *Helpful* buffer to the latest
+state of the current symbol."
+  (interactive)
   (let ((inhibit-read-only t)
         (start-pos (point)))
     (erase-buffer)
     (insert
-     (format "Symbol: %s\n" fn-symbol))
+     (format "Symbol: %s\n\n" helpful--sym)
+     "Documentation\n\n")
     (goto-char start-pos)))
 
 (defun helpful (symbol)
@@ -49,15 +54,9 @@
                           nil nil nil nil
                           (symbol-name (symbol-at-point)))))
   (switch-to-buffer (helpful--buffer symbol))
-  (helpful-mode)
-  (setq-local helpful--sym symbol)
-  (helpful--update symbol))
+  (helpful-update))
 
 (define-derived-mode helpful-mode special-mode "Helpful")
-
-(defun helpful-update ()
-  (interactive)
-  (helpful--update helpful--sym))
 
 (define-key helpful-mode-map (kbd "g") #'helpful-update)
 
