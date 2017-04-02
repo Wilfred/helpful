@@ -89,6 +89,23 @@ This allows us to distinguish strings from symbols."
      :type 'helpful-forget-button)
     (buffer-string)))
 
+(define-button-type 'helpful-disassemble-button
+  'action #'helpful--disassemble
+  'follow-link t
+  'help-echo "Show disassembled bytecode")
+
+(defun helpful--disassemble (_button)
+  "Disassemble the current symbol."
+  (disassemble helpful--sym))
+
+(defun helpful--disassemble-button ()
+  "Return a button that disassembles the current symbol."
+  (with-temp-buffer
+    (insert-text-button
+     "Disassemble bytecode"
+     :type 'helpful-disassemble-button)
+    (buffer-string)))
+
 ;; TODO: consider advising eval-buffer to add the current directory to
 ;; load-path.
 ;; TODO: looks like we need to byte-compile the file too, load-path
@@ -130,7 +147,9 @@ state of the current symbol."
      (helpful--heading "\n\nDefinition\n")
      (if (stringp source)
          source
-       (helpful--pretty-print source)))
+       (helpful--pretty-print source))
+     "\n\n"
+     (helpful--disassemble-button))
     (goto-char start-pos)))
 
 (defun helpful--skip-advice (docstring)
