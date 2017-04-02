@@ -144,10 +144,11 @@ state of the current symbol."
   (-when-let (docstring (documentation sym))
     (-when-let (docstring-with-usage (help-split-fundoc docstring sym))
       (setq docstring (cdr docstring-with-usage))
-      ;; Advice mutates the docstring, see
-      ;; `advice--make-docstring'. Undo that.
-      ;; TODO: Only do this if the function is advised.
-      (setq docstring (helpful--skip-advice docstring)))
+      (when docstring
+        ;; Advice mutates the docstring, see
+        ;; `advice--make-docstring'. Undo that.
+        ;; TODO: Only do this if the function is advised.
+        (setq docstring (helpful--skip-advice docstring))))
     docstring))
 
 (defun helpful (symbol)
