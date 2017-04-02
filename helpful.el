@@ -41,6 +41,10 @@
       (setq helpful--sym symbol))
     buf))
 
+(defun helpful--heading (text)
+  "Propertize TEXT as a heading."
+  (propertize text 'face 'bold))
+
 (defun helpful-update ()
   "Update the current *Helpful* buffer to the latest
 state of the current symbol."
@@ -50,7 +54,7 @@ state of the current symbol."
     (erase-buffer)
     (insert
      (format "Symbol: %s\n\n" helpful--sym)
-     "Documentation\n"
+     (helpful--heading "Documentation\n")
      (helpful--docstring helpful--sym))
     (goto-char start-pos)))
 
