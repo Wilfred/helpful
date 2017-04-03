@@ -188,6 +188,8 @@ For example, \"(some-func FOO &optional BAR)\"."
     
     (or docstring-usage source-usage)))
 
+;; TODO: propertize arguments and add links to `foo' and Info mentions.
+;; TODO: add button for searching the manual.
 (defun helpful--docstring (sym)
   "Get the docstring for SYM."
   (-when-let (docstring (documentation sym))
