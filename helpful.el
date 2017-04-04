@@ -126,13 +126,64 @@ If the source code cannot be found, return the sexp used."
     (error
      (indirect-function sym))))
 
+(defun helpful--source-path (sym)
+  "Return the path where SYM is defined."
+  (let (buf-and-pos)
+    (ignore-errors
+      (setq buf-and-pos
+            (find-function-noselect sym)))
+    (pcase buf-and-pos
+      (`(,buf . ,_) (abbreviate-file-name (buffer-file-name buf))))))
+
+(defun helpful--reference-positions (sym buf)
+  (-let* ((forms-and-bufs
+           (elisp-refs--search-1
+            (list buf)
+            (lambda (buf)
+              (elisp-refs--read-and-find buf sym #'elisp-refs--function-p))))
+          ;; Since we only searched one buffer, we know that
+          ;; forms-and-bufs has only one item.
+          (forms-and-buf (-first-item forms-and-bufs))
+          ((forms . _buf) forms-and-buf))
+    (--map
+     (-let [(code start-pos end-pos) it]
+       start-pos)
+     forms)))
+
+(defun helpful--position-head (buf pos)
+  "Find position POS in BUF, and return the name of the outer sexp."
+  (with-current-buffer buf
+    (goto-char pos)
+    (let (finished)
+      (while (not finished)
+        (condition-case _err
+            (backward-up-list)
+          (error (setq finished t))))
+      (-take 2 (read buf)))))
+
+(defun helpful--format-position-heads (position-heads)
+  (s-join "\n"
+          (--map (-let [(def name) it]
+                   (format "%s %s"
+                           (propertize (symbol-name def) 'face 'font-lock-keyword-face)
+                           (propertize (symbol-name name) 'face 'font-lock-function-name-face)))
+                 position-heads)))
+
 (defun helpful-update ()
   "Update the current *Helpful* buffer to the latest
 state of the current symbol."
   (interactive)
   (let ((inhibit-read-only t)
         (start-pos (point))
-        (source (helpful--source helpful--sym)))
+        (source (helpful--source helpful--sym))
+        (source-path (helpful--source-path helpful--sym))
+        references)
+    (when source-path
+      (let* ((buf (elisp-refs--contents-buffer source-path))
+             (positions
+              (helpful--reference-positions helpful--sym buf)))
+        (setq references
+              (--map (helpful--position-head buf it) positions))))
     (erase-buffer)
     (insert
      (format "Usage: %s\n\n" (helpful--usage helpful--sym))
@@ -142,7 +193,13 @@ state of the current symbol."
      (helpful--heading "\n\nSymbol Properties\n")
      (or (helpful--format-properties helpful--sym)
          "No properties.")
-     (helpful--heading "\n\nTools\n")
+     (helpful--heading "\n\nReferences\n")
+     (if source-path
+         (format "Defined in %s\n%s\n"
+                 source-path
+                 (helpful--format-position-heads references))
+       "Could not find source file.")
+     (helpful--heading "\nTools\n")
      (helpful--forget-button)
      (helpful--heading "\n\nDefinition\n")
      (if (stringp source)
