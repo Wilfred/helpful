@@ -132,8 +132,14 @@ If the source code cannot be found, return the sexp used."
     (ignore-errors
       (setq buf-and-pos
             (find-function-noselect sym)))
-    (pcase buf-and-pos
-      (`(,buf . ,_) (abbreviate-file-name (buffer-file-name buf))))))
+    (if buf-and-pos
+        (pcase buf-and-pos
+          (`(,buf . ,_) (abbreviate-file-name (buffer-file-name buf))))
+      ;; If it's defined interactively, it may have an edebug property
+      ;; that tells us where it's defined.
+      (-when-let (marker
+                  (get #'helpful--format-position-heads 'edebug))
+        (buffer-file-name (marker-buffer marker))))))
 
 (defun helpful--reference-positions (sym buf)
   (-let* ((forms-and-bufs
