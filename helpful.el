@@ -155,7 +155,7 @@ If the source code cannot be found, return the sexp used."
           (forms-and-buf (-first-item forms-and-bufs))
           ((forms . _buf) forms-and-buf))
     (--map
-     (-let [(code start-pos end-pos) it]
+     (-let [(_code start-pos _end-pos) it]
        start-pos)
      forms)))
 
