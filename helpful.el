@@ -113,33 +113,36 @@ This allows us to distinguish strings from symbols."
 (defun helpful--source (sym)
   "Return the source code of SYM.
 If the source code cannot be found, return the sexp used."
-  (condition-case _err
-      (pcase-let ((`(,buf . ,start-pos) (find-function-noselect sym)))
-        (with-current-buffer buf
-          (save-excursion
-            (goto-char start-pos)
-            (forward-sexp)
-            (buffer-substring start-pos (point)))))
+  (-if-let ((buf . start-pos) (helpful--definition sym))
+      (with-current-buffer buf
+        (save-excursion
+          (goto-char start-pos)
+          (forward-sexp)
+          (buffer-substring start-pos (point))))
     ;; Could not find source -- probably defined interactively, or via
     ;; a macro, or file has changed, or a primitive.
     ;; TODO: offer to download C sources for current version.
-    (error
-     (indirect-function sym))))
+    (indirect-function sym)))
 
-(defun helpful--source-path (sym)
-  "Return the path where SYM is defined."
+(defun helpful--definition (sym)
+  "Return a pair (BUF . POS) where SYM is defined."
   (let (buf-and-pos)
     (ignore-errors
       (setq buf-and-pos
             (find-function-noselect sym)))
     (if buf-and-pos
-        (pcase buf-and-pos
-          (`(,buf . ,_) (abbreviate-file-name (buffer-file-name buf))))
+        buf-and-pos
       ;; If it's defined interactively, it may have an edebug property
       ;; that tells us where it's defined.
       (-when-let (marker
                   (get #'helpful--format-position-heads 'edebug))
-        (buffer-file-name (marker-buffer marker))))))
+        (cons (marker-buffer marker)
+              (marker-position marker))))))
+
+(defun helpful--source-path (sym)
+  "Return the path where SYM is defined."
+  (-when-let (buf-and-pos (helpful--definition sym))
+    (buffer-file-name (car buf-and-pos))))
 
 (defun helpful--reference-positions (sym buf)
   (-let* ((forms-and-bufs
