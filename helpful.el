@@ -186,8 +186,9 @@ state of the current symbol."
               (--map (helpful--position-head buf it) positions))))
     (erase-buffer)
     (insert
-     (format "Usage: %s\n\n" (helpful--usage helpful--sym))
-     (helpful--heading "Documentation\n")
+     (helpful--heading "Signature\n")
+     (helpful--signature helpful--sym)
+     (helpful--heading "\n\nDocumentation\n")
      (or (helpful--docstring helpful--sym)
          "No docstring.")
      (helpful--heading "\n\nSymbol Properties\n")
@@ -223,16 +224,16 @@ state of the current symbol."
         arg-str
       (s-upcase arg-str))))
 
-(defun helpful--usage (sym)
-  "Get the usage for SYM, as a string.
+(defun helpful--signature (sym)
+  "Get the signature for function SYM, as a string.
 For example, \"(some-func FOO &optional BAR)\"."
-  (let (docstring-usage
-        source-usage)
+  (let (docstring-sig
+        source-sig)
     ;; Get the usage from the function definition.
     (let ((formatted-args
            (-map #'helpful--format-argument
                  (help-function-arglist sym))))
-      (setq source-usage
+      (setq source-sig
             (if formatted-args
                 (format "(%s %s)" sym
                         (s-join " " formatted-args))
@@ -241,9 +242,9 @@ For example, \"(some-func FOO &optional BAR)\"."
     ;; If the docstring ends with (fn FOO BAR), extract that.
     (-when-let (docstring (documentation sym))
       (-when-let (docstring-with-usage (help-split-fundoc docstring sym))
-        (setq docstring-usage (car docstring-with-usage))))
+        (setq docstring-sig (car docstring-with-usage))))
     
-    (or docstring-usage source-usage)))
+    (or docstring-sig source-sig)))
 
 ;; TODO: propertize arguments and add links to `foo' and Info mentions.
 ;; TODO: add button for searching the manual.
