@@ -164,7 +164,7 @@ If the source code cannot be found, return the sexp used."
 (defun helpful--format-position-heads (position-heads)
   (s-join "\n"
           (--map (-let [(def name) it]
-                   (format "%s %s"
+                   (format "(%s %s ...)"
                            (propertize (symbol-name def) 'face 'font-lock-keyword-face)
                            (propertize (symbol-name name) 'face 'font-lock-function-name-face)))
                  position-heads)))
