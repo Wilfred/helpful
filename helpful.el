@@ -199,7 +199,7 @@ state of the current symbol."
          (format "Defined in %s\n%s\n"
                  source-path
                  (helpful--format-position-heads references))
-       "Could not find source file.")
+       "Could not find source file.\n")
      (helpful--heading "\nTools\n")
      (helpful--forget-button)
      (helpful--heading "\n\nDefinition\n")
