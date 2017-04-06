@@ -159,6 +159,53 @@ If the source code cannot be found, return the sexp used."
        start-pos)
      forms)))
 
+(defun helpful--all-keymap-syms ()
+  "Return all keymaps defined in this Emacs instance."
+  (let (keymaps)
+    (mapatoms
+     (lambda (sym)
+       (when (and
+              (boundp sym)
+              (keymapp (symbol-value sym))
+              (s-ends-with-p "-mode-map" (symbol-name sym)))
+         (push sym keymaps))))
+    keymaps))
+
+(defun helpful--keymaps-containing (command-sym)
+  (let (matching-keymaps)
+    ;; Look for this command in all majro and minor mode maps.
+    (dolist (keymap (helpful--all-keymap-syms))
+      (let ((keycodes (where-is-internal command-sym
+                                         (list (symbol-value keymap)))))
+        (when keycodes
+          (push (cons keymap
+                      (-map #'key-description keycodes))
+                matching-keymaps))))
+    ;; Look for this command in the global map.
+    (let ((keycodes (where-is-internal command-sym
+                                       (list (current-global-map)))))
+      (when keycodes
+        (push (cons 'global
+                    (-map #'key-description keycodes))
+              matching-keymaps)))
+    matching-keymaps))
+
+(defun helpful--format-keys (command-sym)
+  "Describe all the keys that call COMMAND-SYM."
+  (let (lines)
+    (--each (helpful--keymaps-containing command-sym)
+      (-let [(map . keys) it]
+        (dolist (key keys)
+          (push
+           (format "%s %s"
+                   (propertize (symbol-name map) 'face 'font-lock-variable-name-face)
+                   key)
+           lines))))
+    (if lines
+        (progn
+          (s-join "\n" (-sort #'string< lines)))
+      "This command is not in any keymaps.")))
+
 (defun helpful--position-head (buf pos)
   "Find position POS in BUF, and return the name of the outer sexp."
   (with-current-buffer buf
@@ -199,7 +246,12 @@ state of the current symbol."
      (helpful--signature helpful--sym)
      (helpful--heading "\n\nDocumentation\n")
      (or (helpful--docstring helpful--sym)
-         "No docstring.")
+         "No docstring."))
+    (when (commandp helpful--sym)
+      (insert
+       (helpful--heading "\n\nKey Bindings\n")
+       (helpful--format-keys helpful--sym)))
+    (insert
      (helpful--heading "\n\nSymbol Properties\n")
      (or (helpful--format-properties helpful--sym)
          "No properties.")
