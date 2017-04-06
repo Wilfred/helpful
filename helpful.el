@@ -106,6 +106,14 @@ This allows us to distinguish strings from symbols."
      :type 'helpful-disassemble-button)
     (buffer-string)))
 
+(defun helpful--syntax-highlight (source)
+  "Return a propertized version of elisp SOURCE."
+  (with-temp-buffer
+    (insert source)
+    (delay-mode-hooks (emacs-lisp-mode))
+    (font-lock-ensure)
+    (buffer-string)))
+
 (defun helpful--source (sym)
   "Return the source code of SYM.
 If the source code cannot be found, return the sexp used."
@@ -114,7 +122,7 @@ If the source code cannot be found, return the sexp used."
         (save-excursion
           (goto-char start-pos)
           (forward-sexp)
-          (buffer-substring start-pos (point))))
+          (buffer-substring-no-properties start-pos (point))))
     ;; Could not find source -- probably defined interactively, or via
     ;; a macro, or file has changed, or a primitive.
     ;; TODO: offer to download C sources for current version.
@@ -216,9 +224,8 @@ If the source code cannot be found, return the sexp used."
 (defun helpful--format-position-heads (position-heads)
   (s-join "\n"
           (--map (-let [(def name) it]
-                   (format "(%s %s ...)"
-                           (propertize (symbol-name def) 'face 'font-lock-keyword-face)
-                           (propertize (symbol-name name) 'face 'font-lock-function-name-face)))
+                   (helpful--syntax-highlight
+                    (format "(%s %s ...)" def name)))
                  position-heads)))
 
 (defun helpful-update ()
@@ -261,7 +268,7 @@ state of the current symbol."
      (helpful--forget-button)
      (helpful--heading "\n\nDefinition\n")
      (if (stringp source)
-         source
+         (helpful--syntax-highlight source)
        (helpful--pretty-print source))
      "\n\n"
      (helpful--disassemble-button))
