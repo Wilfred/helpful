@@ -106,10 +106,6 @@ This allows us to distinguish strings from symbols."
      :type 'helpful-disassemble-button)
     (buffer-string)))
 
-;; TODO: consider advising eval-buffer to add the current directory to
-;; load-path.
-;; TODO: looks like we need to byte-compile the file too, load-path
-;; isn't sufficient.
 (defun helpful--source (sym)
   "Return the source code of SYM.
 If the source code cannot be found, return the sexp used."
