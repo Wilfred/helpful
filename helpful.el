@@ -236,6 +236,7 @@ Ensures global keybindings are shown first."
   "Update the current *Helpful* buffer to the latest
 state of the current symbol."
   (interactive)
+  (cl-assert (not (null helpful--sym)))
   (let ((inhibit-read-only t)
         (start-pos (point))
         (source (helpful--source helpful--sym))
