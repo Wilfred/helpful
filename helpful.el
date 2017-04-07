@@ -246,7 +246,8 @@ state of the current symbol."
              (positions
               (helpful--reference-positions helpful--sym buf)))
         (setq references
-              (--map (helpful--position-head buf it) positions))))
+              (--map (helpful--position-head buf it) positions))
+        (kill-buffer buf)))
     (erase-buffer)
     (insert
      (helpful--heading "Signature\n")
