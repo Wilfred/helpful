@@ -343,10 +343,11 @@ For example, \"(some-func FOO &optional BAR)\"."
   (switch-to-buffer (helpful--buffer symbol))
   (helpful-update))
 
-(define-derived-mode helpful-mode special-mode "Helpful")
+(define-derived-mode helpful-mode special-mode "Helpful"
+  "Major mode for *Helpful* buffers."
+  (add-hook 'xref-backend-functions #'elisp--xref-backend nil t))
 
 (define-key helpful-mode-map (kbd "g") #'helpful-update)
-
 
 (provide 'helpful)
 ;;; helpful.el ends here
