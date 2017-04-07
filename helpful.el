@@ -57,8 +57,8 @@ This allows us to distinguish strings from symbols."
   (let* ((syms-and-vals
           (-partition 2 (symbol-plist symbol)))
          (lines
-          (--map
-           (-let [(sym val) it]
+          (-map
+           (-lambda ((sym val))
              (format "%s %s"
                      (propertize (symbol-name sym)
                                  'face 'font-lock-constant-face)
@@ -227,10 +227,10 @@ Ensures global keybindings are shown first."
 
 (defun helpful--format-position-heads (position-heads)
   (s-join "\n"
-          (--map (-let [(def name) it]
-                   (helpful--syntax-highlight
-                    (format "(%s %s ...)" def name)))
-                 position-heads)))
+          (-map (-lambda ((def name))
+                  (helpful--syntax-highlight
+                   (format "(%s %s ...)" def name)))
+                position-heads)))
 
 (defun helpful-update ()
   "Update the current *Helpful* buffer to the latest
