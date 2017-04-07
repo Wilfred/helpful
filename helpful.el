@@ -195,8 +195,10 @@ If the source code cannot be found, return the sexp used."
     matching-keymaps))
 
 (defun helpful--format-keys (command-sym)
-  "Describe all the keys that call COMMAND-SYM."
-  (let (lines)
+  "Describe all the keys that call COMMAND-SYM.
+Ensures global keybindings are shown first."
+  (let (mode-lines
+        global-lines)
     (--each (helpful--keymaps-containing command-sym)
       (-let [(map . keys) it]
         (dolist (key keys)
@@ -204,11 +206,13 @@ If the source code cannot be found, return the sexp used."
            (format "%s %s"
                    (propertize (symbol-name map) 'face 'font-lock-variable-name-face)
                    key)
-           lines))))
-    (if lines
-        (progn
-          (s-join "\n" (-sort #'string< lines)))
-      "This command is not in any keymaps.")))
+           (if (eq map 'global) global-lines mode-lines)))))
+    (setq global-lines (-sort #'string< global-lines))
+    (setq mode-lines (-sort #'string< mode-lines))
+    (-let [lines (-concat global-lines mode-lines)]
+      (if lines
+          (s-join "\n" lines)
+        "This command is not in any keymaps."))))
 
 (defun helpful--position-head (buf pos)
   "Find position POS in BUF, and return the name of the outer sexp."
