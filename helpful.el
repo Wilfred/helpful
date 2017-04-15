@@ -114,6 +114,7 @@ This allows us to distinguish strings from symbols."
     (font-lock-ensure)
     (buffer-string)))
 
+;; TODO: allow RET to go the relevant line of code.
 (defun helpful--source (sym)
   "Return the source code of SYM.
 If the source code cannot be found, return the sexp used."
@@ -254,6 +255,8 @@ state of the current symbol."
      (helpful--heading "Signature\n")
      (helpful--signature helpful--sym)
      (helpful--heading "\n\nDocumentation\n")
+     ;; TODO: a link to find this symbol in the manual, much like
+     ;; helpfns+ or counsel-info-lookup-symbol.
      (or (helpful--docstring helpful--sym)
          "No docstring."))
     (when (commandp helpful--sym)
