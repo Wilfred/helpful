@@ -160,8 +160,7 @@ If the source code cannot be found, return the sexp used."
           (forms-and-buf (-first-item forms-and-bufs))
           ((forms . _buf) forms-and-buf))
     (--map
-     (-let [(_code start-pos _end-pos) it]
-       start-pos)
+     (-lambda ((_code start-pos _end-pos)) start-pos)
      forms)))
 
 (defun helpful--all-keymap-syms ()
