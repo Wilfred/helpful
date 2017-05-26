@@ -139,8 +139,7 @@ If the source code cannot be found, return the sexp used."
         buf-and-pos
       ;; If it's defined interactively, it may have an edebug property
       ;; that tells us where it's defined.
-      (-when-let (marker
-                  (get #'helpful--format-position-heads 'edebug))
+      (-when-let (marker (get sym 'edebug))
         (cons (marker-buffer marker)
               (marker-position marker))))))
 
