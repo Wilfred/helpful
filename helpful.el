@@ -86,7 +86,7 @@ This allows us to distinguish strings from symbols."
   "Return a button that unbinds the current symbol"
   (with-temp-buffer
     (insert-text-button
-     "Forget"
+     "Forget function"
      :type 'helpful-forget-button)
     (buffer-string)))
 
@@ -272,14 +272,14 @@ state of the current symbol."
                  source-path
                  (helpful--format-position-heads references))
        "Could not find source file.\n")
-     (helpful--heading "\nTools\n")
-     (helpful--forget-button)
      (helpful--heading "\n\nDefinition\n")
      (if (stringp source)
          (helpful--syntax-highlight source)
        (helpful--pretty-print source))
      "\n\n"
-     (helpful--disassemble-button))
+     (helpful--disassemble-button)
+     " "
+     (helpful--forget-button))
     (goto-char start-pos)))
 
 (defun helpful--skip-advice (docstring)
