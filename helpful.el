@@ -5,7 +5,7 @@
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
 ;; Keywords: help, lisp
 ;; Version: 0.1
-;; Package-Requires: ((dash "2.12.0") (s "1.11.0"))
+;; Package-Requires: ((dash "2.12.0") (s "1.11.0") (elisp-refs "1.2"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@
 
 ;;; Code:
 
+(require 'elisp-refs)
 (require 'help)
 (require 'dash)
 (require 's)
