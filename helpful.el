@@ -269,7 +269,7 @@ state of the current symbol."
      (helpful--heading "\n\nReferences\n")
      (if source-path
          (format "Defined in %s\n%s\n"
-                 source-path
+                 (abbreviate-file-name source-path)
                  (helpful--format-position-heads references))
        "Could not find source file.\n")
      (helpful--heading "\n\nDefinition\n")
