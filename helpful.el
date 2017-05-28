@@ -334,7 +334,7 @@ For example, \"(some-func FOO &optional BAR)\"."
 (defun helpful--read-fn-symbol ()
   (let ((sym-here (symbol-at-point)))
     (read (completing-read "Symbol: " obarray
-                           nil nil nil nil
+                           #'fboundp nil nil nil
                            (when (fboundp sym-here)
                              (symbol-name sym-here))))))
 
