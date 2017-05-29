@@ -107,6 +107,32 @@ This allows us to distinguish strings from symbols."
      :type 'helpful-disassemble-button)
     (buffer-string)))
 
+(define-button-type 'helpful-navigate-button
+  'action #'helpful--navigate
+  'path nil
+  'position nil
+  'follow-link t
+  'help-echo "Navigate to definition")
+
+(defun helpful--navigate (button)
+  "Navigate to the path this button represents."
+  (find-file (button-get button 'path))
+  ;; We use `get-text-property' to work around an Emacs 25 bug:
+  ;; http://git.savannah.gnu.org/cgit/emacs.git/commit/?id=f7c4bad17d83297ee9a1b57552b1944020f23aea
+  (-when-let (pos (get-text-property button 'position
+                                     (marker-buffer button)))
+    (goto-char pos)))
+
+(defun helpful--navigate-button (path &optional pos)
+  "Return a button that opens PATH and puts point at POS."
+  (with-temp-buffer
+    (insert-text-button
+     (abbreviate-file-name path)
+     :type 'helpful-navigate-button
+     'path path
+     'position pos)
+    (buffer-string)))
+
 (defun helpful--syntax-highlight (source)
   "Return a propertized version of elisp SOURCE."
   (with-temp-buffer
@@ -146,8 +172,13 @@ If the source code cannot be found, return the sexp used."
 
 (defun helpful--source-path (sym)
   "Return the path where SYM is defined."
-  (-when-let (buf-and-pos (helpful--definition sym))
-    (buffer-file-name (car buf-and-pos))))
+  (-when-let ((buf . pos) (helpful--definition sym))
+    (buffer-file-name buf)))
+
+(defun helpful--source-pos (sym)
+  "Return the file position where SYM is defined."
+  (-when-let ((buf . pos) (helpful--definition sym))
+    pos))
 
 (defun helpful--reference-positions (sym buf)
   (-let* ((forms-and-bufs
@@ -269,7 +300,9 @@ state of the current symbol."
      (helpful--heading "\n\nReferences\n")
      (if source-path
          (format "Defined in %s\n%s\n"
-                 (abbreviate-file-name source-path)
+                 (helpful--navigate-button
+                  source-path
+                  (helpful--source-pos helpful--sym))
                  (helpful--format-position-heads references))
        "Could not find source file.\n")
      (helpful--heading "\n\nDefinition\n")
