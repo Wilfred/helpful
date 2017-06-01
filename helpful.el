@@ -279,7 +279,7 @@ state of the current symbol."
              (positions
               (helpful--reference-positions helpful--sym buf)))
         (setq references
-              (--map (helpful--position-head buf it) positions))
+              (-uniq (--map (helpful--position-head buf it) positions)))
         (kill-buffer buf)))
     (erase-buffer)
     (insert
@@ -300,7 +300,7 @@ state of the current symbol."
          "No properties.")
      (helpful--heading "\n\nReferences\n")
      (if source-path
-         (format "Defined in %s\n%s\n"
+         (format "Defined in %s\n\nCallers:\n%s\n"
                  (helpful--navigate-button
                   source-path
                   (helpful--source-pos helpful--sym))
