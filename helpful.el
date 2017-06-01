@@ -181,6 +181,7 @@ If the source code cannot be found, return the sexp used."
     pos))
 
 (defun helpful--reference-positions (sym buf)
+  "Return all the buffer positions of references to SYM in BUF."
   (-let* ((forms-and-bufs
            (elisp-refs--search-1
             (list buf)
