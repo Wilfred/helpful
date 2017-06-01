@@ -190,7 +190,7 @@ If the source code cannot be found, return the sexp used."
           ;; forms-and-bufs has only one item.
           (forms-and-buf (-first-item forms-and-bufs))
           ((forms . _buf) forms-and-buf))
-    (--map
+    (-map
      (-lambda ((_code start-pos _end-pos)) start-pos)
      forms)))
 
