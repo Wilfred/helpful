@@ -322,7 +322,7 @@ state of the current symbol."
      (helpful--heading "\n\nDefinition\n")
      (if (stringp source)
          (helpful--syntax-highlight source)
-       (helpful--pretty-print source))
+       (helpful--syntax-highlight (helpful--pretty-print source)))
      "\n\n"
      (helpful--disassemble-button)
      " "
