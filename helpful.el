@@ -180,8 +180,10 @@ If the source code cannot be found, return the sexp used."
   (-when-let ((buf . pos) (helpful--definition sym))
     pos))
 
-(defun helpful--reference-positions (sym buf)
+(cl-defun helpful--reference-positions (sym buf)
   "Return all the buffer positions of references to SYM in BUF."
+  (when (subrp (symbol-function sym))
+    (cl-return-from helpful--reference-positions nil))
   (-let* ((forms-and-bufs
            (elisp-refs--search-1
             (list buf)
