@@ -271,7 +271,7 @@ E.g. (x x y z y) -> ((x . 2) (y . 2) (z . 1))"
 POSITION-HEADS takes the form ((defun foo) (defun bar))."
   (->> (helpful--count-values position-heads)
        (-map (-lambda (((def name) . count))
-               (format "(%s %s ...)\t;; %d reference%s"
+               (format "(%s %s ...)\t; %d reference%s"
                        def name count (if (> count 1) "s" ""))))
        (-map #'helpful--syntax-highlight)
        (s-join "\n")))
