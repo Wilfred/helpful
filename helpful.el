@@ -312,14 +312,19 @@ state of the current symbol."
          "No properties.")
      (helpful--heading "\n\nReferences\n")
      (if source-path
-         (format "Defined in %s\n\nCallers in %s:\n%s\n"
+         (format "Callers in %s:\n%s"
+                 (f-filename source-path)
+                 (helpful--format-position-heads references))
+       "Could not find source file.")
+     (helpful--heading "\n\nSource Code\n")
+     (if source-path
+         (concat (helpful--syntax-highlight ";; Defined in ")
                  (helpful--navigate-button
                   source-path
                   (helpful--source-pos helpful--sym))
-                 (f-filename source-path)
-                 (helpful--format-position-heads references))
-       "Could not find source file.\n")
-     (helpful--heading "\n\nDefinition\n")
+                 "\n")
+       (helpful--syntax-highlight
+        (format ";; Source file is unknown\n")))
      (if (stringp source)
          (helpful--syntax-highlight source)
        (helpful--syntax-highlight (helpful--pretty-print source)))
