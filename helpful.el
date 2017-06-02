@@ -170,11 +170,13 @@ This allows us to distinguish strings from symbols."
    docstring
    t t))
 
-(defun helpful--syntax-highlight (source)
-  "Return a propertized version of elisp SOURCE."
+(defun helpful--syntax-highlight (source &optional major-mode)
+  "Return a propertized version of SOURCE in MAJOR-MODE."
+  (unless major-mode
+    (setq major-mode #'emacs-lisp-mode))
   (with-temp-buffer
     (insert source)
-    (delay-mode-hooks (emacs-lisp-mode))
+    (delay-mode-hooks (funcall major-mode))
     (font-lock-ensure)
     (buffer-string)))
 
@@ -185,11 +187,13 @@ If the source code cannot be found, return the sexp used."
   (-if-let ((buf . start-pos) (helpful--definition sym))
       (with-current-buffer buf
         (save-excursion
-          (goto-char start-pos)
-          (forward-sexp)
-          (buffer-substring-no-properties start-pos (point))))
+          (save-restriction
+            (goto-char start-pos)
+            (narrow-to-defun)
+            (buffer-substring-no-properties (point-min) (point-max)))))
     ;; Could not find source -- probably defined interactively, or via
-    ;; a macro, or file has changed, or a primitive.
+    ;; a macro, or file has changed.
+    ;; TODO: verify that the source hasn't changed before showing.
     ;; TODO: offer to download C sources for current version.
     (indirect-function sym)))
 
@@ -219,7 +223,7 @@ If the source code cannot be found, return the sexp used."
 
 (cl-defun helpful--reference-positions (sym buf)
   "Return all the buffer positions of references to SYM in BUF."
-  (when (subrp (symbol-function sym))
+  (when (helpful--primitive-p sym)
     (cl-return-from helpful--reference-positions nil))
   (-let* ((forms-and-bufs
            (elisp-refs--search-1
@@ -315,6 +319,10 @@ POSITION-HEADS takes the form ((defun foo) (defun bar))."
        (-map #'helpful--syntax-highlight)
        (s-join "\n")))
 
+(defun helpful--primitive-p (sym)
+  "Return t if SYM is defined in C."
+  (subrp (symbol-function sym)))
+
 (defun helpful-update ()
   "Update the current *Helpful* buffer to the latest
 state of the current symbol."
@@ -357,6 +365,7 @@ state of the current symbol."
                  (helpful--format-position-heads references))
        "Could not find source file.")
      (helpful--heading "\n\nSource Code\n")
+     ;; TODO: Use // comments for primitives.
      (if source-path
          (concat (helpful--syntax-highlight ";; Defined in ")
                  (helpful--navigate-button
@@ -366,7 +375,10 @@ state of the current symbol."
        (helpful--syntax-highlight
         (format ";; Source file is unknown\n")))
      (if (stringp source)
-         (helpful--syntax-highlight source)
+         (helpful--syntax-highlight
+          source
+          (if (helpful--primitive-p helpful--sym)
+              'c-mode))
        (helpful--syntax-highlight (helpful--pretty-print source)))
      "\n\n"
      (helpful--disassemble-button)
