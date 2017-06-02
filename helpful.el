@@ -257,12 +257,24 @@ Ensures global keybindings are shown first."
           (error (setq finished t))))
       (-take 2 (read buf)))))
 
+(defun helpful--count-values (items)
+  "Return an alist of the count of each value in ITEMS.
+E.g. (x x y z y) -> ((x . 2) (y . 2) (z . 1))"
+  (let (counts)
+    (dolist (item items (nreverse counts))
+      (-if-let (item-and-count (assoc item counts))
+          (setcdr item-and-count (1+ (cdr item-and-count)))
+        (push (cons item 1) counts)))))
+
 (defun helpful--format-position-heads (position-heads)
-  (s-join "\n"
-          (-map (-lambda ((def name))
-                  (helpful--syntax-highlight
-                   (format "(%s %s ...)" def name)))
-                position-heads)))
+  "Given a list of outer sexps, format them for display.
+POSITION-HEADS takes the form ((defun foo) (defun bar))."
+  (->> (helpful--count-values position-heads)
+       (-map (-lambda (((def name) . count))
+               (format "(%s %s ...)\t;; %d reference%s"
+                       def name count (if (> count 1) "s" ""))))
+       (-map #'helpful--syntax-highlight)
+       (s-join "\n")))
 
 (defun helpful-update ()
   "Update the current *Helpful* buffer to the latest
@@ -279,7 +291,7 @@ state of the current symbol."
              (positions
               (helpful--reference-positions helpful--sym buf)))
         (setq references
-              (-uniq (--map (helpful--position-head buf it) positions)))
+              (--map (helpful--position-head buf it) positions))
         (kill-buffer buf)))
     (erase-buffer)
     (insert
@@ -300,10 +312,11 @@ state of the current symbol."
          "No properties.")
      (helpful--heading "\n\nReferences\n")
      (if source-path
-         (format "Defined in %s\n\nCallers:\n%s\n"
+         (format "Defined in %s\n\nCallers in %s:\n%s\n"
                  (helpful--navigate-button
                   source-path
                   (helpful--source-pos helpful--sym))
+                 (f-filename source-path)
                  (helpful--format-position-heads references))
        "Could not find source file.\n")
      (helpful--heading "\n\nDefinition\n")
