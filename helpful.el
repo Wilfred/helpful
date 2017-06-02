@@ -133,6 +133,43 @@ This allows us to distinguish strings from symbols."
      'position pos)
     (buffer-string)))
 
+(define-button-type 'helpful-describe-button
+  'action #'helpful--describe
+  'symbol nil
+  'follow-link t
+  'help-echo "Describe this symbol")
+
+(defun helpful--describe (button)
+  "Describe the symbol that this button represents."
+  (let ((sym (button-get button 'symbol)))
+    (if (fboundp sym)
+        (helpful sym)
+      (describe-variable sym))))
+
+(defun helpful--describe-button (sym)
+  "Return a button that describes SYM."
+  (with-temp-buffer
+    (insert-text-button
+     (symbol-name sym)
+     :type 'helpful-describe-button
+     'symbol sym)
+    (buffer-string)))
+
+;; TODO: Major mode keymap insertion.
+;; TODO: Remove (fn FOO BAR) at the end.
+;; TODO: fix upstream Emacs bug that means `-map' is not highlighted
+;; in the docstring for `--map'.
+(defun helpful--format-docstring (docstring)
+  "Replace cross-references with links in DOCSTRING."
+  (replace-regexp-in-string
+   (rx "`" symbol-start (+? anything) symbol-end "'")
+   (lambda (it)
+     (let ((sym-name
+            (s-chop-prefix "`" (s-chop-suffix "'" it))))
+       (helpful--describe-button (read sym-name))))
+   docstring
+   t t))
+
 (defun helpful--syntax-highlight (source)
   "Return a propertized version of elisp SOURCE."
   (with-temp-buffer
@@ -302,8 +339,9 @@ state of the current symbol."
      (helpful--heading "\n\nDocumentation\n")
      ;; TODO: a link to find this symbol in the manual, much like
      ;; helpfns+ or counsel-info-lookup-symbol.
-     (or (helpful--docstring helpful--sym)
-         "No docstring."))
+     (-if-let (docstring (helpful--docstring helpful--sym))
+         (helpful--format-docstring docstring)
+       "No docstring."))
     (when (commandp helpful--sym)
       (insert
        (helpful--heading "\n\nKey Bindings\n")
