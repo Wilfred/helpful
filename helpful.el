@@ -342,7 +342,11 @@ state of the current symbol."
         (kill-buffer buf)))
     (erase-buffer)
     (insert
-     (helpful--heading "Signature\n")
+     
+     (helpful--heading
+      (if (macrop helpful--sym)
+          "Macro Signature\n"
+        "Function Signature\n"))
      (helpful--signature helpful--sym)
      (helpful--heading "\n\nDocumentation\n")
      ;; TODO: a link to find this symbol in the manual, much like
@@ -436,17 +440,24 @@ For example, \"(some-func FOO &optional BAR)\"."
         (setq docstring (helpful--skip-advice docstring))))
     docstring))
 
-(defun helpful--read-fn-symbol ()
+(defun helpful--read-symbol (prompt predicate)
   (let ((sym-here (symbol-at-point)))
-    (read (completing-read "Symbol: " obarray
-                           #'fboundp nil nil nil
-                           (when (fboundp sym-here)
+    (read (completing-read prompt obarray
+                           predicate nil nil nil
+                           (when (funcall predicate sym-here)
                              (symbol-name sym-here))))))
 
-(defun helpful (symbol)
-  "Show Help for SYMBOL."
+(defun helpful-function (symbol)
+  "Show help for function named SYMBOL."
   (interactive
-   (list (helpful--read-fn-symbol)))
+   (list (helpful--read-symbol "Function:" #'functionp)))
+  (switch-to-buffer (helpful--buffer symbol))
+  (helpful-update))
+
+(defun helpful-macro (symbol)
+  "Show help for macro named SYMBOL."
+  (interactive
+   (list (helpful--read-symbol "Macro:" #'macrop)))
   (switch-to-buffer (helpful--buffer symbol))
   (helpful-update))
 
