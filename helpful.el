@@ -388,9 +388,12 @@ state of the current symbol."
           (if (helpful--primitive-p helpful--sym)
               'c-mode))
        (helpful--syntax-highlight (helpful--pretty-print source)))
-     "\n\n"
-     (helpful--disassemble-button)
-     " "
+     "\n"
+     (if (helpful--primitive-p helpful--sym)
+         ""
+       (concat
+        (helpful--disassemble-button)
+        " "))
      (helpful--forget-button))
     (goto-char start-pos)))
 
