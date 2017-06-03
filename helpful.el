@@ -366,10 +366,11 @@ state of the current symbol."
      (cond
       ((and source-path references)
        (format "Callers in %s:\n%s"
+               (helpful--navigate-button source-path 0)
                (helpful--format-position-heads references)))
       (source-path
        (format "No callers found in %s."
-               (f-filename source-path)))
+               (helpful--navigate-button source-path 0)))
       (t
        "Could not find source file."))
      (helpful--heading "\n\nSource Code\n")
