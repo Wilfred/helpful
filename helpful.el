@@ -455,6 +455,13 @@ For example, \"(some-func FOO &optional BAR)\"."
   (switch-to-buffer (helpful--buffer symbol))
   (helpful-update))
 
+(defun helpful-command (symbol)
+  "Show help for interactive function named SYMBOL."
+  (interactive
+   (list (helpful--read-symbol "Command:" #'commandp)))
+  (switch-to-buffer (helpful--buffer symbol))
+  (helpful-update))
+
 (defun helpful-macro (symbol)
   "Show help for macro named SYMBOL."
   (interactive
