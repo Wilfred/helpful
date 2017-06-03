@@ -363,11 +363,15 @@ state of the current symbol."
      (or (helpful--format-properties helpful--sym)
          "No properties.")
      (helpful--heading "\n\nReferences\n")
-     (if source-path
-         (format "Callers in %s:\n%s"
-                 (f-filename source-path)
-                 (helpful--format-position-heads references))
-       "Could not find source file.")
+     (cond
+      ((and source-path references)
+       (format "Callers in %s:\n%s"
+               (helpful--format-position-heads references)))
+      (source-path
+       (format "No callers found in %s."
+               (f-filename source-path)))
+      (t
+       "Could not find source file."))
      (helpful--heading "\n\nSource Code\n")
      ;; TODO: Use // comments for primitives.
      (if source-path
