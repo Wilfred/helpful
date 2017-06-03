@@ -447,6 +447,7 @@ For example, \"(some-func FOO &optional BAR)\"."
                            (when (funcall predicate sym-here)
                              (symbol-name sym-here))))))
 
+;; TODO: it would be nice to support variables too.
 (defun helpful-function (symbol)
   "Show help for function named SYMBOL."
   (interactive
