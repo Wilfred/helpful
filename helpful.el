@@ -300,7 +300,8 @@ Ensures global keybindings are shown first."
         "This command is not in any keymaps."))))
 
 (defun helpful--position-head (buf pos)
-  "Find position POS in BUF, and return the name of the outer sexp."
+  "Find position POS in BUF, and return the name of the outer sexp,
+along with its position."
   (with-current-buffer buf
     (goto-char pos)
     (let (finished)
@@ -308,7 +309,7 @@ Ensures global keybindings are shown first."
         (condition-case _err
             (backward-up-list)
           (error (setq finished t))))
-      (-take 2 (read buf)))))
+      (list (point) (-take 2 (read buf))))))
 
 (defun helpful--count-values (items)
   "Return an alist of the count of each value in ITEMS.
@@ -319,14 +320,22 @@ E.g. (x x y z y) -> ((x . 2) (y . 2) (z . 1))"
           (setcdr item-and-count (1+ (cdr item-and-count)))
         (push (cons item 1) counts)))))
 
-(defun helpful--format-position-heads (position-heads)
+(defun helpful--format-reference (head ref-count position path)
+  (-let ((def name) head)
+    (propertize
+     (helpful--syntax-highlight
+      (format "(%s %s ...)\t; %d reference%s"
+              def name ref-count
+              (if (> ref-count 1) "s" "")))
+     'helpful-path path
+     'helpful-pos position)))
+
+(defun helpful--format-position-heads (position-heads path)
   "Given a list of outer sexps, format them for display.
-POSITION-HEADS takes the form ((defun foo) (defun bar))."
+POSITION-HEADS takes the form ((123 (defun foo)) (456 (defun bar)))."
   (->> (helpful--count-values position-heads)
-       (-map (-lambda (((def name) . count))
-               (format "(%s %s ...)\t; %d reference%s"
-                       def name count (if (> count 1) "s" ""))))
-       (-map #'helpful--syntax-highlight)
+       (-map (-lambda (((pos head) . count))
+               (helpful--format-reference head count pos path)))
        (s-join "\n")))
 
 (defun helpful--primitive-p (sym)
@@ -379,7 +388,7 @@ state of the current symbol."
       ((and source-path references)
        (format "Callers in %s:\n%s"
                (helpful--navigate-button source-path 0)
-               (helpful--format-position-heads references)))
+               (helpful--format-position-heads references source-path)))
       (source-path
        (format "No callers found in %s."
                (helpful--navigate-button source-path 0)))
@@ -497,7 +506,17 @@ For example, \"(some-func FOO &optional BAR)\"."
   "Major mode for *Helpful* buffers."
   (add-hook 'xref-backend-functions #'elisp--xref-backend nil t))
 
+(defun helpful-visit-reference ()
+  "Go to the reference at point."
+  (interactive)
+  (let* ((path (get-text-property (point) 'helpful-path))
+         (pos (get-text-property (point) 'helpful-pos)))
+    (when (and path pos)
+      (find-file path)
+      (goto-char pos))))
+
 (define-key helpful-mode-map (kbd "g") #'helpful-update)
+(define-key helpful-mode-map (kbd "RET") #'helpful-visit-reference)
 
 (provide 'helpful)
 ;;; helpful.el ends here
