@@ -144,6 +144,30 @@ This allows us to distinguish strings from symbols."
      'position pos)
     (buffer-string)))
 
+(define-button-type 'helpful-all-references-button
+  'action #'helpful--all-references
+  'symbol nil
+  'follow-link t
+  'help-echo "Find all references to this symbol")
+
+(defun helpful--all-references (button)
+  "Find all the references to the symbol that this button represents."
+  (let ((sym (button-get button 'symbol)))
+    (cond
+     ((functionp sym)
+      (elisp-refs-function sym))
+     ((macrop sym)
+      (elisp-refs-macro sym)))))
+
+(defun helpful--all-references-button (sym)
+  "Return a button that finds all references to SYM."
+  (with-temp-buffer
+    (insert-text-button
+     "All references"
+     :type 'helpful-all-references-button
+     'symbol sym)
+    (buffer-string)))
+
 (define-button-type 'helpful-describe-button
   'action #'helpful--describe
   'symbol nil
@@ -391,6 +415,8 @@ state of the current symbol."
                (helpful--navigate-button source-path 0)))
       (t
        "Could not find source file."))
+     "\n\n"
+     (helpful--all-references-button helpful--sym)
 
      (helpful--heading "\n\nSymbol Properties\n")
      (or (helpful--format-properties helpful--sym)
