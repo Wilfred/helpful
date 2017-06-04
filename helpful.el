@@ -380,9 +380,6 @@ state of the current symbol."
        (helpful--heading "\n\nKey Bindings\n")
        (helpful--format-keys helpful--sym)))
     (insert
-     (helpful--heading "\n\nSymbol Properties\n")
-     (or (helpful--format-properties helpful--sym)
-         "No properties.")
      (helpful--heading "\n\nReferences\n")
      (cond
       ((and source-path references)
@@ -394,6 +391,11 @@ state of the current symbol."
                (helpful--navigate-button source-path 0)))
       (t
        "Could not find source file."))
+
+     (helpful--heading "\n\nSymbol Properties\n")
+     (or (helpful--format-properties helpful--sym)
+         "No properties.")
+
      (helpful--heading "\n\nSource Code\n")
      (if source-path
          (concat
