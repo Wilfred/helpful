@@ -166,8 +166,6 @@ This allows us to distinguish strings from symbols."
      'symbol sym)
     (buffer-string)))
 
-;; TODO: Major mode keymap insertion.
-;; TODO: Remove (fn FOO BAR) at the end.
 ;; TODO: fix upstream Emacs bug that means `-map' is not highlighted
 ;; in the docstring for `--map'.
 (defun helpful--format-docstring (docstring)
@@ -452,7 +450,7 @@ For example, \"(some-func FOO &optional BAR)\"."
     
     (or docstring-sig source-sig)))
 
-;; TODO: propertize arguments and add links to `foo' and Info mentions.
+;; TODO: Info mentions.
 ;; TODO: add button for searching the manual.
 (defun helpful--docstring (sym)
   "Get the docstring for SYM."
