@@ -55,4 +55,4 @@
   ;; test-foo, so remove all properties.
   (setplist #'test-foo-no-properties nil)
 
-  (should (helpful #'test-foo-no-properties)))
+  (should (helpful-function #'test-foo-no-properties)))
