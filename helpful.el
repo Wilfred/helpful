@@ -235,10 +235,8 @@ If the source code cannot be found, return the sexp used."
   (-when-let ((buf . pos) (helpful--definition sym))
     pos))
 
-(cl-defun helpful--reference-positions (sym buf)
+(defun helpful--reference-positions (sym buf)
   "Return all the buffer positions of references to SYM in BUF."
-  (when (helpful--primitive-p sym)
-    (cl-return-from helpful--reference-positions nil))
   (-let* ((forms-and-bufs
            (elisp-refs--search-1
             (list buf)
@@ -350,7 +348,9 @@ state of the current symbol."
     (when source-path
       (let* ((buf (elisp-refs--contents-buffer source-path))
              (positions
-              (helpful--reference-positions helpful--sym buf)))
+              (if (helpful--primitive-p helpful--sym)
+                  nil
+                (helpful--reference-positions helpful--sym buf))))
         (setq references
               (--map (helpful--position-head buf it) positions))
         (kill-buffer buf)))
