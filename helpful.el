@@ -57,11 +57,11 @@
   "Propertize TEXT as a heading."
   (propertize text 'face 'bold))
 
-(defun helpful--pretty-print (val)
+(defun helpful--pretty-print (value)
   "Pretty-print VALUE.
 This allows us to distinguish strings from symbols."
   (with-temp-buffer
-    (cl-prettyprint val)
+    (cl-prettyprint value)
     (s-trim (buffer-string))))
 
 (defun helpful--format-properties (symbol)
@@ -95,11 +95,12 @@ This allows us to distinguish strings from symbols."
       (message "Forgot %s %s" kind sym)
       (kill-buffer (current-buffer)))))
 
-(defun helpful--forget-button (sym)
-  "Return a button that unbinds the current symbol"
+(defun helpful--forget-button (symbol)
+  "Return a button that unbinds SYMBOL."
   (with-temp-buffer
     (insert-text-button
      "Forget"
+     'symbol symbol
      :type 'helpful-forget-button)
     (buffer-string)))
 
