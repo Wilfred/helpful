@@ -81,23 +81,25 @@ This allows us to distinguish strings from symbols."
 
 (define-button-type 'helpful-forget-button
   'action #'helpful--forget
+  'symbol nil
   'follow-link t
   'help-echo "Unbind this function")
 
 ;; TODO: it would be nice to optionally delete the source code too.
-(defun helpful--forget (_button)
+(defun helpful--forget (button)
   "Unbind the current symbol."
-  (when (functionp helpful--sym)
-    (fmakunbound helpful--sym))
-  (makunbound helpful--sym)
-  (message "Forgot function %s" helpful--sym)
-  (kill-buffer (current-buffer)))
+  (let* ((sym (button-get button 'symbol))
+         (kind (if (functionp sym) "function" "macro")))
+    (when (yes-or-no-p (format "Forget %s %s" kind sym))
+      (fmakunbound sym)
+      (message "Forgot %s %s" kind sym)
+      (kill-buffer (current-buffer)))))
 
-(defun helpful--forget-button ()
+(defun helpful--forget-button (sym)
   "Return a button that unbinds the current symbol"
   (with-temp-buffer
     (insert-text-button
-     "Forget function"
+     "Forget"
      :type 'helpful-forget-button)
     (buffer-string)))
 
@@ -426,6 +428,14 @@ state of the current symbol."
      (or (helpful--format-properties helpful--sym)
          "No properties.")
 
+     (helpful--heading "\n\nDebugging Tools\n")
+     (if (helpful--primitive-p helpful--sym)
+         ""
+       (concat
+        (helpful--disassemble-button)
+        "\n"))
+     (helpful--forget-button helpful--sym)
+     
      (helpful--heading "\n\nSource Code\n")
      (if source-path
          (concat
@@ -445,14 +455,7 @@ state of the current symbol."
           source
           (if (helpful--primitive-p helpful--sym)
               'c-mode))
-       (helpful--syntax-highlight (helpful--pretty-print source)))
-     "\n"
-     (if (helpful--primitive-p helpful--sym)
-         ""
-       (concat
-        (helpful--disassemble-button)
-        " "))
-     (helpful--forget-button))
+       (helpful--syntax-highlight (helpful--pretty-print source))))
     (goto-char start-pos)))
 
 (defun helpful--skip-advice (docstring)
