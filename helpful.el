@@ -399,10 +399,14 @@ state of the current symbol."
      (-if-let (docstring (helpful--docstring helpful--sym))
          (helpful--format-docstring docstring)
        "No docstring."))
+
+    ;; Show keybindings.
+    ;; TODO: allow users to conveniently add and remove keybindings.
     (when (commandp helpful--sym)
       (insert
        (helpful--heading "\n\nKey Bindings\n")
        (helpful--format-keys helpful--sym)))
+    
     (insert
      (helpful--heading "\n\nReferences\n")
      (cond
