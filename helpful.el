@@ -286,7 +286,7 @@ If the source code cannot be found, return the sexp used."
 
 (defun helpful--keymaps-containing (command-sym)
   (let (matching-keymaps)
-    ;; Look for this command in all majro and minor mode maps.
+    ;; Look for this command in all major and minor mode maps.
     (dolist (keymap (helpful--all-keymap-syms))
       (let ((keycodes (where-is-internal command-sym
                                          (list (symbol-value keymap)))))
