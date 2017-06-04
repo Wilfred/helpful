@@ -188,7 +188,10 @@ This allows us to distinguish strings from symbols."
   (with-temp-buffer
     (insert source)
     (delay-mode-hooks (funcall major-mode))
-    (font-lock-ensure)
+    (if (fboundp 'font-lock-ensure)
+        (font-lock-ensure)
+      (with-no-warnings
+        (font-lock-fontify-buffer)))
     (buffer-string)))
 
 ;; TODO: allow RET to go the relevant line of code.
