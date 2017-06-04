@@ -388,13 +388,17 @@ state of the current symbol."
       (t
        "Could not find source file."))
      (helpful--heading "\n\nSource Code\n")
-     ;; TODO: Use // comments for primitives.
      (if source-path
-         (concat (helpful--syntax-highlight ";; Defined in ")
-                 (helpful--navigate-button
-                  source-path
-                  (helpful--source-pos helpful--sym))
-                 "\n")
+         (concat
+          (propertize
+           (if (helpful--primitive-p helpful--sym)
+               "// Defined in "
+             ";; Defined in ")
+           'face 'font-lock-comment-face)
+          (helpful--navigate-button
+           source-path
+           (helpful--source-pos helpful--sym))
+          "\n")
        (helpful--syntax-highlight
         (format ";; Source file is unknown\n")))
      (if (stringp source)
