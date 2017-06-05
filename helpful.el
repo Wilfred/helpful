@@ -129,7 +129,7 @@ This allows us to distinguish strings from symbols."
   'help-echo "Navigate to definition")
 
 (defun helpful--navigate (button)
-  "Navigate to the path this button represents."
+  "Navigate to the path this BUTTON represents."
   (find-file (button-get button 'path))
   ;; We use `get-text-property' to work around an Emacs 25 bug:
   ;; http://git.savannah.gnu.org/cgit/emacs.git/commit/?id=f7c4bad17d83297ee9a1b57552b1944020f23aea
@@ -154,7 +154,7 @@ This allows us to distinguish strings from symbols."
   'help-echo "Find all references to this symbol")
 
 (defun helpful--all-references (button)
-  "Find all the references to the symbol that this button represents."
+  "Find all the references to the symbol that this BUTTON represents."
   (let ((sym (button-get button 'symbol)))
     (cond
      ((functionp sym)
@@ -178,7 +178,7 @@ This allows us to distinguish strings from symbols."
   'help-echo "Describe this symbol")
 
 (defun helpful--describe (button)
-  "Describe the symbol that this button represents."
+  "Describe the symbol that this BUTTON represents."
   (let ((sym (button-get button 'symbol)))
     (if (fboundp sym)
         (helpful-function sym)
