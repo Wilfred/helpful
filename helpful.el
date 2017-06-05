@@ -181,7 +181,7 @@ This allows us to distinguish strings from symbols."
   "Describe the symbol that this button represents."
   (let ((sym (button-get button 'symbol)))
     (if (fboundp sym)
-        (helpful sym)
+        (helpful-function sym)
       (describe-variable sym))))
 
 (defun helpful--describe-button (sym)
@@ -206,13 +206,13 @@ This allows us to distinguish strings from symbols."
    docstring
    t t))
 
-(defun helpful--syntax-highlight (source &optional major-mode)
-  "Return a propertized version of SOURCE in MAJOR-MODE."
-  (unless major-mode
-    (setq major-mode #'emacs-lisp-mode))
+(defun helpful--syntax-highlight (source &optional mode)
+  "Return a propertized version of SOURCE in MODE."
+  (unless mode
+    (setq mode #'emacs-lisp-mode))
   (with-temp-buffer
     (insert source)
-    (delay-mode-hooks (funcall major-mode))
+    (delay-mode-hooks (funcall mode))
     (if (fboundp 'font-lock-ensure)
         (font-lock-ensure)
       (with-no-warnings
@@ -348,7 +348,7 @@ E.g. (x x y z y) -> ((x . 2) (y . 2) (z . 1))"
         (push (cons item 1) counts)))))
 
 (defun helpful--format-reference (head ref-count position path)
-  (-let ((def name) head)
+  (-let [(def name) head]
     (propertize
      (helpful--syntax-highlight
       (format "(%s %s ...)\t; %d reference%s"
