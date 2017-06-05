@@ -495,7 +495,7 @@ For example, \"(some-func FOO &optional BAR)\"."
     
     (or docstring-sig source-sig)))
 
-;; TODO: Info mentions.
+;; TODO: Info mentions, e.g. `define-derived-mode'.
 ;; TODO: add button for searching the manual.
 (defun helpful--docstring (sym)
   "Get the docstring for SYM."
