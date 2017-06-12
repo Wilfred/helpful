@@ -541,6 +541,7 @@ For example, \"(some-func FOO &optional BAR)\"."
                              (symbol-name sym-here))))))
 
 ;; TODO: it would be nice to support variables too.
+;;;###autoload
 (defun helpful-function (symbol)
   "Show help for function named SYMBOL."
   (interactive
@@ -548,6 +549,7 @@ For example, \"(some-func FOO &optional BAR)\"."
   (switch-to-buffer (helpful--buffer symbol))
   (helpful-update))
 
+;;;###autoload
 (defun helpful-command (symbol)
   "Show help for interactive function named SYMBOL."
   (interactive
@@ -555,6 +557,7 @@ For example, \"(some-func FOO &optional BAR)\"."
   (switch-to-buffer (helpful--buffer symbol))
   (helpful-update))
 
+;;;###autoload
 (defun helpful-macro (symbol)
   "Show help for macro named SYMBOL."
   (interactive
