@@ -519,8 +519,9 @@ For example, \"(some-func FOO &optional BAR)\"."
     
     (or docstring-sig source-sig)))
 
-;; TODO: Info mentions, e.g. `define-derived-mode'.
-;; TODO: add button for searching the manual.
+;; TODO: Info mentions, e.g. `define-derived-mode' or `defface'.
+;; TODO: for plain symbol, just highlight rather than creating links
+;; e.g. in `defface'.
 (defun helpful--docstring (sym)
   "Get the docstring for SYM."
   (-when-let (docstring (documentation sym))
