@@ -90,9 +90,9 @@ This allows us to distinguish strings from symbols."
   "Unbind the current symbol."
   (let* ((sym (button-get button 'symbol))
          (kind (if (functionp sym) "function" "macro")))
-    (when (yes-or-no-p (format "Forget %s %s" kind sym))
+    (when (yes-or-no-p (format "Forget %s %s?" kind sym))
       (fmakunbound sym)
-      (message "Forgot %s %s" kind sym)
+      (message "Forgot %s %s." kind sym)
       (kill-buffer (current-buffer)))))
 
 (defun helpful--forget-button (symbol)
