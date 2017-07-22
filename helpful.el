@@ -452,18 +452,18 @@ state of the current symbol."
         (kill-buffer buf)))
     (erase-buffer)
     (insert
-     
      (helpful--heading
       (if (macrop helpful--sym)
           "Macro Signature\n"
         "Function Signature\n"))
-     (helpful--signature helpful--sym)
-     (helpful--heading "\n\nDocumentation\n")
-     ;; TODO: a link to find this symbol in the manual, much like
-     ;; helpfns+ or counsel-info-lookup-symbol.
-     (-if-let (docstring (helpful--docstring helpful--sym))
-         (helpful--format-docstring docstring)
-       "No docstring."))
+     (helpful--signature helpful--sym))
+
+    (-when-let (docstring (helpful--docstring helpful--sym))
+      (insert
+       (helpful--heading "\n\nDocumentation\n")
+       ;; TODO: a link to find this symbol in the manual, much like
+       ;; helpfns+ or counsel-info-lookup-symbol.
+       (helpful--format-docstring docstring)))
 
     ;; Show keybindings.
     ;; TODO: allow users to conveniently add and remove keybindings.
@@ -487,11 +487,12 @@ state of the current symbol."
       (t
        "Could not find source file."))
      "\n\n"
-     (helpful--all-references-button helpful--sym)
+     (helpful--all-references-button helpful--sym))
 
-     (helpful--heading "\n\nSymbol Properties\n")
-     (or (helpful--format-properties helpful--sym)
-         "No properties."))
+    (-when-let (formatted-props (helpful--format-properties helpful--sym))
+      (insert
+       (helpful--heading "\n\nSymbol Properties\n")
+       formatted-props))
     
     (when (helpful--advised-p helpful--sym)
       (insert
