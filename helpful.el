@@ -387,6 +387,10 @@ E.g. (x x y z y) -> ((x . 2) (y . 2) (z . 1))"
           (setcdr item-and-count (1+ (cdr item-and-count)))
         (push (cons item 1) counts)))))
 
+(defun helpful--advice (sym)
+  "A list of advice associated with SYM."
+  (advice--symbol-function sym))
+
 (defun helpful--format-reference (head ref-count position path)
   (-let* (((def name) head)
           (formatted-name
@@ -481,8 +485,15 @@ state of the current symbol."
 
      (helpful--heading "\n\nSymbol Properties\n")
      (or (helpful--format-properties helpful--sym)
-         "No properties.")
+         "No properties."))
+    
+    (when (helpful--advice helpful--sym)
+      (insert
+       (helpful--heading "\n\nAdvice\n")
+       (format
+        "This %s is advised." (if (macrop helpful--sym) "macro" "function"))))
 
+    (insert
      (helpful--heading "\n\nDebugging\n")
      (if (helpful--primitive-p helpful--sym)
          ""
