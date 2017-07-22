@@ -31,6 +31,7 @@
 ;; * helpful-function
 ;; * helpful-command
 ;; * helpful-macro
+;; * helpful-at-point
 ;;
 ;; For more information and screenshots, see
 ;; https://github.com/wilfred/helpful
@@ -619,6 +620,22 @@ For example, \"(some-func FOO &optional BAR)\"."
    (list (helpful--read-symbol "Macro:" #'macrop)))
   (switch-to-buffer (helpful--buffer symbol))
   (helpful-update))
+
+;;;###autoload
+(defun helpful-at-point ()
+  "Show help for the callable symbol at point."
+  (interactive)
+  (let ((symbol (symbol-at-point)))
+    (cond
+     ((null symbol)
+      ;; TODO: suggest looking at value help, or nearby symbols, or
+      ;; similarly named symbols
+      (user-error "No symbol found at point"))
+     ((not (fboundp symbol))
+      (user-error "%s is not a function or macro" symbol))
+     (t
+      (switch-to-buffer (helpful--buffer symbol))
+      (helpful-update)))))
 
 (define-derived-mode helpful-mode special-mode "Helpful"
   "Major mode for *Helpful* buffers."
