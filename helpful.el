@@ -75,7 +75,9 @@ This allows us to distinguish strings from symbols."
              (format "%s %s"
                      (propertize (symbol-name sym)
                                  'face 'font-lock-constant-face)
-                     (helpful--pretty-print val)))
+                     (if (eq (type-of val) 'compiled-function)
+                         "#<compiled-function>"
+                       (helpful--pretty-print val))))
            syms-and-vals)))
     (when lines
       (s-join "\n" lines))))
