@@ -373,12 +373,17 @@ E.g. (x x y z y) -> ((x . 2) (y . 2) (z . 1))"
         (push (cons item 1) counts)))))
 
 (defun helpful--format-reference (head ref-count position path)
-  (-let [(def name) head]
+  (-let* (((def name) head)
+          (formatted-def
+           (format "(%s %s ...)" def name))
+          (padded-def
+           (s-pad-right 30 " " formatted-def))
+          (formatted-count
+           (format "; %d reference%s"
+                   ref-count (if (> ref-count 1) "s" ""))))
     (propertize
      (helpful--syntax-highlight
-      (format "(%s %s ...)\t; %d reference%s"
-              def name ref-count
-              (if (> ref-count 1) "s" "")))
+      (format "%s %s" padded-def formatted-count))
      'helpful-path path
      'helpful-pos position)))
 
