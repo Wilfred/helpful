@@ -118,7 +118,7 @@ This allows us to distinguish strings from symbols."
   "Return a button that disassembles the current symbol."
   (with-temp-buffer
     (insert-text-button
-     "Disassemble bytecode"
+     "Disassemble"
      :type 'helpful-disassemble-button)
     (buffer-string)))
 
@@ -464,12 +464,12 @@ state of the current symbol."
      (or (helpful--format-properties helpful--sym)
          "No properties.")
 
-     (helpful--heading "\n\nDebugging Tools\n")
+     (helpful--heading "\n\nDebugging\n")
      (if (helpful--primitive-p helpful--sym)
          ""
        (concat
         (helpful--disassemble-button)
-        "\n"))
+        " "))
      (helpful--forget-button helpful--sym)
      
      (helpful--heading "\n\nSource Code\n")
