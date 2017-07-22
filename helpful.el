@@ -491,8 +491,9 @@ state of the current symbol."
         'face 'font-lock-comment-face))
       (t
        (helpful--syntax-highlight
-        (format ";; Source file is unknown\n"))))
-     (when source
+        (format ";; Source file is unknown\n")))))
+    (when source
+      (insert
        (if (stringp source)
            (helpful--syntax-highlight
             source
