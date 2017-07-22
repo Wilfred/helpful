@@ -56,3 +56,17 @@
   (setplist #'test-foo-no-properties nil)
 
   (should (helpful-function #'test-foo-no-properties)))
+
+(ert-deftest helpful--split-first-line ()
+  ;; Don't modify a single line string.
+  (should
+   (equal (helpful--split-first-line "foo") "foo"))
+  ;; Don't modify a two-line string if we don't end with .
+  (should
+   (equal (helpful--split-first-line "foo\nbar") "foo\nbar"))
+  ;; If the second line is already empty, do nothing.
+  (should
+   (equal (helpful--split-first-line "foo.\n\nbar") "foo.\n\nbar"))
+  ;; But if we have a single sentence and no empy line, insert one.
+  (should
+   (equal (helpful--split-first-line "foo.\nbar") "foo.\n\nbar")))

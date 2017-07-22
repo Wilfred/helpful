@@ -194,6 +194,19 @@ This allows us to distinguish strings from symbols."
      'symbol sym)
     (buffer-string)))
 
+(defun helpful--split-first-line (docstring)
+  "If the first line is a standalone sentence, ensure we have a
+blank line afterwards."
+  (let* ((lines (s-lines docstring))
+         (first-line (-first-item lines))
+         (second-line (when (> (length lines) 1) (nth 1 lines))))
+    (if (and (s-ends-with-p "." first-line)
+             (stringp second-line)
+             (not (equal second-line "")))
+        (s-join "\n"
+                (-cons* first-line "" (cdr lines)))
+      docstring)))
+
 ;; TODO: fix upstream Emacs bug that means `-map' is not highlighted
 ;; in the docstring for `--map'.
 (defun helpful--format-docstring (docstring)
@@ -204,7 +217,7 @@ This allows us to distinguish strings from symbols."
      (let ((sym-name
             (s-chop-prefix "`" (s-chop-suffix "'" it))))
        (helpful--describe-button (read sym-name))))
-   docstring
+   (helpful--split-first-line docstring)
    t t))
 
 (defconst helpful--highlighting-funcs
