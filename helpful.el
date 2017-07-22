@@ -69,6 +69,10 @@ This allows us to distinguish strings from symbols."
   "Return a string describing all the properties of SYMBOL."
   (let* ((syms-and-vals
           (-partition 2 (symbol-plist symbol)))
+         (syms-and-vals
+          (-sort (-lambda ((sym1 _) (sym2 _))
+                   (string-lessp (symbol-name sym1) (symbol-name sym2)))
+                 syms-and-vals))
          (lines
           (-map
            (-lambda ((sym val))
