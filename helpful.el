@@ -387,8 +387,12 @@ E.g. (x x y z y) -> ((x . 2) (y . 2) (z . 1))"
 
 (defun helpful--format-reference (head ref-count position path)
   (-let* (((def name) head)
+          (formatted-name
+           (if (and (consp name) (eq (car name) 'quote))
+               (format "'%S" (cadr name))
+             (format "%S" name)))
           (formatted-def
-           (format "(%s %s ...)" def name))
+           (format "(%s %s ...)" def formatted-name))
           (padded-def
            (s-pad-right 30 " " formatted-def))
           (formatted-count

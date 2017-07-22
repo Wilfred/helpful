@@ -70,3 +70,13 @@
   ;; But if we have a single sentence and no empy line, insert one.
   (should
    (equal (helpful--split-first-line "foo.\nbar") "foo.\n\nbar")))
+
+(ert-deftest helpful--format-reference ()
+  (should
+   (equal
+    (helpful--format-reference '(def foo) 1 123 "/foo/bar.el")
+    "(def foo ...)                  ; 1 reference"))
+  (should
+   (equal
+    (helpful--format-reference '(advice-add 'bar) 1 123 "/foo/bar.el")
+    "(advice-add 'bar ...)          ; 1 reference")))
