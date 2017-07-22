@@ -41,6 +41,7 @@
 (require 'help)
 (require 'dash)
 (require 's)
+(require 'find-func)
 
 (defvar-local helpful--sym nil)
 
@@ -398,11 +399,14 @@ POSITION-HEADS takes the form ((123 (defun foo)) (456 (defun bar)))."
 state of the current symbol."
   (interactive)
   (cl-assert (not (null helpful--sym)))
-  (let ((inhibit-read-only t)
-        (start-pos (point))
-        (source (helpful--source helpful--sym))
-        (source-path (helpful--source-path helpful--sym))
-        references)
+  (let* ((inhibit-read-only t)
+         (start-pos (point))
+         (look-for-src (or (not (helpful--primitive-p helpful--sym))
+                           find-function-C-source-directory))
+         (source (when look-for-src (helpful--source helpful--sym)))
+         (source-path (when look-for-src
+                        (helpful--source-path helpful--sym)))
+         references)
     (when source-path
       (let* ((buf (elisp-refs--contents-buffer source-path))
              (positions
@@ -444,6 +448,8 @@ state of the current symbol."
       (source-path
        (format "No callers found in %s."
                (helpful--navigate-button source-path 0)))
+      ((null find-function-C-source-directory)
+       "C code is not yet loaded.")
       (t
        "Could not find source file."))
      "\n\n"
@@ -462,25 +468,32 @@ state of the current symbol."
      (helpful--forget-button helpful--sym)
      
      (helpful--heading "\n\nSource Code\n")
-     (if source-path
-         (concat
-          (propertize
-           (if (helpful--primitive-p helpful--sym)
-               "// Defined in "
-             ";; Defined in ")
-           'face 'font-lock-comment-face)
-          (helpful--navigate-button
-           source-path
-           (helpful--source-pos helpful--sym))
-          "\n")
+     (cond
+      (source-path
+       (concat
+        (propertize
+         (if (helpful--primitive-p helpful--sym)
+             "// Defined in "
+           ";; Defined in ")
+         'face 'font-lock-comment-face)
+        (helpful--navigate-button
+         source-path
+         (helpful--source-pos helpful--sym))
+        "\n"))
+      ((helpful--primitive-p helpful--sym)
+       (propertize
+        "C code is not yet loaded."
+        'face 'font-lock-comment-face))
+      (t
        (helpful--syntax-highlight
-        (format ";; Source file is unknown\n")))
-     (if (stringp source)
-         (helpful--syntax-highlight
-          source
-          (if (helpful--primitive-p helpful--sym)
-              'c-mode))
-       (helpful--syntax-highlight (helpful--pretty-print source))))
+        (format ";; Source file is unknown\n"))))
+     (when source
+       (if (stringp source)
+           (helpful--syntax-highlight
+            source
+            (if (helpful--primitive-p helpful--sym)
+                'c-mode))
+         (helpful--syntax-highlight (helpful--pretty-print source)))))
     (goto-char start-pos)))
 
 (defun helpful--skip-advice (docstring)
