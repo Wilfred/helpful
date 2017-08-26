@@ -93,3 +93,11 @@
     (should (not (get-text-property m-position 'button formatted)))
     ;; But we should always remove the backticks.
     (should (equal formatted "foo messagexxx."))))
+
+(setq helpful-var-without-defvar 'foo)
+
+(ert-deftest helpful--definition ()
+  "Ensure we don't crash on calling `helpful--definition' on
+variables defined without `defvar'."
+  (helpful--definition 'helpful-var-without-defvar nil))
+

@@ -307,10 +307,11 @@ If the source code cannot be found, return the sexp used."
         ;; If it's defined interactively, it may have an edebug property
         ;; that tells us where it's defined.
         (-when-let (marker (get sym 'edebug))
-          (cons (marker-buffer marker)
-                (marker-position marker)))))
+          (setq buf-and-pos
+                (cons (marker-buffer marker)
+                      (marker-position marker))))))
     (when (not callable-p)
-      (let ((filename (find-lisp-object-file-name sym 'defvar)))
+      (-when-let (filename (find-lisp-object-file-name sym 'defvar))
         (setq buf-and-pos (find-variable-noselect sym filename))))
     buf-and-pos))
 
