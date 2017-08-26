@@ -9,8 +9,8 @@
 (require 'ert)
 (require 'f)
 
-(let ((elisp-refs-dir (f-parent (f-dirname (f-this-file)))))
-  (add-to-list 'load-path elisp-refs-dir))
+(let ((helpful-dir (f-parent (f-dirname (f-this-file)))))
+  (add-to-list 'load-path helpful-dir))
 
 (require 'undercover)
 (undercover "helpful.el"
