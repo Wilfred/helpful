@@ -80,3 +80,16 @@
    (equal
     (helpful--format-reference '(advice-add 'bar) 1 123 "/foo/bar.el")
     "(advice-add 'bar ...)          ; 1 reference")))
+
+(ert-deftest helpful--format-docstring ()
+  "Ensure we create links in docstrings."
+  ;; If it's bound, we should link it.
+  (let* ((formatted (helpful--format-docstring "foo `message'."))
+         (m-position (s-index-of "m" formatted)))
+    (should (get-text-property m-position 'button formatted)))
+  ;; If it's not bound, we should not.
+  (let* ((formatted (helpful--format-docstring "foo `messagexxx'."))
+         (m-position (s-index-of "m" formatted)))
+    (should (not (get-text-property m-position 'button formatted)))
+    ;; But we should always remove the backticks.
+    (should (equal formatted "foo messagexxx."))))
