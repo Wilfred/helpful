@@ -484,11 +484,12 @@ state of the current symbol."
         (if (macrop helpful--sym)
             "Macro Signature\n"
           "Function Signature\n"))
-       (helpful--signature helpful--sym)
-       "\n\n"))
+       (helpful--signature helpful--sym)))
 
     (-when-let (docstring (helpful--docstring
                            helpful--sym helpful--callable-p))
+      (when helpful--callable-p
+        (insert "\n\n"))
       (insert
        (helpful--heading "Documentation\n")
        ;; TODO: a link to find this symbol in the manual, much like
