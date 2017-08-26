@@ -650,15 +650,19 @@ For example, \"(some-func FOO &optional BAR)\"."
   (switch-to-buffer (helpful--buffer symbol t))
   (helpful-update))
 
-;; ;; checking if something is a variable.
-;; (or (get vv 'variable-documentation)
-;;     (and (boundp vv) (not (keywordp vv))))
+(defun helpful--variable-p (symbol)
+  "Return non-nil if SYMBOL is a variable."
+  (or (get symbol 'variable-documentation)
+      (and (boundp symbol)
+           (not (keywordp symbol))
+           (not (eq symbol nil))
+           (not (eq symbol t)))))
 
 ;;;###autoload
 (defun helpful-variable (symbol)
   "Show help for variable named SYMBOL."
   (interactive
-   (list (helpful--read-symbol "Variable:" #'boundp)))
+   (list (helpful--read-symbol "Variable:" #'helpful--variable-p)))
   (switch-to-buffer (helpful--buffer symbol nil))
   (helpful-update))
 
