@@ -170,25 +170,30 @@ This allows us to distinguish strings from symbols."
 (define-button-type 'helpful-all-references-button
   'action #'helpful--all-references
   'symbol nil
+  'callable-p nil
   'follow-link t
   'help-echo "Find all references to this symbol")
 
 (defun helpful--all-references (button)
   "Find all the references to the symbol that this BUTTON represents."
-  (let ((sym (button-get button 'symbol)))
+  (let ((sym (button-get button 'symbol))
+        (callable-p (button-get button 'callable-p)))
     (cond
+     ((not callable-p)
+      (elisp-refs-variable sym))
      ((functionp sym)
       (elisp-refs-function sym))
      ((macrop sym)
       (elisp-refs-macro sym)))))
 
-(defun helpful--all-references-button (sym)
+(defun helpful--all-references-button (sym callable-p)
   "Return a button that finds all references to SYM."
   (with-temp-buffer
     (insert-text-button
      "All references"
      :type 'helpful-all-references-button
-     'symbol sym)
+     'symbol sym
+     'callable-p callable-p)
     (buffer-string)))
 
 (define-button-type 'helpful-describe-button
@@ -326,13 +331,17 @@ If the source code cannot be found, return the sexp used."
   (-when-let ((buf . pos) (helpful--definition sym callable-p))
     pos))
 
-(defun helpful--reference-positions (sym buf)
+(defun helpful--reference-positions (sym callable-p buf)
   "Return all the buffer positions of references to SYM in BUF."
   (-let* ((forms-and-bufs
            (elisp-refs--search-1
             (list buf)
             (lambda (buf)
-              (elisp-refs--read-and-find buf sym #'elisp-refs--function-p))))
+              (elisp-refs--read-and-find
+               buf sym
+               (if callable-p
+                   #'elisp-refs--function-p
+                 #'elisp-refs--variable-p)))))
           ;; Since we only searched one buffer, we know that
           ;; forms-and-bufs has only one item.
           (forms-and-buf (-first-item forms-and-bufs))
@@ -474,7 +483,8 @@ state of the current symbol."
              (positions
               (if primitive-p
                   nil
-                (helpful--reference-positions helpful--sym buf))))
+                (helpful--reference-positions
+                 helpful--sym helpful--callable-p buf))))
         (setq references
               (--map (helpful--position-head buf it) positions))
         (kill-buffer buf)))
@@ -508,18 +518,18 @@ state of the current symbol."
      (helpful--heading "\n\nReferences\n")
      (cond
       ((and source-path references)
-       (format "Callers in %s:\n%s"
+       (format "References in %s:\n%s"
                (helpful--navigate-button source-path 0)
                (helpful--format-position-heads references source-path)))
       (source-path
-       (format "No callers found in %s."
+       (format "No references found in %s."
                (helpful--navigate-button source-path 0)))
       ((null find-function-C-source-directory)
        "C code is not yet loaded.")
       (t
        "Could not find source file."))
      "\n\n"
-     (helpful--all-references-button helpful--sym))
+     (helpful--all-references-button helpful--sym helpful--callable-p))
 
     (-when-let (formatted-props (helpful--format-properties helpful--sym))
       (insert
