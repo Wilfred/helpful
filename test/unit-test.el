@@ -101,3 +101,6 @@
 variables defined without `defvar'."
   (helpful--definition 'helpful-var-without-defvar nil))
 
+(ert-deftest helpful-variable ()
+  "Smoke test for `helpful-variable'."
+  (helpful-variable 'tab-width))

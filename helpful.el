@@ -443,9 +443,14 @@ POSITION-HEADS takes the form ((123 (defun foo)) (456 (defun bar)))."
                (helpful--format-reference head count pos path)))
        (s-join "\n")))
 
-(defun helpful--primitive-p (sym)
+(defun helpful--primitive-p (sym callable-p)
   "Return t if SYM is defined in C."
-  (subrp (symbol-function sym)))
+  (if callable-p
+      (subrp (symbol-function sym))
+    (let ((filename (find-lisp-object-file-name sym 'defvar)))
+      (or (eq filename 'C-source)
+          (and (stringp filename)
+               (equal (file-name-extension filename) "c"))))))
 
 (defun helpful-update ()
   "Update the current *Helpful* buffer to the latest
@@ -454,7 +459,9 @@ state of the current symbol."
   (cl-assert (not (null helpful--sym)))
   (let* ((inhibit-read-only t)
          (start-pos (point))
-         (look-for-src (or (not (helpful--primitive-p helpful--sym))
+         (primitive-p (helpful--primitive-p
+                       helpful--sym helpful--callable-p))
+         (look-for-src (or (not primitive-p)
                            find-function-C-source-directory))
          (source (when look-for-src
                    (helpful--source helpful--sym helpful--callable-p)))
@@ -464,7 +471,7 @@ state of the current symbol."
     (when source-path
       (let* ((buf (elisp-refs--contents-buffer source-path))
              (positions
-              (if (helpful--primitive-p helpful--sym)
+              (if primitive-p
                   nil
                 (helpful--reference-positions helpful--sym buf))))
         (setq references
@@ -525,9 +532,7 @@ state of the current symbol."
 
     (insert
      (helpful--heading "\n\nDebugging\n")
-     (if (or
-          (not helpful--callable-p)
-          (helpful--primitive-p helpful--sym))
+     (if (or (not helpful--callable-p) primitive-p)
          ""
        (concat
         (helpful--disassemble-button)
@@ -539,15 +544,13 @@ state of the current symbol."
       (source-path
        (concat
         (propertize
-         (if (helpful--primitive-p helpful--sym)
-             "// Defined in "
-           ";; Defined in ")
+         (if primitive-p "// Defined in " ";; Defined in ")
          'face 'font-lock-comment-face)
         (helpful--navigate-button
          source-path
          (helpful--source-pos helpful--sym helpful--callable-p))
         "\n"))
-      ((helpful--primitive-p helpful--sym)
+      (primitive-p
        (propertize
         "C code is not yet loaded."
         'face 'font-lock-comment-face))
@@ -559,8 +562,7 @@ state of the current symbol."
        (if (stringp source)
            (helpful--syntax-highlight
             source
-            (if (helpful--primitive-p helpful--sym)
-                'c-mode))
+            (if primitive-p 'c-mode))
          (helpful--syntax-highlight (helpful--pretty-print source)))))
     (goto-char start-pos)))
 
