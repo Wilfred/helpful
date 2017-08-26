@@ -94,6 +94,7 @@ This allows us to distinguish strings from symbols."
 (define-button-type 'helpful-forget-button
   'action #'helpful--forget
   'symbol nil
+  'callable-p nil
   'follow-link t
   'help-echo "Unbind this function")
 
