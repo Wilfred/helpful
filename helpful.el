@@ -323,8 +323,9 @@ If the source code cannot be found, return the sexp used."
 
 (defun helpful--source-path (sym callable-p)
   "Return the path where SYM is defined."
-  (-when-let ((buf . pos) (helpful--definition sym callable-p))
-    (buffer-file-name buf)))
+  (-let [(buf . _) (helpful--definition sym callable-p)]
+    (when buf
+      (buffer-file-name buf))))
 
 (defun helpful--source-pos (sym callable-p)
   "Return the file position where SYM is defined."
