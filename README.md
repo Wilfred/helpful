@@ -21,12 +21,15 @@ Help) and falls back to the raw sexp if no source is available.
 
 Helpful will show you where a function is being called!
 
-### Pretty Docstrings
+### Prettier Docstrings
 
-![screenshot](screenshots/helpful_docs.png)
+![screenshot](screenshots/helpful_compare.png)
 
-Helpful renders docstrings with full cross-references, hiding
-superfluous punctuation.
+Docstrings in helpful:
+
+* Highlight the summary (the first sentence)
+* Include cross-references
+* Hide superfluous puncuation
 
 ### Symbol Properties
 
