@@ -74,12 +74,12 @@
 (ert-deftest helpful--format-reference ()
   (should
    (equal
-    (helpful--format-reference '(def foo) 1 123 "/foo/bar.el")
-    "(def foo ...)                  ; 1 reference"))
+    (helpful--format-reference '(def foo) 10 1 123 "/foo/bar.el")
+    "(def foo ...) 1 reference"))
   (should
    (equal
-    (helpful--format-reference '(advice-add 'bar) 1 123 "/foo/bar.el")
-    "(advice-add 'bar ...)          ; 1 reference")))
+    (helpful--format-reference '(advice-add 'bar) 10 1 123 "/foo/bar.el")
+    "(advice-add 'bar ...) 1 reference")))
 
 (ert-deftest helpful--format-docstring ()
   "Ensure we create links in docstrings."
