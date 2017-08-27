@@ -23,7 +23,7 @@ Helpful will show you where a function is being called!
 
 ### Prettier Docstrings
 
-![screenshot](screenshots/helpful_compare.png)
+![screenshot](screenshots/helpful_docstring.png)
 
 Docstrings in helpful:
 
