@@ -619,7 +619,8 @@ For example, \"(some-func FOO &optional BAR)\"."
   "Get the docstring for SYM."
   (let (docstring)
     (if callable-p
-        (-when-let (docstring (documentation sym))
+        (progn
+          (setq docstring (documentation sym))
           (-when-let (docstring-with-usage (help-split-fundoc docstring sym))
             (setq docstring (cdr docstring-with-usage))
             (when docstring

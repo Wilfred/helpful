@@ -21,14 +21,14 @@
   "Basic docstring fetching."
   (should
    (equal
-    (helpful--docstring #'test-foo)
+    (helpful--docstring #'test-foo t)
     "Docstring here.")))
 
 (ert-deftest helpful--docstring-advice ()
   "Get the docstring on advised functions."
   (should
    (equal
-    (helpful--docstring #'test-foo-advised)
+    (helpful--docstring #'test-foo-advised t)
     "Docstring here too.")))
 
 (defun test-foo-no-docstring ()
@@ -36,7 +36,7 @@
 
 (ert-deftest helpful--no-docstring ()
   "We should not crash on a function without a docstring."
-  (should (null (helpful--docstring #'test-foo-no-docstring))))
+  (should (null (helpful--docstring #'test-foo-no-docstring t))))
 
 (defun test-foo-usage-docstring ()
   "\n\n(fn &rest ARGS)"
@@ -44,7 +44,7 @@
 
 (ert-deftest helpful--usage-docstring ()
   "If a function docstring only has usage, do not return it."
-  (should (null (helpful--docstring #'test-foo-usage-docstring))))
+  (should (null (helpful--docstring #'test-foo-usage-docstring t))))
 
 (defun test-foo-no-properties ()
   nil)
