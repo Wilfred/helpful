@@ -49,6 +49,8 @@ Helpful displays any keybindings that apply to interactive functions.
 
 ### Integrated Tooling
 
+![screenshot](screenshots/helpful_tools.png)
+
 You can trace, debug (coming soon) or disassemble functions from inside
 Helpful. This is discoverable and doesn't require memorisation of
 commands.
