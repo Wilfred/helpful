@@ -63,6 +63,21 @@
   "Propertize TEXT as a heading."
   (propertize text 'face 'bold))
 
+(defun helpful--format-closure (sym form)
+  "Given a closure, return an equivalent defun form."
+  (-let (((_keyword _env args . body) form)
+         (docstring nil))
+    (when (stringp (car body))
+      (setq docstring (car body))
+      (setq body (cdr body))
+      ;; Ensure that the docstring doesn't have lines starting with (,
+      ;; or it breaks indentation.
+      (setq docstring
+            (s-replace "\n(" "\n\\(" docstring)))
+    (if docstring
+        `(defun ,sym ,args ,docstring ,@body)
+      `(defun ,sym ,args ,@body))))
+
 (defun helpful--pretty-print (value)
   "Pretty-print VALUE.
 This allows us to distinguish strings from symbols."
@@ -585,11 +600,17 @@ state of the current symbol."
         (format ";; Source file is unknown\n")))))
     (when source
       (insert
-       (if (stringp source)
-           (helpful--syntax-highlight
-            source
-            (if primitive-p 'c-mode))
-         (helpful--syntax-highlight (helpful--pretty-print source)))))
+       (cond
+        ((stringp source)
+         (helpful--syntax-highlight source (if primitive-p 'c-mode)))
+        ((and (consp source) (eq (car source) 'closure))
+         (helpful--syntax-highlight
+          (concat ";; Closure converted to defun by helpful.\n"
+                  (helpful--pretty-print
+                   (helpful--format-closure helpful--sym source)))))
+        (t
+         (helpful--syntax-highlight
+          (helpful--pretty-print source))))))
     (goto-char start-pos)))
 
 (defun helpful--skip-advice (docstring)
