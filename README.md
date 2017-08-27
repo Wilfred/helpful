@@ -1,4 +1,4 @@
-# Helpful [![Build Status](https://travis-ci.org/Wilfred/helpful.svg?branch=master)](https://travis-ci.org/Wilfred/helpful) [![Coverage Status](https://coveralls.io/repos/github/Wilfred/helpful/badge.svg?branch=master)](https://coveralls.io/github/Wilfred/helpful?branch=master) [![MELPA](http://melpa.org/packages/helpful-badge.svg)](http://melpa.org/#/helpful)
+# Helpful [![Build Status](https://travis-ci.org/Wilfred/helpful.svg?branch=master)](https://travis-ci.org/Wilfred/helpful) [![Coverage Status](https://coveralls.io/repos/github/Wilfred/helpful/badge.svg?branch=master)](https://coveralls.io/github/Wilfred/helpful?branch=master) [![MELPA](http://melpa.org/packages/helpful-badge.svg)](http://melpa.org/#/helpful) [![](https://tokei.rs/b1/github/wilfred/helpful)](https://github.com/Aaronepower/tokei)
 
 Helpful is an alternative to the built-in Emacs help that provides
 much more contextual information.
