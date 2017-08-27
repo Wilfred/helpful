@@ -426,7 +426,9 @@ E.g. (x x y z y) -> ((x . 2) (y . 2) (z . 1))"
   "A list of advice associated with SYM."
   (advice--p (advice--symbol-function sym)))
 
-(defun helpful--format-reference (head ref-count position path)
+(defun helpful--format-head (head)
+  "Given a 'head' (the first two symbols of a sexp) format and
+syntax highlight it."
   (-let* (((def name) head)
           (formatted-name
            (if (and (consp name) (eq (car name) 'quote))
@@ -434,24 +436,35 @@ E.g. (x x y z y) -> ((x . 2) (y . 2) (z . 1))"
              (format "%S" name)))
           (formatted-def
            (format "(%s %s ...)" def formatted-name))
-          (padded-def
-           (s-pad-right 30 " " formatted-def))
-          (formatted-count
-           (format "; %d reference%s"
-                   ref-count (if (> ref-count 1) "s" ""))))
+          )
+    (helpful--syntax-highlight formatted-def)))
+
+(defun helpful--format-reference (head longest-head ref-count position path)
+  "Return a syntax-highlighted version of HEAD, with a link
+to its source location."
+  (let ((formatted-count
+         (format "%d reference%s"
+                 ref-count (if (> ref-count 1) "s" ""))))
     (propertize
-     (helpful--syntax-highlight
-      (format "%s %s" padded-def formatted-count))
+     (format
+      "%s %s"
+      (s-pad-right longest-head " " (helpful--format-head head))
+      (propertize formatted-count 'face 'font-lock-comment-face))
      'helpful-path path
      'helpful-pos position)))
 
 (defun helpful--format-position-heads (position-heads path)
   "Given a list of outer sexps, format them for display.
 POSITION-HEADS takes the form ((123 (defun foo)) (456 (defun bar)))."
-  (->> (helpful--count-values position-heads)
-       (-map (-lambda (((pos head) . count))
-               (helpful--format-reference head count pos path)))
-       (s-join "\n")))
+  (let ((longest-head
+         (->> position-heads
+              (-map (-lambda ((_pos head)) (helpful--format-head head)))
+              (-map #'length)
+              (-max))))
+    (->> (helpful--count-values position-heads)
+         (-map (-lambda (((pos head) . count))
+                 (helpful--format-reference head longest-head count pos path)))
+         (s-join "\n"))))
 
 (defun helpful--primitive-p (sym callable-p)
   "Return t if SYM is defined in C."
