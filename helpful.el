@@ -652,7 +652,8 @@ For example, \"(some-func FOO &optional BAR)\"."
 ;; TODO: Info mentions, e.g. `define-derived-mode' or `defface'.
 (defun helpful--docstring (sym callable-p)
   "Get the docstring for SYM."
-  (let (docstring)
+  (let ((text-quoting-style 'grave)
+        docstring)
     (if callable-p
         (progn
           (setq docstring (documentation sym))
