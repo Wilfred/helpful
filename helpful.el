@@ -3,6 +3,7 @@
 ;; Copyright (C) 2017  Wilfred Hughes
 
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
+;; URL: https://github.com/Wilfred/helpful
 ;; Keywords: help, lisp
 ;; Version: 0.2
 ;; Package-Requires: ((emacs "24.4") (dash "2.12.0") (s "1.11.0") (elisp-refs "1.2"))
