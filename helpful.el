@@ -32,6 +32,7 @@
 ;; * helpful-function
 ;; * helpful-command
 ;; * helpful-macro
+;; * helpful-callable
 ;; * helpful-variable
 ;; * helpful-at-point
 ;;
@@ -704,6 +705,15 @@ For example, \"(some-func FOO &optional BAR)\"."
   "Show help for macro named SYMBOL."
   (interactive
    (list (helpful--read-symbol "Macro: " #'macrop)))
+  (switch-to-buffer (helpful--buffer symbol t))
+  (helpful-update))
+
+(defun helpful-callable (symbol)
+  "Show help for function or macro named SYMBOL.
+
+See also `helpful-macro' and `helpful-function'."
+  (interactive
+   (list (helpful--read-symbol "Function/macro: " #'fboundp)))
   (switch-to-buffer (helpful--buffer symbol t))
   (helpful-update))
 

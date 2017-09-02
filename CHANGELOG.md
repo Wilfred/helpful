@@ -9,6 +9,10 @@ equivalent defun forms.
 
 We now show the value of variables too.
 
+Added a command `helpful-callable`, which offers both macros and
+functions. This should be a drop-in replacement for
+`describe-function`.
+
 # v0.1
 
 First release.
