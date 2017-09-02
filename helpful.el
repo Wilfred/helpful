@@ -537,6 +537,11 @@ state of the current symbol."
        ;; helpfns+ or counsel-info-lookup-symbol.
        (helpful--format-docstring docstring)))
 
+    (when (not helpful--callable-p)
+      (insert
+       (helpful--heading "\n\nValue\n")
+       (helpful--pretty-print (symbol-value helpful--sym))))
+
     ;; Show keybindings.
     ;; TODO: allow users to conveniently add and remove keybindings.
     (when (commandp helpful--sym)
