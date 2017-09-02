@@ -7,6 +7,8 @@ Interactively defined functions (e.g. try re-evaluating package.el.gz
 and looking at `package-desc-name`) are converted from raw closures to
 equivalent defun forms.
 
+We now show the value of variables too.
+
 # v0.1
 
 First release.
