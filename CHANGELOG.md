@@ -13,6 +13,9 @@ Added a command `helpful-callable`, which offers both macros and
 functions. This should be a drop-in replacement for
 `describe-function`.
 
+Added a command `helpful-key`, which offers help on keybindings much
+like `describe-key`.
+
 # v0.1
 
 First release.

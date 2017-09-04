@@ -701,6 +701,18 @@ For example, \"(some-func FOO &optional BAR)\"."
   (helpful-update))
 
 ;;;###autoload
+(defun helpful-key (key-sequence)
+  "Show help for interactive command bound to KEY-SEQUENCE."
+  (interactive
+   (list (read-key-sequence "Press key: ")))
+  (let ((sym (key-binding key-sequence)))
+    (unless sym
+      (user-error "No command is bound to %s"
+                  (key-description key-sequence)))
+    (switch-to-buffer (helpful--buffer sym t))
+    (helpful-update)))
+
+;;;###autoload
 (defun helpful-macro (symbol)
   "Show help for macro named SYMBOL."
   (interactive
