@@ -526,7 +526,7 @@ state of the current symbol."
         (if (macrop helpful--sym)
             "Macro Signature\n"
           "Function Signature\n"))
-       (helpful--signature helpful--sym)))
+       (helpful--syntax-highlight (helpful--signature helpful--sym))))
 
     (-when-let (docstring (helpful--docstring
                            helpful--sym helpful--callable-p))
