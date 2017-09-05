@@ -31,6 +31,11 @@ Docstrings in helpful:
 * Include cross-references
 * Hide superfluous puncuation
 
+![screenshot](screenshots/helpful_view_in_manual.png)
+
+If a symbol is also documented in the Info manual, helpful will
+provide a link to the relevant section too.
+
 ### Symbol Properties
 
 ![screenshot](screenshots/helpful_props.png)
