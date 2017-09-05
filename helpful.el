@@ -224,7 +224,7 @@ This allows us to distinguish strings from symbols."
   (let ((sym (button-get button 'symbol)))
     (if (fboundp sym)
         (helpful-function sym)
-      (describe-variable sym))))
+      (helpful-variable sym))))
 
 (defun helpful--describe-button (sym)
   "Return a button that describes SYM."
