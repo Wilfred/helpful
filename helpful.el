@@ -560,7 +560,7 @@ state of the current symbol."
       (source-path
        (format "No references found in %s."
                (helpful--navigate-button source-path 0)))
-      ((null find-function-C-source-directory)
+      ((and primitive-p (null find-function-C-source-directory))
        "C code is not yet loaded.")
       (t
        "Could not find source file."))
