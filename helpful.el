@@ -719,7 +719,7 @@ For example, \"(some-func FOO &optional BAR)\"."
   "Show help for function named SYMBOL."
   (interactive
    (list (helpful--read-symbol "Function: " #'functionp)))
-  (switch-to-buffer (helpful--buffer symbol t))
+  (pop-to-buffer (helpful--buffer symbol t))
   (helpful-update))
 
 ;;;###autoload
@@ -727,7 +727,7 @@ For example, \"(some-func FOO &optional BAR)\"."
   "Show help for interactive function named SYMBOL."
   (interactive
    (list (helpful--read-symbol "Command: " #'commandp)))
-  (switch-to-buffer (helpful--buffer symbol t))
+  (pop-to-buffer (helpful--buffer symbol t))
   (helpful-update))
 
 ;;;###autoload
@@ -739,7 +739,7 @@ For example, \"(some-func FOO &optional BAR)\"."
     (unless sym
       (user-error "No command is bound to %s"
                   (key-description key-sequence)))
-    (switch-to-buffer (helpful--buffer sym t))
+    (pop-to-buffer (helpful--buffer sym t))
     (helpful-update)))
 
 ;;;###autoload
@@ -747,7 +747,7 @@ For example, \"(some-func FOO &optional BAR)\"."
   "Show help for macro named SYMBOL."
   (interactive
    (list (helpful--read-symbol "Macro: " #'macrop)))
-  (switch-to-buffer (helpful--buffer symbol t))
+  (pop-to-buffer (helpful--buffer symbol t))
   (helpful-update))
 
 (defun helpful-callable (symbol)
@@ -756,7 +756,7 @@ For example, \"(some-func FOO &optional BAR)\"."
 See also `helpful-macro' and `helpful-function'."
   (interactive
    (list (helpful--read-symbol "Function/macro: " #'fboundp)))
-  (switch-to-buffer (helpful--buffer symbol t))
+  (pop-to-buffer (helpful--buffer symbol t))
   (helpful-update))
 
 (defun helpful--variable-p (symbol)
@@ -772,7 +772,7 @@ See also `helpful-macro' and `helpful-function'."
   "Show help for variable named SYMBOL."
   (interactive
    (list (helpful--read-symbol "Variable: " #'helpful--variable-p)))
-  (switch-to-buffer (helpful--buffer symbol nil))
+  (pop-to-buffer (helpful--buffer symbol nil))
   (helpful-update))
 
 ;; TODO: offer variable/function choice
@@ -789,7 +789,7 @@ See also `helpful-macro' and `helpful-function'."
      ((not (fboundp symbol))
       (user-error "%s is not a function or macro" symbol))
      (t
-      (switch-to-buffer (helpful--buffer symbol t))
+      (pop-to-buffer (helpful--buffer symbol t))
       (helpful-update)))))
 
 (define-derived-mode helpful-mode special-mode "Helpful"
