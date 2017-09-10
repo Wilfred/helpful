@@ -1,5 +1,7 @@
 # v0.2
 
+Fixed a crash on viewing aliased primitive functions.
+
 Fixed an issue where we didn't find the path for functions defined
 interactively using `cl-defstruct`.
 

@@ -49,6 +49,14 @@
 (defun test-foo-no-properties ()
   nil)
 
+(ert-deftest helpful--primitive-p ()
+  ;; Defined in C.
+  (should (helpful--primitive-p 'message t))
+  ;; Defined in C, but an alias.
+  (should (helpful--primitive-p 'not t))
+  ;; Defined in elisp.
+  (should (not (helpful--primitive-p 'when t))))
+
 (ert-deftest helpful--no-symbol-properties ()
   "Helpful should handle functions without any symbol properties."
   ;; Interactively evaluating this file will set edebug properties on
