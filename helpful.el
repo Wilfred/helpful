@@ -567,7 +567,14 @@ state of the current symbol."
       (when helpful--callable-p
         (insert "\n\n"))
       (insert
-       (helpful--heading "Documentation\n")
+       (helpful--heading
+        (cond
+         ((not helpful--callable-p)
+          "Variable Documentation\n")
+         ((macrop helpful--sym)
+          "Macro Documentation\n")
+         (t
+          "Function Documentation\n")))
        (helpful--format-docstring docstring))
       (when (helpful--in-manual-p helpful--sym)
         (insert
