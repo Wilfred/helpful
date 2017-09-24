@@ -18,6 +18,10 @@ functions. This should be a drop-in replacement for
 Added a command `helpful-key`, which offers help on keybindings much
 like `describe-key`.
 
+Added a command `helpful-symbol`, which offers help on variables,
+functions and macros. It prompts the user if a symbol is both a
+variable and a callable.
+
 # v0.1
 
 First release.

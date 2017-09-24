@@ -243,9 +243,7 @@ This allows us to distinguish strings from symbols."
 (defun helpful--describe (button)
   "Describe the symbol that this BUTTON represents."
   (let ((sym (button-get button 'symbol)))
-    (if (fboundp sym)
-        (helpful-function sym)
-      (helpful-variable sym))))
+    (helpful-symbol sym)))
 
 (defun helpful--describe-button (sym)
   "Return a button that describes SYM."
@@ -779,6 +777,33 @@ See also `helpful-macro' and `helpful-function'."
            (not (keywordp symbol))
            (not (eq symbol nil))
            (not (eq symbol t)))))
+
+(defun helpful--bound-p (symbol)
+  "Return non-nil if SYMBOL is a variable or callable.
+
+This differs from `boundp' because we do not consider nil, t
+or :foo."
+  (or (fboundp symbol)
+      (helpful--variable-p symbol)))
+
+;;;###autoload
+(defun helpful-symbol (symbol)
+  "Show help for SYMBOL, a variable, function or macro.
+
+See also `helpful-callable' and `helpful-variable'."
+  (interactive
+   (list (helpful--read-symbol "Symbol: " #'helpful--bound-p)))
+  (cond
+   ((and (boundp symbol) (fboundp symbol))
+    (if (y-or-n-p
+         (format "%s is a both a variable and a callable, show variable?"
+                 symbol))
+        (helpful-variable symbol)
+      (helpful-callable symbol)))
+   ((fboundp symbol)
+    (helpful-callable symbol))
+   ((boundp symbol)
+    (helpful-variable symbol))))
 
 ;;;###autoload
 (defun helpful-variable (symbol)
