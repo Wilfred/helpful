@@ -1,3 +1,7 @@
+# v0.3
+
+No changes yet.
+
 # v0.2
 
 Fixed a crash on viewing aliased primitive functions.
