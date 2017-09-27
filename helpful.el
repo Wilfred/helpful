@@ -681,9 +681,12 @@ For example, \"(some-func FOO &optional BAR)\"."
   (let (docstring-sig
         source-sig)
     ;; Get the usage from the function definition.
-    (let ((formatted-args
-           (-map #'helpful--format-argument
-                 (help-function-arglist sym))))
+    (let* ((function-args (help-function-arglist sym))
+           (formatted-args
+            (if (listp function-args)
+                (-map #'helpful--format-argument
+                      function-args)
+              (list function-args))))
       (setq source-sig
             (if formatted-args
                 (format "(%s %s)" sym
