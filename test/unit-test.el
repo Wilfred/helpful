@@ -9,6 +9,8 @@
   "Docstring here too."
   nil)
 
+(autoload 'some-unused-function "somelib.el")
+
 (defadvice test-foo-advised (before test-advice1 activate)
   "Placeholder advice 1."
   nil)
@@ -112,3 +114,9 @@ variables defined without `defvar'."
 (ert-deftest helpful-variable ()
   "Smoke test for `helpful-variable'."
   (helpful-variable 'tab-width))
+
+(ert-deftest helpfpul--signature ()
+    "Ensure that autoloaded functions are handled gracefully"
+  (should
+   (equal (helpful--signature 'some-unused-function)
+          "(some-unused-function [Arg list not available until function definition is loaded.])")))
