@@ -46,7 +46,9 @@
 (require 'dash)
 (require 's)
 (require 'find-func)
-(require 'nadvice)
+;; For some reason, this errors on Travis.
+(ignore-errors
+  (require 'nadvice))
 (require 'info-look)
 
 (defvar-local helpful--sym nil)
