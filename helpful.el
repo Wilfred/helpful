@@ -747,6 +747,9 @@ For example, \"(some-func FOO &optional BAR)\"."
     (unless sym
       (user-error "No command is bound to %s"
                   (key-description key-sequence)))
+    (unless (commandp sym)
+      (user-error "%s is bound to symbol that is not a command"
+                  (key-description key-sequence)))
     (pop-to-buffer (helpful--buffer sym t))
     (helpful-update)))
 
