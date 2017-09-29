@@ -50,6 +50,7 @@
 (ignore-errors
   (require 'nadvice))
 (require 'info-look)
+(require 'cl-extra) ; cl-prettyprint
 
 (defvar-local helpful--sym nil)
 (defvar-local helpful--callable-p nil)
