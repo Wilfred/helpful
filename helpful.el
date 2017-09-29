@@ -513,13 +513,7 @@ POSITION-HEADS takes the form ((123 (defun foo)) (456 (defun bar)))."
 (defun helpful--primitive-p (sym callable-p)
   "Return t if SYM is defined in C."
   (if callable-p
-      (let ((fn sym))
-        ;; Find the function value associated with this symbol. If
-        ;; it's an alias, follow the alias chain to the function
-        ;; value.
-        (while (symbolp fn)
-          (setq fn (symbol-function fn)))
-        (subrp fn))
+      (subrp (indirect-function sym))
     (let ((filename (find-lisp-object-file-name sym 'defvar)))
       (or (eq filename 'C-source)
           (and (stringp filename)
