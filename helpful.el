@@ -584,7 +584,7 @@ state of the current symbol."
       (insert
        (helpful--heading "\n\nKey Bindings\n")
        (helpful--format-keys helpful--sym)))
-    
+
     (insert
      (helpful--heading "\n\nReferences\n")
      (cond
@@ -606,7 +606,7 @@ state of the current symbol."
       (insert
        (helpful--heading "\n\nSymbol Properties\n")
        formatted-props))
-    
+
     (when (helpful--advised-p helpful--sym)
       (insert
        (helpful--heading "\n\nAdvice\n")
@@ -621,7 +621,7 @@ state of the current symbol."
         (helpful--disassemble-button)
         " "))
      (helpful--forget-button helpful--sym helpful--callable-p)
-     
+
      (helpful--heading "\n\nSource Code\n")
      (cond
       (source-path
@@ -686,12 +686,12 @@ For example, \"(some-func FOO &optional BAR)\"."
                 (format "(%s %s)" sym
                         (s-join " " formatted-args))
               (format "(%s)" sym))))
-    
+
     ;; If the docstring ends with (fn FOO BAR), extract that.
     (-when-let (docstring (documentation sym))
       (-when-let (docstring-with-usage (help-split-fundoc docstring sym))
         (setq docstring-sig (car docstring-with-usage))))
-    
+
     (or docstring-sig source-sig)))
 
 ;; TODO: Info mentions, e.g. `define-derived-mode' or `defface'.
@@ -814,22 +814,13 @@ See also `helpful-callable' and `helpful-variable'."
   (pop-to-buffer (helpful--buffer symbol nil))
   (helpful-update))
 
-;; TODO: offer variable/function choice
 ;;;###autoload
 (defun helpful-at-point ()
-  "Show help for the callable symbol at point."
+  "Show help for the symbol point."
   (interactive)
-  (let ((symbol (symbol-at-point)))
-    (cond
-     ((null symbol)
-      ;; TODO: suggest looking at value help, or nearby symbols, or
-      ;; similarly named symbols
-      (user-error "No symbol found at point"))
-     ((not (fboundp symbol))
-      (user-error "%s is not a function or macro" symbol))
-     (t
-      (pop-to-buffer (helpful--buffer symbol t))
-      (helpful-update)))))
+  (-if-let (symbol (symbol-at-point))
+      (helpful-symbol symbol)
+    (user-error "There is no symbol at point.")))
 
 (define-derived-mode helpful-mode special-mode "Helpful"
   "Major mode for *Helpful* buffers."
