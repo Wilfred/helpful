@@ -816,7 +816,7 @@ See also `helpful-callable' and `helpful-variable'."
 
 ;;;###autoload
 (defun helpful-at-point ()
-  "Show help for the symbol point."
+  "Show help for the symbol at point."
   (interactive)
   (-if-let (symbol (symbol-at-point))
       (helpful-symbol symbol)
