@@ -1,6 +1,12 @@
 # v0.3
 
-No changes yet.
+Fixed a crash on autoloaded functions that aren't loaded yet.
+
+Fixed a crash in `helpful-key` for symbols that aren't bound to
+commands.
+
+Fixed an issue where viewing help for a function opened a buffer with
+its source code. Helpful now cleans up any extra buffers it created.
 
 # v0.2
 
