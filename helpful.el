@@ -325,18 +325,25 @@ hooks.")
 (defun helpful--source (sym callable-p)
   "Return the source code of SYM.
 If the source code cannot be found, return the sexp used."
-  (-if-let ((buf . start-pos) (helpful--definition sym callable-p))
-      (with-current-buffer buf
-        (save-excursion
-          (save-restriction
-            (goto-char start-pos)
-            (narrow-to-defun)
-            (buffer-substring-no-properties (point-min) (point-max)))))
-    ;; Could not find source -- probably defined interactively, or via
-    ;; a macro, or file has changed.
-    ;; TODO: verify that the source hasn't changed before showing.
-    ;; TODO: offer to download C sources for current version.
-    (indirect-function sym)))
+  (-let ((initial-buffers (buffer-list))
+         ((buf . start-pos) (helpful--definition sym callable-p)))
+    (if (and buf start-pos)
+        (let (source)
+          (with-current-buffer buf
+            (save-excursion
+              (save-restriction
+                (goto-char start-pos)
+                (narrow-to-defun)
+                (setq source (buffer-substring-no-properties (point-min) (point-max))))))
+          ;; If we've just created this buffer, close it.
+          (unless (-contains-p initial-buffers buf)
+            (kill-buffer buf))
+          source)
+      ;; Could not find source -- probably defined interactively, or via
+      ;; a macro, or file has changed.
+      ;; TODO: verify that the source hasn't changed before showing.
+      ;; TODO: offer to download C sources for current version.
+      (indirect-function sym))))
 
 (defun helpful--in-manual-p (sym)
   "Return non-nil if SYM is in an Info manual."
@@ -346,11 +353,16 @@ If the source code cannot be found, return the sexp used."
         (assoc-string sym completions))))
 
 (defun helpful--definition (sym callable-p)
-  "Return a pair (BUF . POS) where SYM is defined."
+  "Return a pair (BUF . POS) where SYM is defined.
+
+BUF may be an existing buffer or created. Caller is responsible
+for cleaning up."
   (let (buf-and-pos)
     (when callable-p
       (ignore-errors
         (setq buf-and-pos
+              ;; TODO: if SYM is in a buffer that's already open, this
+              ;; moves point.
               (find-function-noselect sym)))
       (unless buf-and-pos
         ;; If it's defined interactively, it may have an edebug property
@@ -366,13 +378,21 @@ If the source code cannot be found, return the sexp used."
 
 (defun helpful--source-path (sym callable-p)
   "Return the path where SYM is defined."
-  (-let [(buf . _) (helpful--definition sym callable-p)]
-    (when buf
-      (buffer-file-name buf))))
+  (-let* ((initial-buffers (buffer-list))
+          ((buf . _) (helpful--definition sym callable-p))
+          (path (when buf (buffer-file-name buf))))
+    ;; If we've just created this buffer, close it.
+    (unless (-contains-p initial-buffers buf)
+      (kill-buffer buf))
+    path))
 
 (defun helpful--source-pos (sym callable-p)
   "Return the file position where SYM is defined."
-  (-when-let ((buf . pos) (helpful--definition sym callable-p))
+  (-let ((initial-buffers (buffer-list))
+         ((buf . pos) (helpful--definition sym callable-p)))
+    ;; If we've just created this buffer, close it.
+    (unless (-contains-p initial-buffers buf)
+      (kill-buffer buf))
     pos))
 
 (defun helpful--reference-positions (sym callable-p buf)
