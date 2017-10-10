@@ -471,7 +471,8 @@ along with its position."
   (with-current-buffer buf
     (goto-char pos)
     (let (finished)
-      (while (not finished)
+      (while (and (not finished)
+                  (not (zerop (current-column))))
         (condition-case _err
             (backward-up-list)
           (error (setq finished t))))
