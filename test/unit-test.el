@@ -120,3 +120,17 @@ variables defined without `defvar'."
   (should
    (equal (helpful--signature 'some-unused-function)
           "(some-unused-function [Arg list not available until function definition is loaded.])")))
+
+(ert-deftest helpful-function--single-buffer ()
+  "Ensure that calling `helpful-buffer' does not leave any extra
+buffers lying around."
+  (let ((initial-buffers (buffer-list))
+        expected-buffers results-buffer)
+    (helpful-function #'enable-theme)
+    (setq results-buffer (get-buffer "*helpful: enable-theme*"))
+    (setq expected-buffers
+          (cons results-buffer
+                initial-buffers))
+    (should
+     (null
+      (-difference (buffer-list) expected-buffers)))))
