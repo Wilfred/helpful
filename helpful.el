@@ -738,7 +738,7 @@ For example, \"(some-func FOO &optional BAR)\"."
 (defun helpful--read-symbol (prompt predicate)
   (let ((sym-here (symbol-at-point)))
     (read (completing-read prompt obarray
-                           predicate nil nil nil
+                           predicate t nil nil
                            (when (funcall predicate sym-here)
                              (symbol-name sym-here))))))
 
