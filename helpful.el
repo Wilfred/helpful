@@ -271,18 +271,19 @@ blank line afterwards."
 ;; in the docstring for `--map'.
 (defun helpful--format-docstring (docstring)
   "Replace cross-references with links in DOCSTRING."
-  (replace-regexp-in-string
-   (rx "`" symbol-start (+? anything) symbol-end "'")
-   (lambda (it)
-     (let* ((sym-name
-             (s-chop-prefix "`" (s-chop-suffix "'" it)))
-            (sym (intern sym-name)))
-       (if (or (boundp sym) (fboundp sym))
-           (helpful--describe-button (read sym-name))
-         (propertize sym-name
-                     'face 'font-lock-constant-face))))
-   (helpful--split-first-line docstring)
-   t t))
+  (s-trim
+   (replace-regexp-in-string
+    (rx "`" symbol-start (+? anything) symbol-end "'")
+    (lambda (it)
+      (let* ((sym-name
+              (s-chop-prefix "`" (s-chop-suffix "'" it)))
+             (sym (intern sym-name)))
+        (if (or (boundp sym) (fboundp sym))
+            (helpful--describe-button (read sym-name))
+          (propertize sym-name
+                      'face 'font-lock-constant-face))))
+    (helpful--split-first-line docstring)
+    t t)))
 
 (defconst helpful--highlighting-funcs
   '(ert--activate-font-lock-keywords
