@@ -466,17 +466,13 @@ Ensures global keybindings are shown first."
           (s-join "\n" lines)
         "This command is not in any keymaps."))))
 
-(defun helpful--position-head (buf pos)
+(defun helpful--outer-sexp (buf pos)
   "Find position POS in BUF, and return the name of the outer sexp,
 along with its position."
   (with-current-buffer buf
     (goto-char pos)
-    (let (finished)
-      (while (not finished)
-        (condition-case _err
-            (backward-up-list)
-          (error (setq finished t))))
-      (list (point) (-take 2 (read buf))))))
+    (beginning-of-defun)
+    (list (point) (-take 2 (read buf)))))
 
 (defun helpful--count-values (items)
   "Return an alist of the count of each value in ITEMS.
@@ -564,7 +560,7 @@ state of the current symbol."
                 (helpful--reference-positions
                  helpful--sym helpful--callable-p buf))))
         (setq references
-              (--map (helpful--position-head buf it) positions))
+              (--map (helpful--outer-sexp buf it) positions))
         (kill-buffer buf)))
     (erase-buffer)
     (when helpful--callable-p
