@@ -51,15 +51,20 @@
 
 (defvar-local helpful--sym nil)
 (defvar-local helpful--callable-p nil)
+(defvar-local helpful--associated-buffer nil
+  "We store a reference to the buffer we were called from, so we can
+show the value of buffer-local variables.")
 
 (defun helpful--buffer (symbol callable-p)
   "Return a buffer to show help for SYMBOL in."
-  (let ((buf (get-buffer-create
+  (let ((current-buffer (current-buffer))
+        (buf (get-buffer-create
               (format "*helpful: %s*" symbol))))
     (with-current-buffer buf
       (helpful-mode)
       (setq helpful--sym symbol)
-      (setq helpful--callable-p callable-p))
+      (setq helpful--callable-p callable-p)
+      (setq helpful--associated-buffer current-buffer))
     buf))
 
 (defun helpful--heading (text)
@@ -593,7 +598,11 @@ state of the current symbol."
     (when (not helpful--callable-p)
       (insert
        (helpful--heading "\n\nValue\n")
-       (helpful--pretty-print (symbol-value helpful--sym))))
+       (let ((sym helpful--sym)
+             (buf (or helpful--associated-buffer (current-buffer))))
+         (helpful--pretty-print
+          (with-current-buffer buf
+            (symbol-value sym))))))
 
     ;; Show keybindings.
     ;; TODO: allow users to conveniently add and remove keybindings.
