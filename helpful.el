@@ -788,6 +788,7 @@ For example, \"(some-func FOO &optional BAR)\"."
   (pop-to-buffer (helpful--buffer symbol t))
   (helpful-update))
 
+;;;###autoload
 (defun helpful-callable (symbol)
   "Show help for function or macro named SYMBOL.
 
