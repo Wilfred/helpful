@@ -378,8 +378,7 @@ for cleaning up."
                 (cons (marker-buffer marker)
                       (marker-position marker))))))
     (when (not callable-p)
-      (-when-let (filename (find-lisp-object-file-name sym 'defvar))
-        (setq buf-and-pos (find-variable-noselect sym filename))))
+      (setq buf-and-pos (find-definition-noselect sym 'defvar)))
     buf-and-pos))
 
 (defun helpful--source-path (sym callable-p)
