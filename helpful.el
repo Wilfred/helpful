@@ -355,6 +355,8 @@ If the source code cannot be found, return the sexp used."
   "Return non-nil if SYM is in an Info manual."
   (let ((completions
          (info-lookup->completions 'symbol 'emacs-lisp-mode)))
+    (-when-let (buf (get-buffer " temp-info-look"))
+      (kill-buffer buf))
     (or (assoc sym completions)
         (assoc-string sym completions))))
 
