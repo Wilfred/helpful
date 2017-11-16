@@ -378,7 +378,9 @@ for cleaning up."
                 (cons (marker-buffer marker)
                       (marker-position marker))))))
     (when (not callable-p)
-      (setq buf-and-pos (find-definition-noselect sym 'defvar)))
+      (condition-case err
+          (setq buf-and-pos (find-definition-noselect sym 'defvar))
+        (search-failed nil)))
     buf-and-pos))
 
 (defun helpful--source-path (sym callable-p)
