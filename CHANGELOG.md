@@ -8,6 +8,9 @@ commands.
 Fixed an issue where viewing help for a function opened a buffer with
 its source code. Helpful now cleans up any extra buffers it created.
 
+Pressing RET on the extracted source code now goes to the buffer and
+position where the source code is located.
+
 # v0.2
 
 Fixed a crash on viewing aliased primitive functions.
