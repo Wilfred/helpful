@@ -384,7 +384,7 @@ for cleaning up."
                 (cons (marker-buffer marker)
                       (marker-position marker))))))
     (when (not callable-p)
-      (condition-case err
+      (condition-case _err
           (setq buf-and-pos (find-definition-noselect sym 'defvar))
         (search-failed nil)))
     buf-and-pos))
