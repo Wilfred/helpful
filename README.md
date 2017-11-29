@@ -29,7 +29,7 @@ Docstrings in helpful:
 
 * Highlight the summary (the first sentence)
 * Include cross-references
-* Hide superfluous puncuation
+* Hide superfluous punctuation
 
 ![screenshot](screenshots/helpful_view_in_manual.png)
 
