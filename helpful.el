@@ -56,11 +56,21 @@
   "We store a reference to the buffer we were called from, so we can
 show the value of buffer-local variables.")
 
+(defun helpful--kind-name (symbol callable-p)
+  "Describe what kind of symbol this is."
+  (cond
+   ((not callable-p) "variable")
+   ((commandp symbol) "command")
+   ((macrop symbol) "macro")
+   ((functionp symbol) "function")))
+
 (defun helpful--buffer (symbol callable-p)
   "Return a buffer to show help for SYMBOL in."
   (let ((current-buffer (current-buffer))
         (buf (get-buffer-create
-              (format "*helpful: %s*" symbol))))
+              (format "*helpful %s: %s*"
+                      (helpful--kind-name symbol callable-p)
+                      symbol))))
     (with-current-buffer buf
       (helpful-mode)
       (setq helpful--sym symbol)

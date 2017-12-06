@@ -127,7 +127,7 @@ buffers lying around."
   (let ((initial-buffers (buffer-list))
         expected-buffers results-buffer)
     (helpful-function #'enable-theme)
-    (setq results-buffer (get-buffer "*helpful: enable-theme*"))
+    (setq results-buffer (get-buffer "*helpful command: enable-theme*"))
     (setq expected-buffers
           (cons results-buffer
                 initial-buffers))
