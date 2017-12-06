@@ -900,8 +900,42 @@ See also `helpful-callable' and `helpful-variable'."
       (find-file path)
       (goto-char pos))))
 
+(defun helpful--forward-button (direction)
+  "Move point the next/previous button."
+  (let ((step (if (< direction 0) -1 1)))
+    ;; Step over the current button, if any.
+    (while (and
+            (not (if (< direction 0) (bobp) (eobp)))
+            (get-text-property (point) 'button))
+      (forward-char step))
+    ;; Move forward until we hit a button.
+    (while (and
+            (not (if (< direction 0) (bobp) (eobp)))
+            (not (get-text-property (point) 'button)))
+      (forward-char step))
+    ;; Ensure we're on the first char of the button.
+    (while (and
+            (not (if (< direction 0) (bobp) (eobp)))
+            (get-text-property (point) 'button))
+      (forward-char -1))
+    (unless (bobp)
+      (forward-char 1))))
+
+(defun helpful-forward-button ()
+  "Move point forward to the next button."
+  (interactive)
+  (helpful--forward-button 1))
+
+(defun helpful-backward-button ()
+  "Move point backward to the next button."
+  (interactive)
+  (helpful--forward-button -1))
+
 (define-key helpful-mode-map (kbd "g") #'helpful-update)
 (define-key helpful-mode-map (kbd "RET") #'helpful-visit-reference)
+
+(define-key helpful-mode-map (kbd "TAB") #'helpful-forward-button)
+(define-key helpful-mode-map (kbd "<backtab>") #'helpful-backward-button)
 
 (provide 'helpful)
 ;;; helpful.el ends here
