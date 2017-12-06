@@ -11,6 +11,11 @@ its source code. Helpful now cleans up any extra buffers it created.
 Pressing RET on the extracted source code now goes to the buffer and
 position where the source code is located.
 
+TAB now moves between buttons in helpful buffers.
+
+Buffer names now include 'function' or 'variable' etc, e.g. `*helpful
+function: message*`.
+
 # v0.2
 
 Fixed a crash on viewing aliased primitive functions.
