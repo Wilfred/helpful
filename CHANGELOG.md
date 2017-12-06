@@ -1,3 +1,7 @@
+# v0.4
+
+No changes yet.
+
 # v0.3
 
 Fixed a crash on autoloaded functions that aren't loaded yet.
