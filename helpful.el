@@ -31,6 +31,7 @@
 ;;
 ;; * helpful-function
 ;; * helpful-command
+;; * helpful-key
 ;; * helpful-macro
 ;; * helpful-callable
 ;; * helpful-variable

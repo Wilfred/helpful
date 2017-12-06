@@ -5,6 +5,38 @@ much more contextual information.
 
 ![screenshot](screenshots/helpful.png)
 
+## Usage
+
+Install from MELPA, then call one of the following commands:
+
+* `helpful-callable`
+* `helpful-function`
+* `helpful-macro`
+* `helpful-command`
+* `helpful-key`
+* `helpful-variable`
+* `helpful-at-point`
+
+If you want to replace the default Emacs help keybindings, you can do
+so:
+
+``` emacs-lisp
+;; Note that the built-in `describe-function' includes both functions
+;; and macros. `helpful-function' is functions only, so we provide
+;; `helpful-callable' as a drop-in replacement.
+(global-set-key (kbd "C-h f") #'helpful-callable)
+
+(global-set-key (kbd "C-h v") #'helpful-variable)
+(global-set-key (kbd "C-h k") #'helpful-key)
+```
+
+I also recommend you configure `helpful-at-point` to a convenient
+keybinding:
+
+``` emacs-lisp
+(global-set-key (kbd "C-c C-.") #'helpful-at-point)
+```
+
 ## Features
 
 ### Source code
