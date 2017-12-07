@@ -46,6 +46,7 @@
 (require 'help)
 (require 'dash)
 (require 's)
+(require 'shut-up)
 (require 'find-func)
 (require 'nadvice)
 (require 'info-look)
