@@ -415,7 +415,7 @@ for killing the newly created buffer."
       (unless buf-and-pos
         ;; If it's defined interactively, it may have an edebug property
         ;; that tells us where it's defined.
-        (-when-let (marker (get sym 'edebug))
+        (-when-let (marker (car (get sym 'edebug)))
           (setq buf-and-pos
                 (cons (marker-buffer marker)
                       (marker-position marker))))))

@@ -1,4 +1,5 @@
 (require 'ert)
+(require 'edebug)
 (require 'helpful)
 
 (defun test-foo ()
@@ -46,6 +47,16 @@
   (with-temp-buffer
     (helpful-function #'test-foo-defined-interactively)
     (should (equal (buffer-name) "*helpful function: test-foo-defined-interactively*"))))
+
+(ert-deftest helpful--edebug-fn ()
+  "We should not crash on a function with edebug enabled."
+  (let ((edebug-all-forms t)
+        (edebug-all-defs t))
+    (with-temp-buffer
+      (insert "(defun test-foo-edebug () 44)")
+      (goto-char (point-min))
+      (eval (eval-sexp-add-defvars (edebug-read-top-level-form)) t)))
+  (helpful-function #'test-foo-edebug))
 
 (defun test-foo-usage-docstring ()
   "\n\n(fn &rest ARGS)"

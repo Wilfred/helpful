@@ -12,7 +12,8 @@ Ensure we can find (and jump to) the definition of functions even if the source
 buffer has narrowing in effect.
 
 Fixed an issue where calling helpful commands on interactively defined
-functions would overwrite unrelated buffers.
+functions would overwrite unrelated buffers. Fixed a crash with
+interactively defined functions being edebugged.
 
 # v0.3
 
