@@ -523,7 +523,8 @@ state of the current symbol."
   (interactive)
   (cl-assert (not (null helpful--sym)))
   (let* ((inhibit-read-only t)
-         (start-pos (point))
+         (start-line (line-number-at-pos))
+         (start-column (current-column))
          (primitive-p (helpful--primitive-p
                        helpful--sym helpful--callable-p))
          (look-for-src (or (not primitive-p)
@@ -670,7 +671,9 @@ state of the current symbol."
         (t
          (helpful--syntax-highlight
           (helpful--pretty-print source))))))
-    (goto-char start-pos)))
+    (goto-char (point-min))
+    (forward-line (1- start-line))
+    (forward-char start-column)))
 
 (defun helpful--skip-advice (docstring)
   "Remove mentions of advice from DOCSTRING."
