@@ -40,10 +40,12 @@
   "We should not crash on a function without a docstring."
   (should (null (helpful--docstring #'test-foo-no-docstring t))))
 
-(ert-deftest helpful--interacively-defined-fn ()
+(ert-deftest helpful--interactively-defined-fn ()
   "We should not crash on a function without source code."
   (eval '(defun test-foo-defined-interactively () 42))
-  (helpful-function #'test-foo-defined-interactively))
+  (with-temp-buffer
+    (helpful-function #'test-foo-defined-interactively)
+    (should (equal (buffer-name) "*helpful function: test-foo-defined-interactively*"))))
 
 (defun test-foo-usage-docstring ()
   "\n\n(fn &rest ARGS)"

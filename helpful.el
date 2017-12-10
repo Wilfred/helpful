@@ -429,10 +429,12 @@ for killing the newly created buffer."
   "Return the path where SYM is defined."
   (-let* ((initial-buffers (buffer-list))
           ((buf . _) (helpful--definition sym callable-p))
-          (path (when buf (buffer-file-name buf))))
-    ;; If we've just created this buffer, close it.
-    (unless (-contains-p initial-buffers buf)
-      (kill-buffer buf))
+          (path))
+    (when buf
+      (setq path (buffer-file-name buf))
+      ;; If we've just created this buffer, close it.
+      (unless (-contains-p initial-buffers buf)
+        (kill-buffer buf)))
     path))
 
 (defun helpful--source-pos (sym callable-p)
