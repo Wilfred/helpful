@@ -63,7 +63,8 @@ show the value of buffer-local variables.")
    ((not callable-p) "variable")
    ((commandp symbol) "command")
    ((macrop symbol) "macro")
-   ((functionp symbol) "function")))
+   ((functionp symbol) "function")
+   ((special-form-p symbol) "special form")))
 
 (defun helpful--buffer (symbol callable-p)
   "Return a buffer to show help for SYMBOL in."
@@ -138,10 +139,7 @@ This allows us to distinguish strings from symbols."
   "Unbind the current symbol."
   (let* ((sym (button-get button 'symbol))
          (callable-p (button-get button 'callable-p))
-         (kind (cond
-                ((not callable-p) "variable")
-                ((functionp sym) "function")
-                (t "macro"))))
+         (kind (helpful--kind-name sym callable-p)))
     (when (yes-or-no-p (format "Forget %s %s?" kind sym))
       (if callable-p
           (fmakunbound sym)
@@ -715,13 +713,17 @@ state of the current symbol."
          nil
          :type 'helpful-disassemble-button
          'symbol helpful--sym)
-        " "))
-     (make-text-button
-      "Forget" nil
-      :type 'helpful-forget-button
-      'symbol helpful--sym
-      'callable-p helpful--callable-p)
+        " ")))
+    (unless (special-form-p helpful--sym)
+      (insert
+       " "
+       (make-text-button
+        "Forget" nil
+        :type 'helpful-forget-button
+        'symbol helpful--sym
+        'callable-p helpful--callable-p)))
 
+    (insert
      (helpful--heading "\n\nSource Code\n")
      (cond
       (source-path
@@ -866,11 +868,11 @@ For example, \"(some-func FOO &optional BAR)\"."
 
 ;;;###autoload
 (defun helpful-callable (symbol)
-  "Show help for function or macro named SYMBOL.
+  "Show help for function, macro or special form named SYMBOL.
 
 See also `helpful-macro' and `helpful-function'."
   (interactive
-   (list (helpful--read-symbol "Function/macro: " #'fboundp)))
+   (list (helpful--read-symbol "Callable: " #'fboundp)))
   (pop-to-buffer (helpful--buffer symbol t))
   (helpful-update))
 

@@ -135,3 +135,17 @@ buffers lying around."
     (should
      (null
       (-difference (buffer-list) expected-buffers)))))
+
+(ert-deftest helpful--kind-name ()
+  (should
+   (equal
+    (helpful--kind-name 'message nil)
+    "variable"))
+  (should
+   (equal
+    (helpful--kind-name 'message t)
+    "function"))
+  (should
+   (equal
+    (helpful--kind-name 'save-excursion t)
+    "special form")))

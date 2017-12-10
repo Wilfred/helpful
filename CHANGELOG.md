@@ -5,6 +5,9 @@ toggled. If a variable is a `defcustom`, we also offer Customize.
 
 Show the name of variables at the top of the helpful buffer.
 
+Improved handling of special forms, and prevent users from
+accidentally unbinding special forms.
+
 # v0.3
 
 Fixed a crash on autoloaded functions that aren't loaded yet.
