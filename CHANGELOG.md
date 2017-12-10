@@ -11,6 +11,9 @@ accidentally unbinding special forms.
 Ensure we can find (and jump to) the definition of functions even if the source
 buffer has narrowing in effect.
 
+Fixed an issue where calling helpful commands on interactively defined
+functions would overwrite unrelated buffers.
+
 # v0.3
 
 Fixed a crash on autoloaded functions that aren't loaded yet.
