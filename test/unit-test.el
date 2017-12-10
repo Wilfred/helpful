@@ -65,7 +65,8 @@
   ;; test-foo, so remove all properties.
   (setplist #'test-foo-no-properties nil)
 
-  (should (helpful-function #'test-foo-no-properties)))
+  ;; This shouldn't throw any errors.
+  (helpful-function #'test-foo-no-properties))
 
 (ert-deftest helpful--split-first-line ()
   ;; Don't modify a single line string.
