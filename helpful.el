@@ -162,17 +162,19 @@ This allows us to distinguish strings from symbols."
 (define-button-type 'helpful-disassemble-button
   'action #'helpful--disassemble
   'follow-link t
+  'symbol nil
   'help-echo "Show disassembled bytecode")
 
-(defun helpful--disassemble (_button)
+(defun helpful--disassemble (button)
   "Disassemble the current symbol."
-  (disassemble helpful--sym))
+  (disassemble (button-get button 'symbol)))
 
-(defun helpful--disassemble-button ()
+(defun helpful--disassemble-button (symbol)
   "Return a button that disassembles the current symbol."
   (with-temp-buffer
     (insert-text-button
      "Disassemble"
+     'symbol symbol
      :type 'helpful-disassemble-button)
     (buffer-string)))
 
@@ -664,7 +666,7 @@ state of the current symbol."
      (if (or (not helpful--callable-p) primitive-p)
          ""
        (concat
-        (helpful--disassemble-button)
+        (helpful--disassemble-button helpful--sym)
         " "))
      (helpful--forget-button helpful--sym helpful--callable-p)
 
