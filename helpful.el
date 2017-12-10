@@ -149,16 +149,6 @@ This allows us to distinguish strings from symbols."
       (message "Forgot %s %s." kind sym)
       (kill-buffer (current-buffer)))))
 
-(defun helpful--forget-button (symbol callable-p)
-  "Return a button that unbinds SYMBOL."
-  (with-temp-buffer
-    (insert-text-button
-     "Forget"
-     'symbol symbol
-     'callable-p callable-p
-     :type 'helpful-forget-button)
-    (buffer-string)))
-
 (define-button-type 'helpful-disassemble-button
   'action #'helpful--disassemble
   'follow-link t
@@ -168,15 +158,6 @@ This allows us to distinguish strings from symbols."
 (defun helpful--disassemble (button)
   "Disassemble the current symbol."
   (disassemble (button-get button 'symbol)))
-
-(defun helpful--disassemble-button (symbol)
-  "Return a button that disassembles the current symbol."
-  (with-temp-buffer
-    (insert-text-button
-     "Disassemble"
-     'symbol symbol
-     :type 'helpful-disassemble-button)
-    (buffer-string)))
 
 (define-button-type 'helpful-navigate-button
   'action #'helpful--navigate
@@ -196,13 +177,11 @@ This allows us to distinguish strings from symbols."
 
 (defun helpful--navigate-button (path &optional pos)
   "Return a button that opens PATH and puts point at POS."
-  (with-temp-buffer
-    (insert-text-button
-     (abbreviate-file-name path)
-     :type 'helpful-navigate-button
-     'path path
-     'position pos)
-    (buffer-string)))
+  (make-text-button
+   (abbreviate-file-name path) nil
+   :type 'helpful-navigate-button
+   'path path
+   'position pos))
 
 (define-button-type 'helpful-all-references-button
   'action #'helpful--all-references
@@ -223,30 +202,11 @@ This allows us to distinguish strings from symbols."
      ((macrop sym)
       (elisp-refs-macro sym)))))
 
-(defun helpful--all-references-button (sym callable-p)
-  "Return a button that finds all references to SYM."
-  (with-temp-buffer
-    (insert-text-button
-     "All references"
-     :type 'helpful-all-references-button
-     'symbol sym
-     'callable-p callable-p)
-    (buffer-string)))
-
 (define-button-type 'helpful-manual-button
   'action #'helpful--manual
   'symbol nil
   'follow-link t
   'help-echo "Describe this symbol")
-
-(defun helpful--manual-button (sym)
-  "Return a button that shows SYM in the Info manul."
-  (with-temp-buffer
-    (insert-text-button
-     "View in manual"
-     :type 'helpful-manual-button
-     'symbol sym)
-    (buffer-string)))
 
 (defun helpful--manual (button)
   "Open the manual for the system that this BUTTON represents."
@@ -263,15 +223,6 @@ This allows us to distinguish strings from symbols."
   "Describe the symbol that this BUTTON represents."
   (let ((sym (button-get button 'symbol)))
     (helpful-symbol sym)))
-
-(defun helpful--describe-button (sym)
-  "Return a button that describes SYM."
-  (with-temp-buffer
-    (insert-text-button
-     (symbol-name sym)
-     :type 'helpful-describe-button
-     'symbol sym)
-    (buffer-string)))
 
 (defun helpful--split-first-line (docstring)
   "If the first line is a standalone sentence, ensure we have a
@@ -298,7 +249,10 @@ blank line afterwards."
               (s-chop-prefix "`" (s-chop-suffix "'" it)))
              (sym (intern sym-name)))
         (if (or (boundp sym) (fboundp sym))
-            (helpful--describe-button (read sym-name))
+            (make-text-button
+             sym-name nil
+             :type 'helpful-describe-button
+             'symbol sym)
           (propertize sym-name
                       'face 'font-lock-constant-face))))
     (helpful--split-first-line docstring)
@@ -615,7 +569,10 @@ state of the current symbol."
       (when (helpful--in-manual-p helpful--sym)
         (insert
          "\n\n"
-         (helpful--manual-button helpful--sym))))
+         (make-text-button
+          "View in manual" nil
+          :type 'helpful-manual-button
+          'symbol helpful--sym))))
 
     (when (not helpful--callable-p)
       (insert
@@ -648,7 +605,11 @@ state of the current symbol."
       (t
        "Could not find source file."))
      "\n\n"
-     (helpful--all-references-button helpful--sym helpful--callable-p))
+     (make-text-button
+      "All references" nil
+      :type 'helpful-all-references-button
+      'symbol helpful--sym
+      'callable-p helpful--callable-p))
 
     (-when-let (formatted-props (helpful--format-properties helpful--sym))
       (insert
@@ -666,9 +627,17 @@ state of the current symbol."
      (if (or (not helpful--callable-p) primitive-p)
          ""
        (concat
-        (helpful--disassemble-button helpful--sym)
+        (make-text-button
+         "Disassemble"
+         nil
+         :type 'helpful-disassemble-button
+         'symbol helpful--sym)
         " "))
-     (helpful--forget-button helpful--sym helpful--callable-p)
+     (make-text-button
+      "Forget" nil
+      :type 'helpful-forget-button
+      'symbol helpful--sym
+      'callable-p helpful--callable-p)
 
      (helpful--heading "\n\nSource Code\n")
      (cond
