@@ -711,8 +711,7 @@ state of the current symbol."
          "Disassemble"
          nil
          :type 'helpful-disassemble-button
-         'symbol helpful--sym)
-        " ")))
+         'symbol helpful--sym))))
     (unless (special-form-p helpful--sym)
       (insert
        " "
