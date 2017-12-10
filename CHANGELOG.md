@@ -1,6 +1,6 @@
 # v0.4
 
-No changes yet.
+Show the name of variables at the top of the helpful buffer.
 
 # v0.3
 

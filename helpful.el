@@ -545,19 +545,22 @@ state of the current symbol."
               (--map (helpful--outer-sexp buf it) positions))
         (kill-buffer buf)))
     (erase-buffer)
-    (when helpful--callable-p
+    (if helpful--callable-p
+        (insert
+         (helpful--heading
+          (if (macrop helpful--sym)
+              "Macro Signature\n"
+            "Function Signature\n"))
+         (helpful--syntax-highlight (helpful--signature helpful--sym)))
       (insert
        (helpful--heading
-        (if (macrop helpful--sym)
-            "Macro Signature\n"
-          "Function Signature\n"))
-       (helpful--syntax-highlight (helpful--signature helpful--sym))))
+        "Variable\n")
+       (symbol-name helpful--sym)))
 
     (-when-let (docstring (helpful--docstring
                            helpful--sym helpful--callable-p))
-      (when helpful--callable-p
-        (insert "\n\n"))
       (insert
+       "\n\n"
        (helpful--heading
         (cond
          ((not helpful--callable-p)
