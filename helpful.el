@@ -612,8 +612,7 @@ state of the current symbol."
         "Variable\n")
        (symbol-name helpful--sym)))
 
-    (-when-let (docstring (helpful--docstring
-                           helpful--sym helpful--callable-p))
+    (-when-let (docstring (helpful--docstring helpful--sym helpful--callable-p))
       (insert
        "\n\n"
        (helpful--heading
