@@ -400,10 +400,11 @@ for killing the newly created buffer."
       ;;
       ;; Narrowing has been fixed upstream:
       ;; http://git.savannah.gnu.org/cgit/emacs.git/commit/?id=abd18254aec76b26e86ae27e91d2c916ec20cc46
-      (-let* (((base-sym . path) (find-function-library sym))
-              (src-buf (find-file-noselect path)))
-        (with-current-buffer src-buf
-          ;; Ignore the current narrowing and point position in `src-buf'.
+      (-when-let ((base-sym . path) (find-function-library sym))
+        ;; Open `path' ourselves. If the user has already opened it,
+        ;; we ensure that we don't change their narrowing or point
+        ;; position when we search it.
+        (with-current-buffer (find-file-noselect path)
           (save-excursion
             (save-restriction
               (widen)
