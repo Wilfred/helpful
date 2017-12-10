@@ -392,14 +392,25 @@ If the source code cannot be found, return the sexp used."
   "Return a pair (BUF . POS) where SYM is defined.
 
 BUF may be an existing buffer or created. Caller is responsible
-for cleaning up."
+for killing the newly created buffer."
   (let (buf-and-pos)
     (when callable-p
-      (ignore-errors
-        (setq buf-and-pos
-              ;; TODO: if SYM is in a buffer that's already open, this
-              ;; moves point.
-              (find-function-noselect sym)))
+      ;; This is basically `find-function-noselect', but that moves
+      ;; point and can't find definitions if narrowing is in effect.
+      ;;
+      ;; Narrowing has been fixed upstream:
+      ;; http://git.savannah.gnu.org/cgit/emacs.git/commit/?id=abd18254aec76b26e86ae27e91d2c916ec20cc46
+      (-let* (((base-sym . path) (find-function-library sym))
+              (src-buf (find-file-noselect path)))
+        (with-current-buffer src-buf
+          ;; Ignore the current narrowing and point position in `src-buf'.
+          (save-excursion
+            (save-restriction
+              (widen)
+              (setq buf-and-pos
+                    ;; `base-sym' is the underlying symbol if `sym' is an alias.
+                    (find-function-search-for-symbol base-sym nil path))))))
+
       (unless buf-and-pos
         ;; If it's defined interactively, it may have an edebug property
         ;; that tells us where it's defined.
@@ -953,6 +964,9 @@ See also `helpful-callable' and `helpful-variable'."
             (setq pos (+ pos offset)))))
 
       (find-file path)
+      (when (or (< pos (point-min))
+                (> pos (point-max)))
+        (widen))
       (goto-char pos))))
 
 (defun helpful--forward-button (direction)
