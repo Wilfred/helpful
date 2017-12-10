@@ -623,7 +623,7 @@ state of the current symbol."
         "This %s is advised." (if (macrop helpful--sym) "macro" "function"))))
 
     (insert
-     (helpful--heading "\n\nDebugging\n")
+     (helpful--heading "\n\nDebugging\n\n")
      (if (or (not helpful--callable-p) primitive-p)
          ""
        (concat
