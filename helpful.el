@@ -404,7 +404,7 @@ for killing the newly created buffer."
         ;; Open `path' ourselves. If the user has already opened it,
         ;; we ensure that we don't change their narrowing or point
         ;; position when we search it.
-        (with-current-buffer (find-file-noselect path)
+        (with-current-buffer (find-file-noselect (find-library-name path))
           (save-excursion
             (save-restriction
               (widen)
