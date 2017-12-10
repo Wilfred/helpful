@@ -1,5 +1,8 @@
 # v0.4
 
+Variables may be set from the helpful buffer, and booleans can be
+toggled.
+
 Show the name of variables at the top of the helpful buffer.
 
 # v0.3

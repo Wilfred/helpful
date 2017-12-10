@@ -183,6 +183,53 @@ This allows us to distinguish strings from symbols."
    'path path
    'position pos))
 
+(define-button-type 'helpful-toggle-button
+  'action #'helpful--toggle
+  'symbol nil
+  'buffer nil
+  'follow-link t
+  'help-echo "Toggle this symbol between t and nil")
+
+(defun helpful--toggle (button)
+  "Toggle the symbol between nil and t."
+  (let ((sym (button-get button 'symbol))
+        (buf (button-get button 'buffer)))
+    (save-current-buffer
+      ;; If this is a buffer-local variable, ensure we're in the right
+      ;; buffer.
+      (when buf
+        (set-buffer buf))
+      (set sym (not (symbol-value sym))))
+    (helpful-update)))
+
+(define-button-type 'helpful-set-button
+  'action #'helpful--set
+  'symbol nil
+  'buffer nil
+  'follow-link t
+  'help-echo "Set the value of this symbol")
+
+(defun helpful--set (button)
+  "Set the value of this symbol."
+  (let* ((sym (button-get button 'symbol))
+         (sym-value (symbol-value sym))
+         (buf (button-get button 'buffer))
+         ;; Inspired by `counsel-set-variable'.
+         (expr
+          (read-from-minibuffer
+           "Eval: "
+           (format
+            (if (consp sym-value) "(setq %s '%S)" "(setq %s %S)")
+            sym sym-value)
+           read-expression-map t)))
+    (save-current-buffer
+      ;; If this is a buffer-local variable, ensure we're in the right
+      ;; buffer.
+      (when buf
+        (set-buffer buf))
+      (eval-expression expr))
+    (helpful-update)))
+
 (define-button-type 'helpful-all-references-button
   'action #'helpful--all-references
   'symbol nil
@@ -579,13 +626,28 @@ state of the current symbol."
           'symbol helpful--sym))))
 
     (when (not helpful--callable-p)
-      (insert
-       (helpful--heading "\n\nValue\n")
-       (let ((sym helpful--sym)
-             (buf (or helpful--associated-buffer (current-buffer))))
+      (let ((sym helpful--sym)
+            (buf (or helpful--associated-buffer (current-buffer))))
+        (insert
+         (helpful--heading "\n\nValue\n")
          (helpful--pretty-print
           (with-current-buffer buf
-            (symbol-value sym))))))
+            (symbol-value sym)))
+         "\n\n")
+        (when (memq (symbol-value helpful--sym) '(nil t))
+          (insert
+           (make-text-button
+            "Toggle" nil
+            :type 'helpful-toggle-button
+            'symbol helpful--sym
+            'buffer buf)
+           " "))
+        (insert
+         (make-text-button
+          "Set variable" nil
+          :type 'helpful-set-button
+          'symbol helpful--sym
+          'buffer buf))))
 
     ;; Show keybindings.
     ;; TODO: allow users to conveniently add and remove keybindings.
