@@ -1,7 +1,7 @@
 # v0.4
 
 Variables may be set from the helpful buffer, and booleans can be
-toggled.
+toggled. If a variable is a `defcustom`, we also offer Customize.
 
 Show the name of variables at the top of the helpful buffer.
 

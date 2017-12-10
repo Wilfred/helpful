@@ -183,6 +183,16 @@ This allows us to distinguish strings from symbols."
    'path path
    'position pos))
 
+(define-button-type 'helpful-customize-button
+  'action #'helpful--customize
+  'symbol nil
+  'follow-link t
+  'help-echo "Open Customize for this symbol")
+
+(defun helpful--customize (button)
+  "Open Customize for this symbol."
+  (customize-variable (button-get button 'symbol)))
+
 (define-button-type 'helpful-toggle-button
   'action #'helpful--toggle
   'symbol nil
@@ -647,7 +657,14 @@ state of the current symbol."
           "Set variable" nil
           :type 'helpful-set-button
           'symbol helpful--sym
-          'buffer buf))))
+          'buffer buf))
+        (when (custom-variable-p helpful--sym)
+          (insert
+           " "
+           (make-text-button
+            "Customize" nil
+            :type 'helpful-customize-button
+            'symbol helpful--sym)))))
 
     ;; Show keybindings.
     ;; TODO: allow users to conveniently add and remove keybindings.
