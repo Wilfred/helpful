@@ -714,24 +714,26 @@ state of the current symbol."
        (format
         "This %s is advised." (if (macrop helpful--sym) "macro" "function"))))
 
-    (insert
-     (helpful--heading "\n\nDebugging\n\n")
-     (if (or (not helpful--callable-p) primitive-p)
-         ""
-       (concat
-        (make-text-button
-         "Disassemble"
-         nil
-         :type 'helpful-disassemble-button
-         'symbol helpful--sym))))
-    (unless (special-form-p helpful--sym)
-      (insert
-       " "
-       (make-text-button
-        "Forget" nil
-        :type 'helpful-forget-button
-        'symbol helpful--sym
-        'callable-p helpful--callable-p)))
+    (insert (helpful--heading "\n\nDebugging\n\n"))
+    (let ((can-disassemble
+           (and helpful--callable-p
+                (not primitive-p))))
+      (when can-disassemble
+        (insert
+         (make-text-button
+          "Disassemble" nil
+          :type 'helpful-disassemble-button
+          'symbol helpful--sym)))
+
+      (unless (special-form-p helpful--sym)
+        (when can-disassemble
+          (insert " "))
+        (insert
+         (make-text-button
+          "Forget" nil
+          :type 'helpful-forget-button
+          'symbol helpful--sym
+          'callable-p helpful--callable-p))))
 
     (insert
      (helpful--heading "\n\nSource Code\n")
