@@ -815,8 +815,6 @@ For example, \"(some-func FOO &optional BAR)\"."
             (documentation-property sym 'variable-documentation)))
     docstring))
 
-;; TODO: allow jumping to source by pressing RET on the inline code.
-
 (defun helpful--read-symbol (prompt predicate)
   (let ((sym-here (symbol-at-point)))
     (read (completing-read prompt obarray
