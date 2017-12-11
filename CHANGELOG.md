@@ -15,6 +15,8 @@ Fixed an issue where calling helpful commands on interactively defined
 functions would overwrite unrelated buffers. Fixed a crash with
 interactively defined functions being edebugged.
 
+Added a cleanup command `helpful-kill-buffers`.
+
 # v0.3
 
 Fixed a crash on autoloaded functions that aren't loaded yet.

@@ -1005,6 +1005,13 @@ See also `helpful-callable' and `helpful-variable'."
   (interactive)
   (helpful--forward-button -1))
 
+(defun helpful-kill-buffers ()
+  "Kill all `helpful-mode' buffers."
+  (interactive)
+  (dolist (buffer (buffer-list))
+    (when (eq (buffer-local-value 'major-mode buffer) 'helpful-mode)
+      (kill-buffer buffer))))
+
 (define-key helpful-mode-map (kbd "g") #'helpful-update)
 (define-key helpful-mode-map (kbd "RET") #'helpful-visit-reference)
 
