@@ -773,6 +773,7 @@ state of the current symbol."
     (forward-line (1- start-line))
     (forward-char start-column)))
 
+;; TODO: this isn't sufficient for `edebug-eval-defun'.
 (defun helpful--skip-advice (docstring)
   "Remove mentions of advice from DOCSTRING."
   (let* ((lines (s-lines docstring))
