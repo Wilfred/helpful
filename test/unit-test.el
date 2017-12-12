@@ -77,6 +77,10 @@
   ;; Defined in elisp.
   (should (not (helpful--primitive-p 'when t))))
 
+(ert-deftest helpful-callable ()
+  ;; We should not crash when looking at macros.
+  (helpful-callable 'when))
+
 (ert-deftest helpful--no-symbol-properties ()
   "Helpful should handle functions without any symbol properties."
   ;; Interactively evaluating this file will set edebug properties on
