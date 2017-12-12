@@ -1,5 +1,7 @@
 # v0.4
 
+You can now enable edebug directly from helpful buffers!
+
 Variables may be set from the helpful buffer, and booleans can be
 toggled. If a variable is a `defcustom`, we also offer Customize.
 

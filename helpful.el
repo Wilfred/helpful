@@ -50,6 +50,7 @@
 (require 'find-func)
 (require 'nadvice)
 (require 'info-look)
+(require 'edebug)
 
 (defvar-local helpful--sym nil)
 (defvar-local helpful--callable-p nil)
@@ -156,6 +157,56 @@ This allows us to distinguish strings from symbols."
 (defun helpful--disassemble (button)
   "Disassemble the current symbol."
   (disassemble (button-get button 'symbol)))
+
+(define-button-type 'helpful-edebug-button
+  'action #'helpful--edebug
+  'follow-link t
+  'symbol nil
+  'help-echo "Toggle edebug (re-evaluates definition)")
+
+(defun helpful--edebug-p (sym)
+  "Does function SYM have its definition patched by edebug?"
+  (let ((fn-def (indirect-function sym)))
+    ;; Edebug replaces function source code with a sexp that has
+    ;; `edebug-enter', `edebug-after' etc interleaved. This means the
+    ;; function is interpreted, so `indirect-function' returns a list.
+    (when (and (consp fn-def) (consp (cdr fn-def)))
+      (eq (car (-last-item fn-def)) 'edebug-enter))))
+
+(defun helpful--can-edebug-p (sym callable-p)
+  "Can we use edebug with SYM?"
+  (and
+   ;; SYM must be a function.
+   callable-p
+   ;; The function cannot be a primitive, it must be defined in elisp.
+   (not (helpful--primitive-p sym callable-p))
+   ;; We need to be able to find its definition, or we can't step
+   ;; through the source.
+   (-when-let ((buf . pos) (helpful--definition sym t))
+     t)))
+
+(defun helpful--toggle-edebug (sym)
+  "Enable edebug when function SYM is called,
+or disable if already enabled."
+  (-if-let ((buf . pos) (helpful--definition sym t))
+      (with-current-buffer buf
+        (save-excursion
+          (save-restriction
+            (widen)
+            (goto-char pos)
+
+            (let* ((should-edebug (not (helpful--edebug-p sym)))
+                   (edebug-all-forms should-edebug)
+                   (edebug-all-defs should-edebug)
+                   (form (edebug-read-top-level-form)))
+              ;; Based on `edebug-eval-defun'.
+              (eval (eval-sexp-add-defvars form) lexical-binding)))))
+    (user-error "Could not find source for edebug")))
+
+(defun helpful--edebug (button)
+  "Toggle edebug for the current symbol."
+  (helpful--toggle-edebug (button-get button 'symbol))
+  (helpful-update))
 
 (define-button-type 'helpful-navigate-button
   'action #'helpful--navigate
@@ -721,10 +772,25 @@ state of the current symbol."
        (format
         "This %s is advised." (if (macrop helpful--sym) "macro" "function"))))
 
-    (insert (helpful--heading "\n\nDebugging\n\n"))
-    (let ((can-disassemble
-           (and helpful--callable-p
-                (not primitive-p))))
+    (let ((can-edebug
+           (helpful--can-edebug-p helpful--sym helpful--callable-p))
+          (can-disassemble
+           (and helpful--callable-p (not primitive-p)))
+          (can-forget
+           (not (special-form-p helpful--sym))))
+      (when (or can-edebug can-disassemble can-forget)
+        (insert (helpful--heading "\n\nDebugging\n")))
+      (when can-edebug
+        (insert
+         (make-text-button
+          (if (helpful--edebug-p helpful--sym)
+              "Disable edebug"
+            "Enable edebug")
+          nil
+          :type 'helpful-edebug-button
+          'symbol helpful--sym)
+         "\n"))
+
       (when can-disassemble
         (insert
          (make-text-button
@@ -732,7 +798,7 @@ state of the current symbol."
           :type 'helpful-disassemble-button
           'symbol helpful--sym)))
 
-      (unless (special-form-p helpful--sym)
+      (when can-forget
         (when can-disassemble
           (insert " "))
         (insert
