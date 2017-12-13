@@ -799,7 +799,8 @@ state of the current symbol."
           (can-disassemble
            (and helpful--callable-p (not primitive-p)))
           (can-forget
-           (not (special-form-p helpful--sym))))
+           (and (not (special-form-p helpful--sym))
+                (not primitive-p))))
       (when (or can-edebug can-disassemble can-forget)
         (insert (helpful--heading "\n\nDebugging\n")))
       (when can-edebug
