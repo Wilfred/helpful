@@ -79,7 +79,17 @@
 
 (ert-deftest helpful-callable ()
   ;; We should not crash when looking at macros.
-  (helpful-callable 'when))
+  (helpful-callable 'when)
+  ;; Special forms should work too.
+  (helpful-callable 'if)
+  ;; Smoke test for special forms when we have the Emacs C source
+  ;; loaded.
+  (let* ((emacs-src-path (f-join default-directory "emacs-25.3" "src")))
+    (if (f-exists-p emacs-src-path)
+        (let ((find-function-C-source-directory emacs-src-path))
+          (helpful-callable 'if))
+      (message "No Emacs source code found at %S, skipping test."
+               emacs-src-path))))
 
 (ert-deftest helpful--no-symbol-properties ()
   "Helpful should handle functions without any symbol properties."

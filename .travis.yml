@@ -1,6 +1,15 @@
 language: generic
 sudo: false
+
+cache:
+  directories:
+    - emacs-25.3
+
 before_install:
+  # A copy of the emacs source code.
+  - wget http://ftpmirror.gnu.org/emacs/emacs-25.3.tar.gz
+  - tar -xzf emacs-25.3.tar.gz
+
   - curl -fsSkL https://gist.github.com/rejeep/ebcd57c3af83b049833b/raw > x.sh && source ./x.sh
   - evm install $EVM_EMACS --use --skip
   - cask
