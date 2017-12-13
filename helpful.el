@@ -182,25 +182,31 @@ This allows us to distinguish strings from symbols."
    (not (helpful--primitive-p sym callable-p))
    ;; We need to be able to find its definition, or we can't step
    ;; through the source.
-   (-when-let ((buf . pos) (helpful--definition sym t))
+   (-when-let ((buf pos opened) (helpful--definition sym t))
+     (when opened
+       (kill-buffer buf))
      t)))
 
 (defun helpful--toggle-edebug (sym)
   "Enable edebug when function SYM is called,
 or disable if already enabled."
-  (-if-let ((buf . pos) (helpful--definition sym t))
-      (with-current-buffer buf
-        (save-excursion
-          (save-restriction
-            (widen)
-            (goto-char pos)
+  (-if-let ((buf pos created) (helpful--definition sym t))
+      (progn
+        (with-current-buffer buf
+          (save-excursion
+            (save-restriction
+              (widen)
+              (goto-char pos)
 
-            (let* ((should-edebug (not (helpful--edebug-p sym)))
-                   (edebug-all-forms should-edebug)
-                   (edebug-all-defs should-edebug)
-                   (form (edebug-read-top-level-form)))
-              ;; Based on `edebug-eval-defun'.
-              (eval (eval-sexp-add-defvars form) lexical-binding)))))
+              (let* ((should-edebug (not (helpful--edebug-p sym)))
+                     (edebug-all-forms should-edebug)
+                     (edebug-all-defs should-edebug)
+                     (form (edebug-read-top-level-form)))
+                ;; Based on `edebug-eval-defun'.
+                (eval (eval-sexp-add-defvars form) lexical-binding)))))
+        (when created
+          (kill-buffer buf)))
+    
     (user-error "Could not find source for edebug")))
 
 (defun helpful--edebug (button)
@@ -404,25 +410,24 @@ hooks.")
 (defun helpful--source (sym callable-p)
   "Return the source code of SYM.
 If the source code cannot be found, return the sexp used."
-  (-let ((initial-buffers (buffer-list))
-         ((buf . start-pos) (helpful--definition sym callable-p)))
-    (if (and buf start-pos)
-        (let (source)
-          (with-current-buffer buf
-            (save-excursion
-              (save-restriction
-                (goto-char start-pos)
-                (narrow-to-defun)
-                (setq source (buffer-substring-no-properties (point-min) (point-max))))))
-          ;; If we've just created this buffer, close it.
-          (unless (-contains-p initial-buffers buf)
-            (kill-buffer buf))
-          (when (and source (buffer-file-name buf))
-            (setq source (propertize source
-                                     'helpful-path (buffer-file-name buf)
-                                     'helpful-pos start-pos
-                                     'helpful-pos-is-start t)))
-          source)
+  (-let (((buf start-pos created) (helpful--definition sym callable-p))
+         (source nil))
+    (when (and buf start-pos)
+      (with-current-buffer buf
+        (save-excursion
+          (save-restriction
+            (goto-char start-pos)
+            (narrow-to-defun)
+            (setq source (buffer-substring-no-properties (point-min) (point-max))))))
+      (when (and source (buffer-file-name buf))
+        (setq source (propertize source
+                                 'helpful-path (buffer-file-name buf)
+                                 'helpful-pos start-pos
+                                 'helpful-pos-is-start t))))
+    (when (and buf created)
+      (kill-buffer buf))
+    (if source
+        source
       ;; Could not find source -- probably defined interactively, or via
       ;; a macro, or file has changed.
       ;; TODO: verify that the source hasn't changed before showing.
@@ -440,65 +445,82 @@ If the source code cannot be found, return the sexp used."
         (assoc-string sym completions))))
 
 (defun helpful--definition (sym callable-p)
-  "Return a pair (BUF . POS) where SYM is defined.
+  "Return a list (BUF POS OPENED) where SYM is defined.
 
-BUF may be an existing buffer or created. Caller is responsible
-for killing the newly created buffer."
-  (let (buf-and-pos)
+BUF is the buffer containing the definition. If the user wasn't
+already visiting this buffer, OPENED is t and callers should kill
+the buffer when done.
+
+POS is the position of the start of the definition within the
+buffer."
+  (-let ((initial-buffers (buffer-list))
+         (primitive-p (helpful--primitive-p sym callable-p))
+         (path nil)
+         (buf nil)
+         (pos nil)
+         (opened nil))
     (when callable-p
-      ;; This is basically `find-function-noselect', but that moves
-      ;; point and can't find definitions if narrowing is in effect.
-      ;;
-      ;; Narrowing has been fixed upstream:
-      ;; http://git.savannah.gnu.org/cgit/emacs.git/commit/?id=abd18254aec76b26e86ae27e91d2c916ec20cc46
-      (-when-let ((base-sym . path) (find-function-library sym))
-        (when (string-match "\\`src/\\(.*\\.\\(c\\|m\\)\\)\\'" path)
-          (cl-assert find-function-C-source-directory)
-          (setq path (f-expand (match-string 1 path)
-                               find-function-C-source-directory)))
+      (-let [(base-sym . src-path) (find-function-library sym)]
+        ;; `base-sym' is the underlying symbol if `sym' is an alias.
+        (setq sym base-sym)
+        (setq path src-path)))
+    (when primitive-p
+      ;; Convert "src/foo.c" to "".
+      (setq path (f-expand path
+                           (f-parent find-function-C-source-directory))))
 
-        ;; Open `path' ourselves. If the user has already opened it,
-        ;; we ensure that we don't change their narrowing or point
-        ;; position when we search it.
-        (with-current-buffer (find-file-noselect (find-library-name path))
-          (save-excursion
-            (save-restriction
-              (widen)
-              (setq buf-and-pos
-                    ;; `base-sym' is the underlying symbol if `sym' is an alias.
-                    (find-function-search-for-symbol base-sym nil path))))))
+    (cond
+     ((and callable-p path)
+      ;; Open `path' ourselves, so we can widen before searching.
+      (setq buf (find-file-noselect (find-library-name path)))
 
-      (unless buf-and-pos
-        ;; If it's defined interactively, it may have an edebug property
-        ;; that tells us where it's defined.
-        (-when-let (marker (car-safe (get sym 'edebug)))
-          (setq buf-and-pos
-                (cons (marker-buffer marker)
-                      (marker-position marker))))))
-    (when (not callable-p)
+      (unless (-contains-p initial-buffers buf)
+        (setq opened t))
+
+      ;; Based on `find-function-noselect'.
+      (with-current-buffer buf
+        ;; `find-function-search-for-symbol' moves point. Prevent
+        ;; that.
+        (save-excursion
+          ;; Narrowing has been fixed upstream:
+          ;; http://git.savannah.gnu.org/cgit/emacs.git/commit/?id=abd18254aec76b26e86ae27e91d2c916ec20cc46
+          (save-restriction
+            (widen)
+            (setq pos
+                  (if primitive-p
+                      (cdr (find-function-C-source sym path nil))
+                    (cdr (find-function-search-for-symbol sym nil path))))))))
+     (callable-p
+      ;; Functions defined interactively may have an edebug property
+      ;; that contains the location of the definition.
+      (-when-let (marker (car-safe (get sym 'edebug)))
+        (setq buf (marker-buffer marker))
+        (setq pos (marker-position marker))))
+     ((not callable-p)
       (condition-case _err
-          (setq buf-and-pos (find-definition-noselect sym 'defvar))
-        (search-failed nil)))
-    buf-and-pos))
+          (-let [(sym-buf . sym-pos) (find-definition-noselect sym 'defvar)]
+            (setq buf sym-buf)
+            (setq pos sym-pos))
+        (search-failed nil))))
+    (list buf pos opened)))
 
 (defun helpful--source-path (sym callable-p)
   "Return the path where SYM is defined."
-  (-let* ((initial-buffers (buffer-list))
-          ((buf . _) (helpful--definition sym callable-p))
-          (path))
+  (-let* (((buf _ opened) (helpful--definition sym callable-p))
+          (path nil))
     (when buf
       (setq path (buffer-file-name buf))
-      ;; If we've just created this buffer, close it.
-      (unless (-contains-p initial-buffers buf)
+      (when opened
+        ;; If we've just created this buffer, close it.
         (kill-buffer buf)))
     path))
 
 (defun helpful--source-pos (sym callable-p)
   "Return the file position where SYM is defined."
-  (-let ((initial-buffers (buffer-list))
-         ((buf . pos) (helpful--definition sym callable-p)))
+  (-let (((buf pos opened) (helpful--definition sym callable-p)))
     ;; If we've just created this buffer, close it.
-    (unless (-contains-p initial-buffers buf)
+    (when opened
+      ;; If we've just created this buffer, close it.
       (kill-buffer buf))
     pos))
 
