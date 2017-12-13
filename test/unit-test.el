@@ -140,9 +140,16 @@
 (setq helpful-var-without-defvar 'foo)
 
 (ert-deftest helpful--definition ()
-  "Ensure we don't crash on calling `helpful--definition' on
-variables defined without `defvar'."
-  (helpful--definition 'helpful-var-without-defvar nil))
+  ;; Ensure we don't crash on calling `helpful--definition' on
+  ;; variables defined without `defvar'.
+  (helpful--definition 'helpful-var-without-defvar nil)
+  ;; Handle definitions of variables in C source code.
+  (let* ((emacs-src-path (f-join default-directory "emacs-25.3" "src")))
+    (if (f-exists-p emacs-src-path)
+        (let ((find-function-C-source-directory emacs-src-path))
+          (helpful--definition 'default-directory nil))
+      (message "No Emacs source code found at %S, skipping test."
+               emacs-src-path))))
 
 (ert-deftest helpful-variable ()
   "Smoke test for `helpful-variable'."

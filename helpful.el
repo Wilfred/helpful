@@ -464,7 +464,7 @@ buffer."
         ;; `base-sym' is the underlying symbol if `sym' is an alias.
         (setq sym base-sym)
         (setq path src-path)))
-    (when primitive-p
+    (when (and primitive-p path)
       ;; Convert "src/foo.c" to "".
       (setq path (f-expand path
                            (f-parent find-function-C-source-directory))))
