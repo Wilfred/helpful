@@ -182,32 +182,36 @@ This allows us to distinguish strings from symbols."
    (not (helpful--primitive-p sym callable-p))
    ;; We need to be able to find its definition, or we can't step
    ;; through the source.
-   (-when-let ((buf pos opened) (helpful--definition sym t))
+   (-let* (((buf pos opened) (helpful--definition sym t))
+           (have-definition (and buf pos)))
      (when opened
        (kill-buffer buf))
-     t)))
+     have-definition)))
 
 (defun helpful--toggle-edebug (sym)
   "Enable edebug when function SYM is called,
 or disable if already enabled."
-  (-if-let ((buf pos created) (helpful--definition sym t))
-      (progn
-        (with-current-buffer buf
-          (save-excursion
-            (save-restriction
-              (widen)
-              (goto-char pos)
+  (-let ((should-edebug (not (helpful--edebug-p sym)))
+         ((buf pos created) (helpful--definition sym t)))
+    (if (and buf pos)
+        (progn
+          (with-current-buffer buf
+            (save-excursion
+              (save-restriction
+                (widen)
+                (goto-char pos)
 
-              (let* ((should-edebug (not (helpful--edebug-p sym)))
-                     (edebug-all-forms should-edebug)
-                     (edebug-all-defs should-edebug)
-                     (form (edebug-read-top-level-form)))
-                ;; Based on `edebug-eval-defun'.
-                (eval (eval-sexp-add-defvars form) lexical-binding)))))
-        (when created
-          (kill-buffer buf)))
-    
-    (user-error "Could not find source for edebug")))
+                (let* ((edebug-all-forms should-edebug)
+                       (edebug-all-defs should-edebug)
+                       (form (edebug-read-top-level-form)))
+                  ;; Based on `edebug-eval-defun'.
+                  (eval (eval-sexp-add-defvars form) lexical-binding)))))
+          ;; If we're enabling edebug, we need the source buffer to
+          ;; exist. Otherwise, we can clean it up.
+          (when (and created (not should-edebug))
+            (kill-buffer buf)))
+      
+      (user-error "Could not find source for edebug"))))
 
 (defun helpful--edebug (button)
   "Toggle edebug for the current symbol."
