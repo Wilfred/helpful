@@ -283,14 +283,22 @@ or disable if already enabled."
   (let* ((sym (button-get button 'symbol))
          (sym-value (symbol-value sym))
          (buf (button-get button 'buffer))
-         ;; Inspired by `counsel-set-variable'.
+         ;; Inspired by `counsel-read-setq-expression'.
          (expr
-          (read-from-minibuffer
-           "Eval: "
-           (format
-            (if (consp sym-value) "(setq %s '%S)" "(setq %s %S)")
-            sym sym-value)
-           read-expression-map t)))
+          (minibuffer-with-setup-hook
+              (lambda ()
+                (add-function :before-until (local 'eldoc-documentation-function)
+                              #'elisp-eldoc-documentation-function)
+                (run-hooks 'eval-expression-minibuffer-setup-hook)
+                (goto-char (minibuffer-prompt-end))
+                (forward-char (length (format "(setq %S " sym))))
+            (read-from-minibuffer
+             "Eval: "
+             (format
+              (if (consp sym-value) "(setq %s '%S)" "(setq %s %S)")
+              sym sym-value)
+             read-expression-map t
+             'read-expression-history))))
     (save-current-buffer
       ;; If this is a buffer-local variable, ensure we're in the right
       ;; buffer.
