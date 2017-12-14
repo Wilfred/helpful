@@ -225,9 +225,15 @@ or disable if already enabled."
   'follow-link t
   'help-echo "Navigate to definition")
 
+(defun helpful--no-properties (s)
+  "Return a copy of S without any properties."
+  (with-temp-buffer
+    (insert s)
+    (buffer-substring-no-properties (point-min) (point-max))))
+
 (defun helpful--navigate (button)
   "Navigate to the path this BUTTON represents."
-  (find-file (button-get button 'path))
+  (find-file (helpful--no-properties (button-get button 'path)))
   ;; We use `get-text-property' to work around an Emacs 25 bug:
   ;; http://git.savannah.gnu.org/cgit/emacs.git/commit/?id=f7c4bad17d83297ee9a1b57552b1944020f23aea
   (-when-let (pos (get-text-property button 'position

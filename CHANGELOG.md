@@ -19,6 +19,9 @@ interactively defined functions being edebugged.
 
 Added a cleanup command `helpful-kill-buffers`.
 
+Fixed an issue with helpful making recentf write broken paths to
+~/.recentf, breaking Emacs startup.
+
 # v0.3
 
 Fixed a crash on autoloaded functions that aren't loaded yet.
