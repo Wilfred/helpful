@@ -52,6 +52,15 @@
 (require 'info-look)
 (require 'edebug)
 
+(defgroup helpful nil
+  "A better *Help* buffer."
+  :group 'help)
+
+(defcustom helpful-short-filenames nil
+  "Only display source file base name."
+  :group 'helpful
+  :type 'boolean)
+
 (defvar-local helpful--sym nil)
 (defvar-local helpful--callable-p nil)
 (defvar-local helpful--associated-buffer nil
@@ -206,7 +215,7 @@ or disable if already enabled."
                 (eval (eval-sexp-add-defvars form) lexical-binding)))))
         (when created
           (kill-buffer buf)))
-    
+
     (user-error "Could not find source for edebug")))
 
 (defun helpful--edebug (button)
@@ -233,7 +242,10 @@ or disable if already enabled."
 (defun helpful--navigate-button (path &optional pos)
   "Return a button that opens PATH and puts point at POS."
   (make-text-button
-   (abbreviate-file-name path) nil
+   (if helpful-short-filenames
+       (file-name-nondirectory path)
+     (abbreviate-file-name path))
+   nil
    :type 'helpful-navigate-button
    'path path
    'position pos))
