@@ -1,3 +1,7 @@
+# v0.5
+
+No changes yet.
+
 # v0.4
 
 You can now enable edebug directly from helpful buffers!
