@@ -102,7 +102,8 @@ show the value of buffer-local variables.")
 
 (defun helpful--pretty-print (value)
   "Pretty-print VALUE.
-This allows us to distinguish strings from symbols."
+Break lists over large lines, and ensure strings are surrounded
+with double-quotes."
   (with-temp-buffer
     (delay-mode-hooks (lisp-mode))
     (cl-prettyprint value)
