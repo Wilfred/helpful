@@ -732,6 +732,8 @@ POSITION-HEADS takes the form ((123 (defun foo)) (456 (defun bar)))."
 state of the current symbol."
   (interactive)
   (cl-assert (not (null helpful--sym)))
+  (unless (buffer-live-p helpful--associated-buffer)
+    (setq helpful--associated-buffer nil))
   (let* ((inhibit-read-only t)
          (start-line (line-number-at-pos))
          (start-column (current-column))

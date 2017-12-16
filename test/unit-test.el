@@ -195,3 +195,14 @@ buffers lying around."
   ;; Don't crash on large plists using keywords.
   (helpful--pretty-print
    '(:foo foooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo :bar bar)))
+
+(ert-deftest helpful-update-after-killing-buf ()
+  "If we originally looked at a variable in a specific buffer,
+and that buffer has been killed, handle it gracefully."
+  ;; Don't crash if the underlying buffer has been killed.
+  (let (helpful-buf)
+    (with-temp-buffer
+      (helpful-variable 'tab-width)
+      (setq helpful-buf (current-buffer)))
+    (with-current-buffer helpful-buf
+      (helpful-update))))
