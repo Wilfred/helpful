@@ -1,5 +1,7 @@
 # v0.5
 
+Allow function tracing to be enabled/disabled from Helpful buffers.
+
 Ensure docstring references to Info nodes are converted to buttons.
 
 # v0.4

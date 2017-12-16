@@ -227,6 +227,20 @@ or disable if already enabled."
   (helpful--toggle-edebug (button-get button 'symbol))
   (helpful-update))
 
+(define-button-type 'helpful-trace-button
+  'action #'helpful--trace
+  'follow-link t
+  'symbol nil
+  'help-echo "Toggle function tracing")
+
+(defun helpful--trace (button)
+  "Toggle tracing for the current symbol."
+  (let ((sym (button-get button 'symbol)))
+    (if (trace-is-traced sym)
+        (untrace-function sym)
+      (trace-function sym)))
+  (helpful-update))
+
 (define-button-type 'helpful-navigate-button
   'action #'helpful--navigate
   'path nil
@@ -861,6 +875,12 @@ state of the current symbol."
 
     (let ((can-edebug
            (helpful--can-edebug-p helpful--sym helpful--callable-p))
+          (can-trace
+           (and helpful--callable-p
+                ;; Tracing uses advice, and you can't apply advice to
+                ;; primitive functions that are replaced with special
+                ;; opcodes. For example, `narrow-to-region'.
+                (not (plist-get (symbol-plist helpful--sym) 'byte-opcode))))
           (can-disassemble
            (and helpful--callable-p (not primitive-p)))
           (can-forget
@@ -876,8 +896,20 @@ state of the current symbol."
             "Enable edebug")
           nil
           :type 'helpful-edebug-button
-          'symbol helpful--sym)
-         "\n"))
+          'symbol helpful--sym)))
+      (when can-trace
+        (when can-edebug
+          (insert " "))
+        (insert
+         (make-text-button
+          (if (trace-is-traced helpful--sym)
+              "Disable tracing"
+            "Enable tracing")
+          nil
+          :type 'helpful-trace-button
+          'symbol helpful--sym)))
+      (when (or can-edebug can-trace)
+        (insert "\n"))
 
       (when can-disassemble
         (insert
