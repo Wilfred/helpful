@@ -188,3 +188,10 @@ buffers lying around."
    (equal
     (helpful--kind-name 'save-excursion t)
     "special form")))
+
+(ert-deftest helpful--pretty-print ()
+  ;; Strings should be formatted with double-quotes.
+  (should (equal "\"foo\"" (helpful--pretty-print "foo")))
+  ;; Don't crash on large plists using keywords.
+  (helpful--pretty-print
+   '(:foo foooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo :bar bar)))
