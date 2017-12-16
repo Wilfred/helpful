@@ -367,26 +367,35 @@ blank line afterwards."
                 (-cons* first-line "" (cdr lines)))
       docstring)))
 
+(defun helpful--propertize-symbols (docstring)
+  "Convert symbol references in docstrings to buttons."
+  (replace-regexp-in-string
+   ;; Replace all text of the form `foo'.
+   (rx "`" symbol-start (+? anything) symbol-end "'")
+   (lambda (it)
+     (let* ((sym-name
+             (s-chop-prefix "`" (s-chop-suffix "'" it)))
+            (sym (intern sym-name)))
+       ;; Only create a link if this is a symbol that is bound as a
+       ;; variable or callable.
+       (if (or (boundp sym) (fboundp sym))
+           (make-text-button
+            sym-name nil
+            :type 'helpful-describe-button
+            'symbol sym)
+         (propertize sym-name
+                     'face 'font-lock-constant-face))))
+   docstring
+   t t))
+
 ;; TODO: fix upstream Emacs bug that means `-map' is not highlighted
 ;; in the docstring for `--map'.
 (defun helpful--format-docstring (docstring)
   "Replace cross-references with links in DOCSTRING."
-  (s-trim
-   (replace-regexp-in-string
-    (rx "`" symbol-start (+? anything) symbol-end "'")
-    (lambda (it)
-      (let* ((sym-name
-              (s-chop-prefix "`" (s-chop-suffix "'" it)))
-             (sym (intern sym-name)))
-        (if (or (boundp sym) (fboundp sym))
-            (make-text-button
-             sym-name nil
-             :type 'helpful-describe-button
-             'symbol sym)
-          (propertize sym-name
-                      'face 'font-lock-constant-face))))
-    (helpful--split-first-line docstring)
-    t t)))
+  (-> docstring
+      (helpful--split-first-line)
+      (helpful--propertize-symbols)
+      (s-trim)))
 
 (defconst helpful--highlighting-funcs
   '(ert--activate-font-lock-keywords
