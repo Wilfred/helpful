@@ -287,8 +287,8 @@ or disable if already enabled."
 (defun helpful--set (button)
   "Set the value of this symbol."
   (let* ((sym (button-get button 'symbol))
-         (sym-value (symbol-value sym))
          (buf (button-get button 'buffer))
+         (sym-value (helpful--sym-value sym buf))
          ;; Inspired by `counsel-read-setq-expression'.
          (expr
           (minibuffer-with-setup-hook
@@ -682,6 +682,11 @@ POSITION-HEADS takes the form ((123 (defun foo)) (456 (defun bar)))."
           (and (stringp filename)
                (equal (file-name-extension filename) "c"))))))
 
+(defun helpful--sym-value (sym buf)
+  "Return the value of SYM in BUF."
+  (with-current-buffer buf
+    (symbol-value sym)))
+
 (defun helpful-update ()
   "Update the current *Helpful* buffer to the latest
 state of the current symbol."
@@ -748,10 +753,9 @@ state of the current symbol."
         (insert
          (helpful--heading "\n\nValue\n")
          (helpful--pretty-print
-          (with-current-buffer buf
-            (symbol-value sym)))
+          (helpful--sym-value sym buf))
          "\n\n")
-        (when (memq (symbol-value helpful--sym) '(nil t))
+        (when (memq (helpful--sym-value helpful--sym buf) '(nil t))
           (insert
            (make-text-button
             "Toggle" nil
