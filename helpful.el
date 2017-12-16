@@ -834,7 +834,8 @@ state of the current symbol."
                (helpful--navigate-button source-path 0)
                (helpful--format-position-heads references source-path)))
       (source-path
-       (format "No references found in %s."
+       (format "%s is unused in %s."
+               helpful--sym
                (helpful--navigate-button source-path 0)))
       ((and primitive-p (null find-function-C-source-directory))
        "C code is not yet loaded.")
@@ -842,7 +843,7 @@ state of the current symbol."
        "Could not find source file."))
      "\n\n"
      (make-text-button
-      "All references" nil
+      "Find all references" nil
       :type 'helpful-all-references-button
       'symbol helpful--sym
       'callable-p helpful--callable-p))
