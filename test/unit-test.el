@@ -88,7 +88,7 @@
     (if (f-exists-p emacs-src-path)
         (let ((find-function-C-source-directory emacs-src-path))
           (helpful-callable 'if))
-      (message "No Emacs source code found at %S, skipping test."
+      (message "No Emacs source code found at %S, skipping test. Run ./download_emacs_src.sh."
                emacs-src-path))))
 
 (ert-deftest helpful--no-symbol-properties ()
@@ -148,7 +148,7 @@
     (if (f-exists-p emacs-src-path)
         (let ((find-function-C-source-directory emacs-src-path))
           (helpful--definition 'default-directory nil))
-      (message "No Emacs source code found at %S, skipping test."
+      (message "No Emacs source code found at %S, skipping test. Run ./download_emacs_src.sh"
                emacs-src-path))))
 
 (ert-deftest helpful-variable ()

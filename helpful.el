@@ -109,6 +109,13 @@ with double-quotes."
     (cl-prettyprint value)
     (s-trim (buffer-string))))
 
+(defun helpful--indent-rigidly (s amount)
+  "Indent string S by adding AMOUNT spaces to each line."
+  (with-temp-buffer
+    (insert s)
+    (indent-rigidly (point-min) (point-max) amount)
+    (buffer-string)))
+
 (defun helpful--format-properties (symbol)
   "Return a string describing all the properties of SYMBOL."
   (let* ((syms-and-vals
@@ -118,14 +125,14 @@ with double-quotes."
                    (string-lessp (symbol-name sym1) (symbol-name sym2)))
                  syms-and-vals))
          (lines
-          (-map
-           (-lambda ((sym val))
-             (format "%s %s"
+          (--map
+           (-let* (((sym val) it)
+                   (pretty-val
+                    (helpful--pretty-print val)))
+             (format "%s\n%s"
                      (propertize (symbol-name sym)
                                  'face 'font-lock-constant-face)
-                     (if (eq (type-of val) 'compiled-function)
-                         "#<compiled-function>"
-                       (helpful--pretty-print val))))
+                     (helpful--indent-rigidly pretty-val 2)))
            syms-and-vals)))
     (when lines
       (s-join "\n" lines))))
