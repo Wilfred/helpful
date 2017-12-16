@@ -60,7 +60,8 @@ Helpful will show you where a function is being called!
 Docstrings in helpful:
 
 * Highlight the summary (the first sentence)
-* Include cross-references
+* Include cross-references to other functions/variables
+* Linkify references to Info nodes
 * Hide superfluous punctuation
 
 ![screenshot](screenshots/helpful_view_in_manual.png)

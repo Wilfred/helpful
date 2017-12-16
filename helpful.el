@@ -348,6 +348,16 @@ or disable if already enabled."
   (let ((sym (button-get button 'symbol)))
     (helpful-symbol sym)))
 
+(define-button-type 'helpful-info-button
+  'action #'helpful--info
+  'info-node nil
+  'follow-link t
+  'help-echo "View this Info node")
+
+(defun helpful--info (button)
+  "Describe the symbol that this BUTTON represents."
+  (info (button-get button 'info-node)))
+
 (defun helpful--split-first-line (docstring)
   "If the first line is a standalone sentence, ensure we have a
 blank line afterwards."
@@ -382,12 +392,30 @@ blank line afterwards."
    docstring
    t t))
 
+(defun helpful--propertize-info (docstring)
+  "Convert info references in docstrings to buttons."
+  (replace-regexp-in-string
+   ;; Replace all text of the form `foo'.
+   (rx "Info node `" (group (+ (not (in "'")))) "'")
+   (lambda (it)
+     ;; info-node has the form "(cl)Loop Facility".
+     (let ((info-node (match-string 1 it)))
+       (concat
+        "Info node "
+        (make-text-button
+         info-node nil
+         :type 'helpful-info-button
+         'info-node info-node))))
+   docstring
+   t t))
+
 ;; TODO: fix upstream Emacs bug that means `-map' is not highlighted
 ;; in the docstring for `--map'.
 (defun helpful--format-docstring (docstring)
   "Replace cross-references with links in DOCSTRING."
   (-> docstring
       (helpful--split-first-line)
+      (helpful--propertize-info)
       (helpful--propertize-symbols)
       (s-trim)))
 

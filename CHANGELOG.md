@@ -1,6 +1,6 @@
 # v0.5
 
-No changes yet.
+Ensure docstring references to Info nodes are converted to buttons.
 
 # v0.4
 
