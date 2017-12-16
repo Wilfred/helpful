@@ -55,7 +55,8 @@
     (with-temp-buffer
       (insert "(defun test-foo-edebug () 44)")
       (goto-char (point-min))
-      (eval (eval-sexp-add-defvars (edebug-read-top-level-form)) t)))
+      (shut-up
+        (eval (eval-sexp-add-defvars (edebug-read-top-level-form)) t))))
   (helpful-function #'test-foo-edebug))
 
 (defun test-foo-usage-docstring ()
