@@ -104,6 +104,7 @@ show the value of buffer-local variables.")
   "Pretty-print VALUE.
 This allows us to distinguish strings from symbols."
   (with-temp-buffer
+    (delay-mode-hooks (lisp-mode))
     (cl-prettyprint value)
     (s-trim (buffer-string))))
 
