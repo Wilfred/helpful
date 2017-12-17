@@ -51,6 +51,7 @@
 (require 'nadvice)
 (require 'info-look)
 (require 'edebug)
+(require 'trace)
 
 (defvar-local helpful--sym nil)
 (defvar-local helpful--callable-p nil)
