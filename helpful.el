@@ -158,6 +158,22 @@ with double-quotes."
       (message "Forgot %s %s." kind sym)
       (kill-buffer (current-buffer)))))
 
+(define-button-type 'helpful-c-source-directory
+  'action #'helpful--c-source-directory
+  'follow-link t
+  'help-echo "Set directory to Emacs C source code")
+
+(defun helpful--c-source-directory (button)
+  "Set `find-function-C-source-directory' so we can show the
+source code to primitives."
+  (let ((emacs-src-dir (read-directory-name "Path to Emacs source code: ")))
+    ;; Let the user specify the source path with or without src/,
+    ;; which is a subdirectory in the Emacs tree.
+    (unless (equal (f-filename emacs-src-dir) "src")
+      (setq emacs-src-dir (f-join emacs-src-dir "src")))
+    (setq find-function-C-source-directory emacs-src-dir))
+  (helpful-update))
+
 (define-button-type 'helpful-disassemble-button
   'action #'helpful--disassemble
   'follow-link t
@@ -952,9 +968,14 @@ state of the current symbol."
          (helpful--source-pos helpful--sym helpful--callable-p))
         "\n"))
       (primitive-p
-       (propertize
-        "C code is not yet loaded."
-        'face 'font-lock-comment-face))
+       (concat
+        (propertize
+         "C code is not yet loaded."
+         'face 'font-lock-comment-face)
+        "\n\n"
+        (make-text-button
+         "Set C source directory" nil
+         :type 'helpful-c-source-directory)))
       (t
        (helpful--syntax-highlight
         (format ";; Source file is unknown\n")))))
