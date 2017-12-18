@@ -370,7 +370,7 @@ or disable if already enabled."
   'action #'helpful--manual
   'symbol nil
   'follow-link t
-  'help-echo "Describe this symbol")
+  'help-echo "View this symbol in the Emacs manual")
 
 (defun helpful--manual (button)
   "Open the manual for the system that this BUTTON represents."
