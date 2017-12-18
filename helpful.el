@@ -887,7 +887,7 @@ state of the current symbol."
           (can-forget
            (and (not (special-form-p helpful--sym))
                 (not primitive-p))))
-      (when (or can-edebug can-disassemble can-forget)
+      (when (or can-edebug can-trace can-disassemble can-forget)
         (insert (helpful--heading "\n\nDebugging\n")))
       (when can-edebug
         (insert
@@ -909,7 +909,10 @@ state of the current symbol."
           nil
           :type 'helpful-trace-button
           'symbol helpful--sym)))
-      (when (or can-edebug can-trace)
+
+      (when (and
+             (or can-edebug can-trace)
+             (or can-disassemble can-forget))
         (insert "\n"))
 
       (when can-disassemble
