@@ -545,6 +545,13 @@ buffer."
     (cond
      ((and callable-p path)
       ;; Open `path' ourselves, so we can widen before searching.
+
+      ;; TODO: this is slow, because when we open large .c files, such
+      ;; as data.c (e.g. when looking at `defalias'), we run all the
+      ;; mode hooks. If the user hasn't opened the buffer, we should
+      ;; just open a temporary buffer. This would require
+      ;; reimplementing `find-function-C-source', which is just a
+      ;; regexp search anyway.
       (setq buf (find-file-noselect (find-library-name path)))
 
       (unless (-contains-p initial-buffers buf)
