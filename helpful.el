@@ -436,12 +436,18 @@ blank line afterwards."
   "Convert info references in docstrings to buttons."
   (replace-regexp-in-string
    ;; Replace all text of the form `foo'.
-   (rx "Info node `" (group (+ (not (in "'")))) "'")
+   (rx "Info node"
+       (group (+ whitespace))
+       "`"
+       (group (+ (not (in "'"))))
+       "'")
    (lambda (it)
      ;; info-node has the form "(cl)Loop Facility".
-     (let ((info-node (match-string 1 it)))
+     (let ((space (match-string 1 it))
+           (info-node (match-string 2 it)))
        (concat
-        "Info node "
+        "Info node"
+        space
         (make-text-button
          info-node nil
          :type 'helpful-info-button
