@@ -962,11 +962,6 @@ state of the current symbol."
       'symbol helpful--sym
       'callable-p helpful--callable-p))
 
-    (-when-let (formatted-props (helpful--format-properties helpful--sym))
-      (insert
-       (helpful--heading "\n\nSymbol Properties\n")
-       formatted-props))
-
     (when (helpful--advised-p helpful--sym)
       (insert
        (helpful--heading "\n\nAdvice\n")
@@ -1075,6 +1070,12 @@ state of the current symbol."
         (t
          (helpful--syntax-highlight
           (helpful--pretty-print source))))))
+
+    (-when-let (formatted-props (helpful--format-properties helpful--sym))
+      (insert
+       (helpful--heading "\nSymbol Properties\n")
+       formatted-props))
+
     (goto-char (point-min))
     (forward-line (1- start-line))
     (forward-char start-column)))
