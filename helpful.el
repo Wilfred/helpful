@@ -921,7 +921,7 @@ state of the current symbol."
            " "))
         (insert
          (make-text-button
-          "Set variable" nil
+          "Set" nil
           :type 'helpful-set-button
           'symbol helpful--sym
           'buffer buf))
