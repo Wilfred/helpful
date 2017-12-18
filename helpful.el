@@ -110,6 +110,59 @@ with double-quotes."
     (cl-prettyprint value)
     (s-trim (buffer-string))))
 
+(defun helpful--canonical-symbol (sym callable-p)
+  "If SYM is an alias, return the underlying symbol.
+Return SYM otherwise."
+  (let ((depth 0))
+    (if callable-p
+        (while (and (symbolp (symbol-function sym))
+                    (< depth 10))
+          (setq sym (symbol-function sym))
+          (setq depth (1+ depth)))
+      (setq sym (indirect-variable sym))))
+  sym)
+
+(defun helpful--aliases (sym callable-p)
+  "Return all the aliases for SYM."
+  (let ((changed t)
+        (canonical (helpful--canonical-symbol sym callable-p))
+        aliases)
+    (while changed
+      (setq changed nil)
+      (mapatoms
+       (lambda (s)
+         (when (and
+                ;; Skip variables that aren't bound, so we're faster.
+                (if callable-p (fboundp s) (boundp s))
+
+                ;; If this symbol is a new alias for our target sym,
+                ;; add it.
+                (eq canonical (helpful--canonical-symbol s callable-p))
+                (not (-contains-p aliases s)))
+           (push s aliases)
+           (setq changed t)))))
+    (--sort
+     (string< (symbol-name it) (symbol-name other))
+     aliases)))
+
+(defun helpful--format-alias (sym callable-p)
+  (let ((obsolete-info (if callable-p
+                           (get sym 'byte-obsolete-info)
+                         (get sym 'byte-obsolete-variable)))
+        (sym-button (make-text-button
+                     ;; symbol-name can return a pure string, e.g. for
+                     ;; 'report-errors, so take a copy so we can add
+                     ;; properties to it.
+                     (substring (symbol-name sym)) nil
+                     :type 'helpful-describe-exactly-button
+                     'symbol sym
+                     'callable-p callable-p)))
+    (cond
+     (obsolete-info
+      (format "%s (obsolete since %s)" sym-button (-last-item obsolete-info)))
+     (t
+      sym-button))))
+
 (defun helpful--indent-rigidly (s amount)
   "Indent string S by adding AMOUNT spaces to each line."
   (with-temp-buffer
@@ -387,6 +440,23 @@ or disable if already enabled."
   "Describe the symbol that this BUTTON represents."
   (let ((sym (button-get button 'symbol)))
     (helpful-symbol sym)))
+
+(define-button-type 'helpful-describe-exactly-button
+  'action #'helpful--describe-exactly
+  'symbol nil
+  'callable-p nil
+  'follow-link t
+  'help-echo "Describe this symbol")
+
+(defun helpful--describe-exactly (button)
+  "Describe the symbol that this BUTTON represents.
+This differs from `helpful--describe' because here we know
+whether the symbol represents a variable or a callable."
+  (let ((sym (button-get button 'symbol))
+        (callable-p (button-get button 'callable-p)))
+    (if callable-p
+        (helpful-callable sym)
+      (helpful-variable sym))))
 
 (define-button-type 'helpful-info-button
   'action #'helpful--info
@@ -960,6 +1030,13 @@ state of the current symbol."
           :type 'helpful-forget-button
           'symbol helpful--sym
           'callable-p helpful--callable-p))))
+
+    (let ((aliases (helpful--aliases helpful--sym helpful--callable-p)))
+      (when (> (length aliases) 1)
+        (insert
+         (helpful--heading "\n\nAliases\n")
+         (s-join "\n" (--map (helpful--format-alias it helpful--callable-p)
+                             aliases)))))
 
     (insert
      (helpful--heading "\n\nSource Code\n")

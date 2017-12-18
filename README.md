@@ -77,6 +77,8 @@ Helpful will show you the properties that have been applied to the
 current symbol. This provides visibility of features
 like edebug or byte-code optimisation.
 
+Helpful will also highlight any symbol aliases.
+
 ### Describe Commands
 
 Helpful provides a separate `helpful-command` function, for when you

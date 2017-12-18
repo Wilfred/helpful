@@ -4,6 +4,9 @@ Allow function tracing to be enabled/disabled from Helpful buffers.
 
 Ensure docstring references to Info nodes are converted to buttons.
 
+Helpful now shows all aliases for callables and variables, and
+highlights which aliases are obsolete.
+
 # v0.4
 
 You can now enable edebug directly from helpful buffers!

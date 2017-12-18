@@ -207,3 +207,19 @@ and that buffer has been killed, handle it gracefully."
       (setq helpful-buf (current-buffer)))
     (with-current-buffer helpful-buf
       (helpful-update))))
+
+(ert-deftest helpful--canonical-symbol ()
+  (should
+   (eq (helpful--canonical-symbol 'not t)
+       'null))
+  (should
+   (eq (helpful--canonical-symbol 'emacs-bzr-version nil)
+       'emacs-repository-version)))
+
+(ert-deftest helpful--aliases ()
+  (should
+   (equal (helpful--aliases 'null t)
+          (list 'not 'null)))
+  (should
+   (equal (helpful--aliases 'emacs-repository-version nil)
+          (list 'emacs-bzr-version 'emacs-repository-version))))
