@@ -916,27 +916,23 @@ state of the current symbol."
 
     (if helpful--callable-p
         (insert
-         (helpful--heading
-          (if (macrop helpful--sym)
-              "Macro Signature\n"
-            "Function Signature\n"))
+         (helpful--heading (format "%s Signature\n"
+                                   (if (macrop helpful--sym) "Macro" "Function")))
          (helpful--syntax-highlight (helpful--signature helpful--sym)))
       (insert
-       (helpful--heading
-        "Variable\n")
+       (helpful--heading "Variable\n")
        (symbol-name helpful--sym)))
 
     (-when-let (docstring (helpful--docstring helpful--sym helpful--callable-p))
       (helpful--insert-section-break)
       (insert
-       (helpful--heading
-        (cond
-         ((not helpful--callable-p)
-          "Variable Documentation\n")
-         ((macrop helpful--sym)
-          "Macro Documentation\n")
-         (t
-          "Function Documentation\n")))
+       (helpful--heading (format "%s Documentation\n" (cond
+                                                       ((not helpful--callable-p)
+                                                        "Variable")
+                                                       ((macrop helpful--sym)
+                                                        "Macro")
+                                                       (t
+                                                        "Function"))))
        (helpful--format-docstring docstring))
       (when (helpful--in-manual-p helpful--sym)
         (insert
@@ -1087,8 +1083,7 @@ state of the current symbol."
      (cond
       (source-path
        (concat
-        (propertize
-         (if primitive-p "// Defined in " ";; Defined in ")
+        (propertize (format "%s Defined in " (if primitive-p "//" ";;"))
          'face 'font-lock-comment-face)
         (helpful--navigate-button
          source-path
