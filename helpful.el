@@ -84,7 +84,7 @@ show the value of buffer-local variables.")
 
 (defun helpful--heading (text)
   "Propertize TEXT as a heading."
-  (propertize text 'face 'bold))
+  (format "%s\n" (propertize text 'face 'bold)))
 
 (defun helpful--format-closure (sym form)
   "Given a closure, return an equivalent defun form."
@@ -916,23 +916,23 @@ state of the current symbol."
 
     (if helpful--callable-p
         (insert
-         (helpful--heading (format "%s Signature\n"
+         (helpful--heading (format "%s Signature"
                                    (if (macrop helpful--sym) "Macro" "Function")))
          (helpful--syntax-highlight (helpful--signature helpful--sym)))
       (insert
-       (helpful--heading "Variable\n")
+       (helpful--heading "Variable")
        (symbol-name helpful--sym)))
 
     (-when-let (docstring (helpful--docstring helpful--sym helpful--callable-p))
       (helpful--insert-section-break)
       (insert
-       (helpful--heading (format "%s Documentation\n" (cond
-                                                       ((not helpful--callable-p)
-                                                        "Variable")
-                                                       ((macrop helpful--sym)
-                                                        "Macro")
-                                                       (t
-                                                        "Function"))))
+       (helpful--heading (format "%s Documentation" (cond
+                                                     ((not helpful--callable-p)
+                                                      "Variable")
+                                                     ((macrop helpful--sym)
+                                                      "Macro")
+                                                     (t
+                                                      "Function"))))
        (helpful--format-docstring docstring))
       (when (helpful--in-manual-p helpful--sym)
         (insert
@@ -947,7 +947,7 @@ state of the current symbol."
       (let ((sym helpful--sym)
             (buf (or helpful--associated-buffer (current-buffer))))
         (insert
-         (helpful--heading "Value\n")
+         (helpful--heading "Value")
          (helpful--pretty-print
           (helpful--sym-value sym buf))
          "\n\n")
@@ -978,12 +978,12 @@ state of the current symbol."
     (when (commandp helpful--sym)
       (helpful--insert-section-break)
       (insert
-       (helpful--heading "Key Bindings\n")
+       (helpful--heading "Key Bindings")
        (helpful--format-keys helpful--sym)))
 
     (helpful--insert-section-break)
     (insert
-     (helpful--heading "References\n")
+     (helpful--heading "References")
      (cond
       ((and source-path references)
        (format "References in %s:\n%s"
@@ -1007,7 +1007,7 @@ state of the current symbol."
     (when (helpful--advised-p helpful--sym)
       (helpful--insert-section-break)
       (insert
-       (helpful--heading "Advice\n")
+       (helpful--heading "Advice")
        (format
         "This %s is advised." (if (macrop helpful--sym) "macro" "function"))))
 
@@ -1026,7 +1026,7 @@ state of the current symbol."
                 (not primitive-p))))
       (when (or can-edebug can-trace can-disassemble can-forget)
         (helpful--insert-section-break)
-        (insert (helpful--heading "Debugging\n")))
+        (insert (helpful--heading "Debugging")))
       (when can-edebug
         (insert
          (helpful--button
@@ -1072,14 +1072,14 @@ state of the current symbol."
       (when (> (length aliases) 1)
         (helpful--insert-section-break)
         (insert
-         (helpful--heading "Aliases\n")
+         (helpful--heading "Aliases")
          (s-join "\n" (--map (helpful--format-alias it helpful--callable-p)
                              aliases)))))
 
     (helpful--insert-section-break)
 
     (insert
-     (helpful--heading "Source Code\n")
+     (helpful--heading "Source Code")
      (cond
       (source-path
        (concat
@@ -1119,7 +1119,7 @@ state of the current symbol."
 
     (-when-let (formatted-props (helpful--format-properties helpful--sym))
       (insert
-       (helpful--heading "Symbol Properties\n")
+       (helpful--heading "Symbol Properties")
        formatted-props))
 
     (goto-char (point-min))
