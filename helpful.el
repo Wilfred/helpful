@@ -894,6 +894,13 @@ state of the current symbol."
          (start-column (current-column))
          (primitive-p (helpful--primitive-p
                        helpful--sym helpful--callable-p))
+         (sym-type (cond
+                    ((not helpful--callable-p)
+                     "Variable")
+                    ((macrop helpful--sym)
+                     "Macro")
+                    (t
+                     "Function")))
          (look-for-src (or (not primitive-p)
                            find-function-C-source-directory))
          (source (when look-for-src
@@ -916,23 +923,16 @@ state of the current symbol."
 
     (if helpful--callable-p
         (insert
-         (helpful--heading (format "%s Signature"
-                                   (if (macrop helpful--sym) "Macro" "Function")))
+         (helpful--heading (format "%s Signature" sym-type))
          (helpful--syntax-highlight (helpful--signature helpful--sym)))
       (insert
-       (helpful--heading "Variable")
+       (helpful--heading sym-type)
        (symbol-name helpful--sym)))
 
     (-when-let (docstring (helpful--docstring helpful--sym helpful--callable-p))
       (helpful--insert-section-break)
       (insert
-       (helpful--heading (format "%s Documentation" (cond
-                                                     ((not helpful--callable-p)
-                                                      "Variable")
-                                                     ((macrop helpful--sym)
-                                                      "Macro")
-                                                     (t
-                                                      "Function"))))
+       (helpful--heading (format "%s Documentation" sym-type))
        (helpful--format-docstring docstring))
       (when (helpful--in-manual-p helpful--sym)
         (insert
