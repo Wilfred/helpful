@@ -7,6 +7,25 @@ Ensure docstring references to Info nodes are converted to buttons.
 Helpful now shows all aliases for callables and variables, and
 highlights which aliases are obsolete.
 
+## recentf bug
+
+Helpful had an issue where it would call find-file with propertized
+strings. This broke various recentf features.
+
+This has been fixed, and you can check if you're running a fixed
+version by seeing whether you have a `helpful--button` function
+defined. If you do, your version is new enough.
+
+You will aso need to edit your `~/.emacs.d/recentf` and
+`recentf-save.el` to remove any lines that start with a `#`:
+
+``` emacs-lisp
+#("/usr/share/emacs/25.3.50/lisp/frame.el.gz" 0 41 (button (t) category helpful-navigate-button-button path #0 position 2815))
+```
+
+Otherwise, you will get `Invalid read syntax: "#"` when starting
+Emacs.
+
 # v0.4
 
 You can now enable edebug directly from helpful buffers!
