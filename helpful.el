@@ -1125,7 +1125,6 @@ For example, \"(some-func FOO &optional BAR)\"."
 
     (or docstring-sig source-sig)))
 
-;; TODO: Info mentions, e.g. `define-derived-mode' or `defface'.
 (defun helpful--docstring (sym callable-p)
   "Get the docstring for SYM."
   (let ((text-quoting-style 'grave)
