@@ -532,12 +532,34 @@ blank line afterwards."
    docstring
    t t))
 
+(defun helpful--propertize-command-keys (docstring)
+  "Convert command key references in docstrings to buttons."
+  (replace-regexp-in-string
+   ;; Replace all text of the form \\[foo] with a button that links to
+   ;; foo but shows the keys necessary to call foo.
+   (rx "\\["
+       (group (+ (not (in "]"))))
+       "]")
+   (lambda (it)
+     (let* ((symbol-with-parens (match-string 0 it))
+            (symbol-name (match-string 1 it))
+            (symbol (intern symbol-name)))
+       (helpful--button
+        ;; The button text should just be the keys required.
+        (substitute-command-keys symbol-with-parens)
+        'helpful-describe-exactly-button
+        'symbol symbol
+        'callable-p t)))
+   docstring
+   t t))
+
 ;; TODO: fix upstream Emacs bug that means `-map' is not highlighted
 ;; in the docstring for `--map'.
 (defun helpful--format-docstring (docstring)
   "Replace cross-references with links in DOCSTRING."
   (-> docstring
       (helpful--split-first-line)
+      (helpful--propertize-command-keys)
       (helpful--propertize-info)
       (helpful--propertize-symbols)
       (s-trim)))
@@ -1131,7 +1153,7 @@ For example, \"(some-func FOO &optional BAR)\"."
         docstring)
     (if callable-p
         (progn
-          (setq docstring (documentation sym))
+          (setq docstring (documentation sym t))
           (-when-let (docstring-with-usage (help-split-fundoc docstring sym))
             (setq docstring (cdr docstring-with-usage))
             (when docstring

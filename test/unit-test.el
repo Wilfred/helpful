@@ -138,6 +138,16 @@
     ;; But we should always remove the backticks.
     (should (equal formatted "foo messagexxx."))))
 
+(ert-deftest helpful--format-docstring-command-keys ()
+  "Ensure we propertize references to command key sequences."
+  ;; This test will fail in your current Emacs instance if you've
+  ;; overridden the `set-mark-command' keybinding.
+  (-let [formatted (helpful--format-docstring "\\[set-mark-command]")]
+    (should
+     (string-equal formatted "C-SPC"))
+    (should
+     (get-text-property 0 'button formatted))))
+
 (setq helpful-var-without-defvar 'foo)
 
 (ert-deftest helpful--definition ()

@@ -2,7 +2,9 @@
 
 Allow function tracing to be enabled/disabled from Helpful buffers.
 
-Ensure docstring references to Info nodes are converted to buttons.
+Ensure docstring references to Info nodes are converted to
+buttons. Docstring references to command keys are converted to buttons
+too (see `set-mark-command` for an example).
 
 Helpful now shows all aliases for callables and variables, and
 highlights which aliases are obsolete.
