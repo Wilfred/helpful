@@ -1100,7 +1100,7 @@ state of the current symbol."
 
     (-when-let (formatted-props (helpful--format-properties helpful--sym))
       (insert
-       (helpful--heading "\nSymbol Properties\n")
+       (helpful--heading "\n\nSymbol Properties\n")
        formatted-props))
 
     (goto-char (point-min))
