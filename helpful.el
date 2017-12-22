@@ -1121,7 +1121,7 @@ state of the current symbol."
       (source-path
        (concat
         (propertize (format "%s Defined in " (if primitive-p "//" ";;"))
-         'face 'font-lock-comment-face)
+                    'face 'font-lock-comment-face)
         (helpful--navigate-button
          source-path
          (helpful--source-pos helpful--sym helpful--callable-p))
