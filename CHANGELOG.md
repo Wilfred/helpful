@@ -1,3 +1,7 @@
+# v0.6
+
+No changes yet.
+
 # v0.5
 
 Allow function tracing to be enabled/disabled from Helpful buffers.
