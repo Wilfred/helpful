@@ -667,16 +667,24 @@ buffer."
      ((and callable-p path)
       ;; Open `path' ourselves, so we can widen before searching.
 
-      ;; TODO: this is slow, because when we open large .c files, such
-      ;; as data.c (e.g. when looking at `defalias'), we run all the
-      ;; mode hooks. If the user hasn't opened the buffer, we should
-      ;; just open a temporary buffer. This would require
-      ;; reimplementing `find-function-C-source', which is just a
-      ;; regexp search anyway.
-      (setq buf (find-file-noselect (find-library-name path)))
+      ;; Opening large.c files can be slow (e.g. when looking at
+      ;; `defalias'), especially if the user has configured mode hooks.
+      ;;
+      ;; Bind `auto-mode-alist' to nil, so we open the buffer in
+      ;; `fundamental-mode' if it isn't already open.
+      (let (auto-mode-alist)
+        (setq buf (find-file-noselect (find-library-name path))))
 
       (unless (-contains-p initial-buffers buf)
         (setq opened t))
+
+      ;; If it's a freshly opened buffer, we need to switch to the
+      ;; correct mode so we can search correctly. Enable the mode, but
+      ;; don't bother with mode hooks, because we just need the syntax
+      ;; table for searching.
+      (when opened
+        (with-current-buffer buf
+          (delay-mode-hooks (normal-mode))))
 
       ;; Based on `find-function-noselect'.
       (with-current-buffer buf

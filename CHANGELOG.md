@@ -9,6 +9,9 @@ too (see `set-mark-command` for an example).
 Helpful now shows all aliases for callables and variables, and
 highlights which aliases are obsolete.
 
+Improved helpful performance for primitives when Emacs source code is
+loaded.
+
 ## recentf bug
 
 Helpful had an issue where it would call find-file with propertized
