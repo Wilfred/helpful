@@ -650,6 +650,7 @@ If the source code cannot be found, return the sexp used."
             (goto-char start-pos)
             (narrow-to-defun)
             (setq source (buffer-substring-no-properties (point-min) (point-max))))))
+      (setq source (s-trim-right source))
       (when (and source (buffer-file-name buf))
         (setq source (propertize source
                                  'helpful-path (buffer-file-name buf)
