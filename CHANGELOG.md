@@ -12,6 +12,11 @@ highlights which aliases are obsolete.
 Improved helpful performance for primitives when Emacs source code is
 loaded.
 
+Helpful will now only keep the last 5 buffers, to avoid cluttering
+your buffer list. You can customise this behaviour with
+`helpful-max-buffers`: set it to 1 to cleanup all previous buffers, or
+set it to `nil` never cleanup buffers.
+
 ## recentf bug
 
 Helpful had an issue where it would call find-file with propertized
