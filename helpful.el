@@ -1016,15 +1016,11 @@ state of the current symbol."
   (let* ((inhibit-read-only t)
          (start-line (line-number-at-pos))
          (start-column (current-column))
-         (primitive-p (helpful--primitive-p
-                       helpful--sym helpful--callable-p))
+         (primitive-p (helpful--primitive-p helpful--sym helpful--callable-p))
          (sym-type (cond
-                    ((not helpful--callable-p)
-                     "Variable")
-                    ((macrop helpful--sym)
-                     "Macro")
-                    (t
-                     "Function")))
+                    ((not helpful--callable-p) "Variable")
+                    ((macrop helpful--sym) "Macro")
+                    (t "Function")))
          (look-for-src (or (not primitive-p)
                            find-function-C-source-directory))
          (source (when look-for-src
