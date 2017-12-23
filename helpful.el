@@ -975,6 +975,19 @@ POSITION-HEADS takes the form ((123 (defun foo)) (456 (defun bar)))."
   "Insert section break into helpful buffer."
   (insert "\n\n"))
 
+(defun helpful--calculate-references (source-path primitive-p)
+  "Calculate references for helpful--sym in SOURCE-PATH."
+  (when source-path
+    (let* ((buf (elisp-refs--contents-buffer source-path))
+           (positions
+            (if primitive-p
+                nil
+              (helpful--reference-positions
+               helpful--sym helpful--callable-p buf)))
+           (return-value (--map (helpful--outer-sexp buf it) positions)))
+      (kill-buffer buf)
+      return-value)))
+
 (defun helpful-update ()
   "Update the current *Helpful* buffer to the latest
 state of the current symbol."
@@ -1000,17 +1013,7 @@ state of the current symbol."
                    (helpful--source helpful--sym helpful--callable-p)))
          (source-path (when look-for-src
                         (helpful--source-path helpful--sym helpful--callable-p)))
-         references)
-    (when source-path
-      (let* ((buf (elisp-refs--contents-buffer source-path))
-             (positions
-              (if primitive-p
-                  nil
-                (helpful--reference-positions
-                 helpful--sym helpful--callable-p buf))))
-        (setq references
-              (--map (helpful--outer-sexp buf it) positions))
-        (kill-buffer buf)))
+         (references (helpful--calculate-references source-path primitive-p)))
 
     (erase-buffer)
 
