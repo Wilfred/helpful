@@ -1120,8 +1120,7 @@ state of the current symbol."
       (helpful--insert-section-break)
       (insert
        (helpful--heading "Advice")
-       (format
-        "This %s is advised." (if (macrop helpful--sym) "macro" "function"))))
+       (format "This %s is advised." (downcase sym-type))))
 
     (let ((can-edebug
            (helpful--can-edebug-p helpful--sym helpful--callable-p))
