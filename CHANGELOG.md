@@ -1,6 +1,8 @@
 # v0.6
 
-No changes yet.
+Helpful now correctly handles \= escapes in docstrings.
+
+Added disassemble buttons to byte-code functions in symbol properties.
 
 # v0.5
 
