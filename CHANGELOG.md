@@ -4,6 +4,9 @@ Helpful now correctly handles \= escapes in docstrings.
 
 Added disassemble buttons to byte-code functions in symbol properties.
 
+Fixed an issue with the prompt when setting variables to symbol
+values.
+
 # v0.5
 
 Allow function tracing to be enabled/disabled from Helpful buffers.

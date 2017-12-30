@@ -443,7 +443,9 @@ or disable if already enabled."
             (read-from-minibuffer
              "Eval: "
              (format
-              (if (consp sym-value) "(setq %s '%S)" "(setq %s %S)")
+              (if (or (symbolp sym-value) (consp sym-value))
+                  "(setq %s '%S)"
+                "(setq %s %S)")
               sym sym-value)
              read-expression-map t
              'read-expression-history))))
