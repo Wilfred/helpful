@@ -569,37 +569,63 @@ blank line afterwards."
    docstring
    t t))
 
-(defun helpful--propertize-command-keys (docstring)
-  "Convert command key references in docstrings to buttons."
-  (replace-regexp-in-string
-   ;; Replace all text of the form \\[foo] with a button that links to
-   ;; foo but shows the keys necessary to call foo.
-   (rx "\\["
-       (group (+ (not (in "]"))))
-       "]")
-   (lambda (it)
-     (let* ((symbol-with-parens (match-string 0 it))
-            (symbol-name (match-string 1 it))
-            (symbol (intern symbol-name)))
-       (helpful--button
-        ;; The button text should just be the keys required.
-        (substitute-command-keys symbol-with-parens)
-        'helpful-describe-exactly-button
-        'symbol symbol
-        'callable-p t)))
-   docstring
-   t t))
+;; TODO: handle keymaps of the form \\{foo}.
+(defun helpful--format-command-keys (docstring)
+  "Convert command key references in docstrings to buttons.
+Emacs uses \\= to escape \\[ references, so replace that
+unescaping too."
+  ;; Based on `substitute-command-keys', but converts command
+  ;; references to buttons.
+  (with-temp-buffer
+    (insert docstring)
+    (goto-char (point-min))
+    (while (not (eobp))
+      (cond
+       ((looking-at
+         ;; Text of the form \=X
+         (rx "\\="))
+        ;; Remove the escaping, then step over the escaped char.
+        ;; Step over the escaped character.
+        (delete-region (point) (+ (point) 2))
+        (forward-char 1))
+       ((looking-at
+         ;; Text of the form \\[foo]
+         (rx "\\[" (group (+ (not (in "]")))) "]"))
+        (let* ((symbol-with-parens (match-string 0))
+               (symbol-name (match-string 1)))
+          ;; Remove the original string.
+          (delete-region (point)
+                         (+ (point) (length symbol-with-parens)))
+          ;; Add a button.
+          (let* ((symbol (intern symbol-name))
+                 (key (where-is-internal symbol nil t))
+                 (key-description
+                  (if key
+                      (key-description key)
+                    (format "M-x %s" symbol-name)))))
+          (insert
+           (helpful--button
+            key-description
+            'helpful-describe-exactly-button
+            'symbol symbol
+            'callable-p t))))
+       ;; Don't modify other characters.
+       (t
+        (forward-char 1))))
+    (buffer-string)))
 
 ;; TODO: fix upstream Emacs bug that means `-map' is not highlighted
 ;; in the docstring for `--map'.
 (defun helpful--format-docstring (docstring)
   "Replace cross-references with links in DOCSTRING."
   (-> docstring
+      (helpful--format-command-keys)
       (helpful--split-first-line)
-      (helpful--propertize-command-keys)
       (helpful--propertize-info)
       (helpful--propertize-symbols)
       (s-trim)))
+
+(helpful--format-docstring "(apply '+ 1 '(1 2))")
 
 (defconst helpful--highlighting-funcs
   '(ert--activate-font-lock-keywords
@@ -1205,7 +1231,9 @@ For example, \"(some-func FOO &optional BAR)\"."
     (or docstring-sig source-sig)))
 
 (defun helpful--docstring (sym callable-p)
-  "Get the docstring for SYM."
+  "Get the docstring for SYM.
+Note that this returns the raw docstring, including \\=\\=
+escapes that are used by `substitute-command-keys'."
   (let ((text-quoting-style 'grave)
         docstring)
     (if callable-p

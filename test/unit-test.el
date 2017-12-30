@@ -27,6 +27,13 @@
     (helpful--docstring #'test-foo t)
     "Docstring here.")))
 
+(ert-deftest helpful--docstring-unescape ()
+  "Discard \\=\\= in docstrings."
+  (let* ((docstring (helpful--docstring #'apply t))
+         (formatted-docstring (helpful--format-docstring docstring)))
+    (should
+     (not (s-contains-p "\\=" formatted-docstring)))))
+
 (ert-deftest helpful--docstring-advice ()
   "Get the docstring on advised functions."
   (should
