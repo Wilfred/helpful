@@ -227,10 +227,19 @@ Return SYM otherwise."
            (-let* (((sym val) it)
                    (pretty-val
                     (helpful--pretty-print val)))
-             (format "%s\n%s"
+             (format "%s\n%s%s"
                      (propertize (symbol-name sym)
                                  'face 'font-lock-constant-face)
-                     (helpful--indent-rigidly pretty-val 2)))
+                     (helpful--indent-rigidly pretty-val 2)
+                     ;; Also offer to disassemble byte-code
+                     ;; properties.
+                     (if (byte-code-function-p val)
+                         (format "\n  %s"
+                                 (helpful--button
+                                  "Disassemble"
+                                  'helpful-disassemble-button
+                                  'object val))
+                       "")))
            syms-and-vals)))
     (when lines
       (s-join "\n" lines))))
@@ -274,12 +283,14 @@ source code to primitives."
 (define-button-type 'helpful-disassemble-button
   'action #'helpful--disassemble
   'follow-link t
-  'symbol nil
+  'object nil
   'help-echo "Show disassembled bytecode")
 
 (defun helpful--disassemble (button)
   "Disassemble the current symbol."
-  (disassemble (button-get button 'symbol)))
+  ;; `disassemble' can handle both symbols (e.g. 'when) and raw
+  ;; byte-code objects.
+  (disassemble (button-get button 'object)))
 
 (define-button-type 'helpful-edebug-button
   'action #'helpful--edebug
@@ -1120,7 +1131,7 @@ state of the current symbol."
          (helpful--button
           "Disassemble"
           'helpful-disassemble-button
-          'symbol helpful--sym)))
+          'object helpful--sym)))
 
       (when can-forget
         (when can-disassemble
