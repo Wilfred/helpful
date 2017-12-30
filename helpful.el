@@ -602,13 +602,13 @@ unescaping too."
                  (key-description
                   (if key
                       (key-description key)
-                    (format "M-x %s" symbol-name)))))
-          (insert
-           (helpful--button
-            key-description
-            'helpful-describe-exactly-button
-            'symbol symbol
-            'callable-p t))))
+                    (format "M-x %s" symbol-name))))
+            (insert
+             (helpful--button
+              key-description
+              'helpful-describe-exactly-button
+              'symbol symbol
+              'callable-p t)))))
        ;; Don't modify other characters.
        (t
         (forward-char 1))))
