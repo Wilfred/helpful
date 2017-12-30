@@ -638,8 +638,6 @@ unescaping too."
       (helpful--propertize-symbols)
       (s-trim)))
 
-(helpful--format-docstring "(apply '+ 1 '(1 2))")
-
 (defconst helpful--highlighting-funcs
   '(ert--activate-font-lock-keywords
     highlight-quoted-mode
