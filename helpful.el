@@ -1308,15 +1308,17 @@ escapes that are used by `substitute-command-keys'."
   (interactive
    (list (read-key-sequence "Press key: ")))
   (let ((sym (key-binding key-sequence)))
-    (unless sym
+    (cond
+     ((null sym)
       (user-error "No command is bound to %s"
                   (key-description key-sequence)))
-    (unless (commandp sym)
+     ((commandp sym)
+      (pop-to-buffer (helpful--buffer sym t))
+      (helpful-update))
+     (t
       (user-error "%s is bound to symbol %s which is not a command"
                   (key-description key-sequence)
-                  sym))
-    (pop-to-buffer (helpful--buffer sym t))
-    (helpful-update)))
+                  sym)))))
 
 ;;;###autoload
 (defun helpful-macro (symbol)
