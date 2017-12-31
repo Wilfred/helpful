@@ -542,6 +542,19 @@ blank line afterwards."
                 (-cons* first-line "" (cdr lines)))
       docstring)))
 
+(defun helpful--propertize-keywords (docstring)
+  "Propertize quoted keywords in docstrings."
+  (replace-regexp-in-string
+   ;; Replace all text of the form `foo'.
+   (rx "`"
+       (group ":" symbol-start (+? anything) symbol-end)
+       "'")
+   (lambda (it)
+     (propertize (match-string 1 it)
+                 'face 'font-lock-builtin-face))
+   docstring
+   t t))
+
 (defun helpful--propertize-symbols (docstring)
   "Convert symbol references in docstrings to buttons."
   (replace-regexp-in-string
@@ -640,6 +653,7 @@ unescaping too."
       (helpful--split-first-line)
       (helpful--propertize-info)
       (helpful--propertize-symbols)
+      (helpful--propertize-keywords)
       (s-trim)))
 
 (helpful--format-docstring "(apply '+ 1 '(1 2))")

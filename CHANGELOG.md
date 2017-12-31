@@ -7,6 +7,8 @@ Added disassemble buttons to byte-code functions in symbol properties.
 Fixed an issue with the prompt when setting variables to symbol
 values.
 
+Quoted keywords in docstrings are now highlighted.
+
 # v0.5
 
 Allow function tracing to be enabled/disabled from Helpful buffers.
