@@ -1,5 +1,7 @@
 # v0.6
 
+Added imenu support! You can now navigate between headings with imenu.
+
 Helpful now correctly handles \= escapes in docstrings.
 
 Added disassemble buttons to byte-code functions in symbol properties.

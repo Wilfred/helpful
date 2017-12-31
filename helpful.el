@@ -1389,9 +1389,30 @@ See also `helpful-callable' and `helpful-variable'."
       (helpful-symbol symbol)
     (user-error "There is no symbol at point.")))
 
+(defun helpful--imenu-index ()
+  "Return a list of headings in the current buffer, suitable for
+imenu."
+  (let (headings)
+    (goto-char (point-min))
+    (while (not (eobp))
+      (when (eq (get-text-property (point) 'face)
+                'helpful-heading)
+        (push
+         (cons
+          (buffer-substring-no-properties
+           (line-beginning-position) (line-end-position))
+          (line-beginning-position))
+         headings))
+      (forward-line))
+    (nreverse headings)))
+
 (define-derived-mode helpful-mode special-mode "Helpful"
   "Major mode for *Helpful* buffers."
-  (add-hook 'xref-backend-functions #'elisp--xref-backend nil t))
+  (add-hook 'xref-backend-functions #'elisp--xref-backend nil t)
+
+  (setq imenu-create-index-function #'helpful--imenu-index)
+  ;; Prevent imenu converting "Source Code" to "Source.Code".
+  (setq-local imenu-space-replacement " "))
 
 (defun helpful-visit-reference ()
   "Go to the reference at point."
