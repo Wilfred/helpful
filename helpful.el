@@ -119,9 +119,13 @@ To disable cleanup entirely, set this variable to nil. See also
         (kill-buffer (ring-remove helpful--buffers))))
     buf))
 
+(defface helpful-heading
+  '((t (:weight bold)))
+  "Face used for headings in Helpful buffers.")
+
 (defun helpful--heading (text)
   "Propertize TEXT as a heading."
-  (format "%s\n" (propertize text 'face 'bold)))
+  (format "%s\n" (propertize text 'face 'helpful-heading)))
 
 (defun helpful--format-closure (sym form)
   "Given a closure, return an equivalent defun form."
