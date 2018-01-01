@@ -11,6 +11,14 @@ values.
 
 Quoted keywords in docstrings are now highlighted.
 
+Smarter handling of keybindings:
+
+* Consider all keymaps, not just `foo-mode-map`.
+* Show keybindings where they are defined, don't show them in keymaps
+  that inherit them.
+* Don't show menu bar items, as they clutter the display (please file
+  a bug if you miss this).
+
 # v0.5
 
 Allow function tracing to be enabled/disabled from Helpful buffers.

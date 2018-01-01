@@ -850,35 +850,41 @@ buffer."
   (let (keymaps)
     (mapatoms
      (lambda (sym)
-       (when (and
-              (boundp sym)
-              (keymapp (symbol-value sym))
-              (s-ends-with-p "-mode-map" (symbol-name sym)))
+       (when (and (boundp sym) (keymapp (symbol-value sym)))
          (push sym keymaps))))
     keymaps))
 
 (defun helpful--keymaps-containing (command-sym)
+  "Return a list of pairs listing keymap symbols that contain COMMAND-SYM,
+along with the keybindings in each keymap.
+
+We ignore keybindings that are menu items, and ignore keybindings
+from parent keymaps."
   (let (matching-keymaps)
-    ;; Look for this command in all major and minor mode maps.
-    (dolist (keymap (helpful--all-keymap-syms))
-      (let ((keycodes (where-is-internal command-sym
-                                         (list (symbol-value keymap)))))
+    ;; Look for this command in all keymaps.
+    (dolist (keymap-sym (helpful--all-keymap-syms))
+      (let* ((keymap (symbol-value keymap-sym))
+             (keycodes
+              (where-is-internal
+               command-sym (list keymap) nil t))
+             ;; Look up this command in the parent keymap.
+             (parent-keymap (keymap-parent keymap))
+             (parent-keycodes
+              (when parent-keymap
+                (where-is-internal
+                 command-sym (list parent-keymap) nil t))))
+        (setq keycodes
+              ;; Ignore keybindings that we've just inherited from the
+              ;; parent.
+              (-difference keycodes parent-keycodes))
         (when keycodes
-          (push (cons keymap
+          (push (cons keymap-sym
                       (-map #'key-description keycodes))
                 matching-keymaps))))
-    ;; Look for this command in the global map.
-    (let ((keycodes (where-is-internal command-sym
-                                       (list (current-global-map)))))
-      (when keycodes
-        (push (cons 'global
-                    (-map #'key-description keycodes))
-              matching-keymaps)))
     matching-keymaps))
 
 (defun helpful--format-keys (command-sym)
-  "Describe all the keys that call COMMAND-SYM.
-Ensures global keybindings are shown first."
+  "Describe all the keys that call COMMAND-SYM."
   (let (mode-lines
         global-lines)
     (--each (helpful--keymaps-containing command-sym)
@@ -888,7 +894,7 @@ Ensures global keybindings are shown first."
            (format "%s %s"
                    (propertize (symbol-name map) 'face 'font-lock-variable-name-face)
                    key)
-           (if (eq map 'global) global-lines mode-lines)))))
+           (if (eq map 'global-map) global-lines mode-lines)))))
     (setq global-lines (-sort #'string< global-lines))
     (setq mode-lines (-sort #'string< mode-lines))
     (-let [lines (-concat global-lines mode-lines)]
