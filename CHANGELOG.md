@@ -18,6 +18,7 @@ Smarter handling of keybindings:
   that inherit them.
 * Don't show menu bar items, as they clutter the display (please file
   a bug if you miss this).
+* Correctly handle `\<foo-map>` in docstrings.
 
 # v0.5
 

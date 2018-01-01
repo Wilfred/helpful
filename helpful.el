@@ -606,43 +606,54 @@ Emacs uses \\= to escape \\[ references, so replace that
 unescaping too."
   ;; Based on `substitute-command-keys', but converts command
   ;; references to buttons.
-  (with-temp-buffer
-    (insert docstring)
-    (goto-char (point-min))
-    (while (not (eobp))
-      (cond
-       ((looking-at
-         ;; Text of the form \=X
-         (rx "\\="))
-        ;; Remove the escaping, then step over the escaped char.
-        ;; Step over the escaped character.
-        (delete-region (point) (+ (point) 2))
-        (forward-char 1))
-       ((looking-at
-         ;; Text of the form \\[foo]
-         (rx "\\[" (group (+ (not (in "]")))) "]"))
-        (let* ((symbol-with-parens (match-string 0))
-               (symbol-name (match-string 1)))
-          ;; Remove the original string.
-          (delete-region (point)
-                         (+ (point) (length symbol-with-parens)))
-          ;; Add a button.
-          (let* ((symbol (intern symbol-name))
-                 (key (where-is-internal symbol nil t))
-                 (key-description
-                  (if key
-                      (key-description key)
-                    (format "M-x %s" symbol-name))))
-            (insert
-             (helpful--button
-              key-description
-              'helpful-describe-exactly-button
-              'symbol symbol
-              'callable-p t)))))
-       ;; Don't modify other characters.
-       (t
-        (forward-char 1))))
-    (buffer-string)))
+  (let ((keymap nil))
+    (with-temp-buffer
+      (insert docstring)
+      (goto-char (point-min))
+      (while (not (eobp))
+        (cond
+         ((looking-at
+           ;; Text of the form \=X
+           (rx "\\="))
+          ;; Remove the escaping, then step over the escaped char.
+          ;; Step over the escaped character.
+          (delete-region (point) (+ (point) 2))
+          (forward-char 1))
+         ((looking-at
+           ;; Text of the form \\<foo-keymap>
+           (rx "\\<" (group (+ (not (in ">")))) ">"))
+          (let* ((symbol-with-parens (match-string 0))
+                 (symbol-name (match-string 1)))
+            ;; Remove the original string.
+            (delete-region (point)
+                           (+ (point) (length symbol-with-parens)))
+            ;; Set the new keymap.
+            (setq keymap (symbol-value (intern symbol-name)))))
+         ((looking-at
+           ;; Text of the form \\[foo-command]
+           (rx "\\[" (group (+ (not (in "]")))) "]"))
+          (let* ((symbol-with-parens (match-string 0))
+                 (symbol-name (match-string 1)))
+            ;; Remove the original string.
+            (delete-region (point)
+                           (+ (point) (length symbol-with-parens)))
+            ;; Add a button.
+            (let* ((symbol (intern symbol-name))
+                   (key (where-is-internal symbol keymap t))
+                   (key-description
+                    (if key
+                        (key-description key)
+                      (format "M-x %s" symbol-name))))
+              (insert
+               (helpful--button
+                key-description
+                'helpful-describe-exactly-button
+                'symbol symbol
+                'callable-p t)))))
+         ;; Don't modify other characters.
+         (t
+          (forward-char 1))))
+      (buffer-string))))
 
 ;; TODO: fix upstream Emacs bug that means `-map' is not highlighted
 ;; in the docstring for `--map'.

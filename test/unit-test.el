@@ -34,6 +34,16 @@
     (should
      (not (s-contains-p "\\=" formatted-docstring)))))
 
+(ert-deftest helpful--docstring-keymap ()
+  "Handle keymap references in docstrings."
+  (let* ((formatted-docstring
+          (helpful--format-docstring
+           "\\<minibuffer-local-map>\\[next-history-element]")))
+    ;; This test will fail in a local Emacs instance that has modified
+    ;; minibuffer keybindings.
+    (should
+     (string-equal formatted-docstring "M-n"))))
+
 (ert-deftest helpful--docstring-advice ()
   "Get the docstring on advised functions."
   (should
