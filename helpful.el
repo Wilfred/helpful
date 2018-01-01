@@ -992,6 +992,90 @@ POSITION-HEADS takes the form ((123 (defun foo)) (456 (defun bar)))."
   "Insert section break into helpful buffer."
   (insert "\n\n"))
 
+(defun helpful--calculate-references (source-path primitive-p)
+  "Calculate references for helpful--sym in SOURCE-PATH."
+  (when source-path
+    (let* ((buf (elisp-refs--contents-buffer source-path))
+           (positions
+            (if primitive-p
+                nil
+              (helpful--reference-positions
+               helpful--sym helpful--callable-p buf)))
+           (return-value (--map (helpful--outer-sexp buf it) positions)))
+      (kill-buffer buf)
+      return-value)))
+
+(defun helpful--make-manual-button (sym)
+  "Make manual button for SYM."
+  (helpful--button
+   "View in manual"
+   'helpful-manual-button
+   'symbol sym))
+
+(defun helpful--make-toggle-button (sym buffer)
+  "Make toggle button for SYM in BUFFER."
+  (helpful--button
+   "Toggle"
+   'helpful-toggle-button
+   'symbol sym
+   'buffer buffer))
+
+(defun helpful--make-set-button (sym buffer)
+  "Make set button for SYM in BUFFER."
+  (helpful--button
+   "Set"
+   'helpful-set-button
+   'symbol sym
+   'buffer buffer))
+
+(defun helpful--make-customize-button (sym)
+  "Make customize button for SYM."
+  (helpful--button
+   "Customize"
+   'helpful-customize-button
+   'symbol sym))
+
+(defun helpful--make-references-button (sym callable-p)
+  "Make references button for SYM."
+  (helpful--button
+   "Find all references"
+   'helpful-all-references-button
+   'symbol sym
+   'callable-p callable-p))
+
+(defun helpful--make-edebug-button (sym)
+  "Make edebug button for SYM."
+  (helpful--button
+   (format "%s edebug"
+           (if (helpful--edebug-p sym)
+               "Disable" "Enable"))
+   'helpful-edebug-button
+   'symbol sym))
+
+(defun helpful--make-tracing-button (sym)
+  "Make tracing button for SYM."
+  (helpful--button
+   (format "%s tracing"
+           (if (trace-is-traced sym)
+               "Disable" "Enable"))
+   'helpful-trace-button
+   'symbol sym))
+
+(defun helpful--make-disassemble-button (sym)
+  "Make disassemble button for SYM."
+  (helpful--button
+   "Disassemble"
+   'helpful-disassemble-button
+   'symbol sym))
+
+(defun helpful--make-forget-button (sym callable-p)
+  "Make forget button for SYM."
+  (helpful--button
+   "Forget"
+   'helpful-forget-button
+   'symbol sym
+   'callable-p callable-p))
+
 (defun helpful-update ()
   "Update the current *Helpful* buffer to the latest
 state of the current symbol."
@@ -1002,32 +1086,18 @@ state of the current symbol."
   (let* ((inhibit-read-only t)
          (start-line (line-number-at-pos))
          (start-column (current-column))
-         (primitive-p (helpful--primitive-p
-                       helpful--sym helpful--callable-p))
+         (primitive-p (helpful--primitive-p helpful--sym helpful--callable-p))
          (sym-type (cond
-                    ((not helpful--callable-p)
-                     "Variable")
-                    ((macrop helpful--sym)
-                     "Macro")
-                    (t
-                     "Function")))
+                    ((not helpful--callable-p) "Variable")
+                    ((macrop helpful--sym) "Macro")
+                    (t "Function")))
          (look-for-src (or (not primitive-p)
                            find-function-C-source-directory))
          (source (when look-for-src
                    (helpful--source helpful--sym helpful--callable-p)))
          (source-path (when look-for-src
                         (helpful--source-path helpful--sym helpful--callable-p)))
-         references)
-    (when source-path
-      (let* ((buf (elisp-refs--contents-buffer source-path))
-             (positions
-              (if primitive-p
-                  nil
-                (helpful--reference-positions
-                 helpful--sym helpful--callable-p buf))))
-        (setq references
-              (--map (helpful--outer-sexp buf it) positions))
-        (kill-buffer buf)))
+         (references (helpful--calculate-references source-path primitive-p)))
 
     (erase-buffer)
 
@@ -1045,12 +1115,8 @@ state of the current symbol."
        (helpful--heading (format "%s Documentation" sym-type))
        (helpful--format-docstring docstring))
       (when (helpful--in-manual-p helpful--sym)
-        (insert
-         "\n\n"
-         (helpful--button
-          "View in manual"
-          'helpful-manual-button
-          'symbol helpful--sym))))
+        (insert "\n\n")
+        (insert (helpful--make-manual-button helpful--sym))))
 
     (when (not helpful--callable-p)
       (helpful--insert-section-break)
@@ -1062,26 +1128,10 @@ state of the current symbol."
           (helpful--sym-value sym buf))
          "\n\n")
         (when (memq (helpful--sym-value helpful--sym buf) '(nil t))
-          (insert
-           (helpful--button
-            "Toggle"
-            'helpful-toggle-button
-            'symbol helpful--sym
-            'buffer buf)
-           " "))
-        (insert
-         (helpful--button
-          "Set"
-          'helpful-set-button
-          'symbol helpful--sym
-          'buffer buf))
+          (insert (helpful--make-toggle-button helpful--sym buf) " "))
+        (insert (helpful--make-set-button helpful--sym buf))
         (when (custom-variable-p helpful--sym)
-          (insert
-           " "
-           (helpful--button
-            "Customize"
-            'helpful-customize-button
-            'symbol helpful--sym)))))
+          (insert " " (helpful--make-customize-button helpful--sym)))))
 
     ;; Show keybindings.
     ;; TODO: allow users to conveniently add and remove keybindings.
@@ -1092,6 +1142,7 @@ state of the current symbol."
        (helpful--format-keys helpful--sym)))
 
     (helpful--insert-section-break)
+
     (insert
      (helpful--heading "References")
      (cond
@@ -1108,18 +1159,13 @@ state of the current symbol."
       (t
        "Could not find source file."))
      "\n\n"
-     (helpful--button
-      "Find all references"
-      'helpful-all-references-button
-      'symbol helpful--sym
-      'callable-p helpful--callable-p))
+     (helpful--make-references-button helpful--sym helpful--callable-p))
 
     (when (helpful--advised-p helpful--sym)
       (helpful--insert-section-break)
       (insert
        (helpful--heading "Advice")
-       (format
-        "This %s is advised." (if (macrop helpful--sym) "macro" "function"))))
+       (format "This %s is advised." (downcase sym-type))))
 
     (let ((can-edebug
            (helpful--can-edebug-p helpful--sym helpful--callable-p))
@@ -1139,22 +1185,12 @@ state of the current symbol."
         (insert (helpful--heading "Debugging")))
       (when can-edebug
         (insert
-         (helpful--button
-          (if (helpful--edebug-p helpful--sym)
-              "Disable edebug"
-            "Enable edebug")
-          'helpful-edebug-button
-          'symbol helpful--sym)))
+         (helpful--make-edebug-button helpful--sym)))
       (when can-trace
         (when can-edebug
           (insert " "))
         (insert
-         (helpful--button
-          (if (trace-is-traced helpful--sym)
-              "Disable tracing"
-            "Enable tracing")
-          'helpful-trace-button
-          'symbol helpful--sym)))
+         (helpful--make-tracing-button helpful--sym)))
 
       (when (and
              (or can-edebug can-trace)
@@ -1162,21 +1198,12 @@ state of the current symbol."
         (insert "\n"))
 
       (when can-disassemble
-        (insert
-         (helpful--button
-          "Disassemble"
-          'helpful-disassemble-button
-          'object helpful--sym)))
+        (insert (helpful--make-disassemble-button helpful--sym)))
 
       (when can-forget
         (when can-disassemble
           (insert " "))
-        (insert
-         (helpful--button
-          "Forget"
-          'helpful-forget-button
-          'symbol helpful--sym
-          'callable-p helpful--callable-p))))
+        (insert (helpful--make-forget-button helpful--sym helpful--callable-p))))
 
     (let ((aliases (helpful--aliases helpful--sym helpful--callable-p)))
       (when (> (length aliases) 1)
