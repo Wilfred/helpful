@@ -53,7 +53,6 @@
 (require 'info-look)
 (require 'edebug)
 (require 'trace)
-(require 'ring)
 
 (defvar-local helpful--sym nil)
 (defvar-local helpful--callable-p nil)
@@ -67,17 +66,14 @@ show the value of buffer-local variables.")
 
 (defcustom helpful-max-buffers
   5
-  "Helpful will kill the oldest helpful buffer if there are
-more than this many.
+  "Helpful will kill the least recently used Helpful buffer
+if there are more than this many.
 
 To disable cleanup entirely, set this variable to nil. See also
 `helpful-kill-buffers' for a one-off cleanup."
   :group 'help
   :type '(choice (const nil) number)
   :group 'helpful)
-
-(defvar helpful--buffers (make-ring helpful-max-buffers)
-  "Buffers created by helpful.")
 
 (defun helpful--kind-name (symbol callable-p)
   "Describe what kind of symbol this is."
@@ -88,36 +84,37 @@ To disable cleanup entirely, set this variable to nil. See also
    ((functionp symbol) "function")
    ((special-form-p symbol) "special form")))
 
-(defun helpful--ring-remove-if (ring predicate)
-  "Remove items from RING where PREDICATE returns non-nil."
-  (dolist (i (number-sequence (1- (ring-length ring)) 0 -1))
-    (when (funcall predicate (ring-ref ring i))
-      (ring-remove ring i))))
-
 (defun helpful--buffer (symbol callable-p)
   "Return a buffer to show help for SYMBOL in."
-  (let ((current-buffer (current-buffer))
-        (buf (get-buffer-create
-              (format "*helpful %s: %s*"
-                      (helpful--kind-name symbol callable-p)
-                      symbol))))
+  (let* ((current-buffer (current-buffer))
+         (buf-name (format "*helpful %s: %s*"
+                           (helpful--kind-name symbol callable-p)
+                           symbol))
+         (buf (get-buffer buf-name))
+         (created nil))
+    (unless buf
+      ;; If we have too many buffers, kill the least recently used.
+      (when (and created (numberp helpful-max-buffers))
+        (let* ((buffers (buffer-list))
+               (helpful-bufs (--filter (with-current-buffer it
+                                         (eq major-mode 'helpful-mode))
+                                       buffers))
+               ;; `buffer-list' seems to be ordered by most recently
+               ;; visited first, so keep those.
+               (excess-buffers (-drop (1- helpful-max-buffers) helpful-bufs)))
+          ;; Kill buffers so we have one buffer less than the maximum
+          ;; before we create a new one.
+          (-each excess-buffers #'kill-buffer)))
+      
+      (setq buf (get-buffer-create buf-name))
+      (setq created t))
+
     ;; Initialise the buffer with the symbol and associated data.
     (with-current-buffer buf
       (helpful-mode)
       (setq helpful--sym symbol)
       (setq helpful--callable-p callable-p)
       (setq helpful--associated-buffer current-buffer))
-
-    ;; We keep track of buffers that we've created.
-    (ring-insert+extend helpful--buffers buf t)
-
-    ;; Clear out any buffers that the user has explicitly killed.
-    (helpful--ring-remove-if helpful--buffers (-not #'buffer-live-p))
-
-    (unless (null helpful-max-buffers)
-      ;; If we have too many buffers, kill the oldest buffers.
-      (while (> (ring-length helpful--buffers) helpful-max-buffers)
-        (kill-buffer (ring-remove helpful--buffers))))
     buf))
 
 (defface helpful-heading
