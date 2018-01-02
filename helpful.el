@@ -62,7 +62,8 @@
 show the value of buffer-local variables.")
 
 (defgroup helpful nil
-  "A rich help system with contextual information.")
+  "A rich help system with contextual information."
+  :group 'helpful)
 
 (defcustom helpful-max-buffers
   5
