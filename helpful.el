@@ -1505,5 +1505,8 @@ See also `helpful-max-buffers'."
 (define-key helpful-mode-map (kbd "TAB") #'forward-button)
 (define-key helpful-mode-map (kbd "<backtab>") #'backward-button)
 
+(define-key helpful-mode-map (kbd "n") #'next-line)
+(define-key helpful-mode-map (kbd "p") #'previous-line)
+
 (provide 'helpful)
 ;;; helpful.el ends here
