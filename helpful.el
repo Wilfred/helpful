@@ -271,7 +271,7 @@ Return SYM otherwise."
   'follow-link t
   'help-echo "Set directory to Emacs C source code")
 
-(defun helpful--c-source-directory (button)
+(defun helpful--c-source-directory (_button)
   "Set `find-function-C-source-directory' so we can show the
 source code to primitives."
   (let ((emacs-src-dir (read-directory-name "Path to Emacs source code: ")))
