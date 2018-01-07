@@ -1419,7 +1419,9 @@ See also `helpful-callable' and `helpful-variable'."
    ((fboundp symbol)
     (helpful-callable symbol))
    ((boundp symbol)
-    (helpful-variable symbol))))
+    (helpful-variable symbol))
+   (t
+    (user-error "Not bound: %S" symbol))))
 
 ;;;###autoload
 (defun helpful-variable (symbol)
