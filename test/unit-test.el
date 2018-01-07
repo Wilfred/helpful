@@ -27,6 +27,18 @@
     (helpful--docstring #'test-foo t)
     "Docstring here.")))
 
+(ert-deftest helpful--docstring-symbol ()
+  "Correctly handle quotes around symbols."
+  ;; We should replace quoted symbols with links, so the punctuation
+  ;; should not be in the output.
+  (let* ((formatted-docstring (helpful--format-docstring "`message'")))
+    (should
+     (equal formatted-docstring "message")))
+  ;; We should handle stray backquotes.
+  (let* ((formatted-docstring (helpful--format-docstring "`foo `message'")))
+    (should
+     (equal formatted-docstring "`foo message"))))
+
 (ert-deftest helpful--docstring-unescape ()
   "Discard \\=\\= in docstrings."
   (let* ((docstring (helpful--docstring #'apply t))

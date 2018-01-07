@@ -545,7 +545,10 @@ blank line afterwards."
   (replace-regexp-in-string
    ;; Replace all text of the form `foo'.
    (rx "`"
-       (group ":" symbol-start (+? anything) symbol-end)
+       (group ":"
+              symbol-start
+              (+? (or (syntax word) (syntax symbol)))
+              symbol-end)
        "'")
    (lambda (it)
      (propertize (match-string 1 it)
@@ -557,7 +560,7 @@ blank line afterwards."
   "Convert symbol references in docstrings to buttons."
   (replace-regexp-in-string
    ;; Replace all text of the form `foo'.
-   (rx "`" symbol-start (+? anything) symbol-end "'")
+   (rx "`" symbol-start (+? (not (any "`" "'"))) symbol-end "'")
    (lambda (it)
      (let* ((sym-name
              (s-chop-prefix "`" (s-chop-suffix "'" it)))

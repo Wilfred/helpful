@@ -2,14 +2,16 @@
 
 Added imenu support! You can now navigate between headings with imenu.
 
-Helpful now correctly handles \= escapes in docstrings.
+Better handling of docstrings:
+
+* Correctly handle \= escapes
+* Quoted keywords are now highlighted
+* Correctly highlight docstrings that contain standalone `` ` ``
 
 Added disassemble buttons to byte-code functions in symbol properties.
 
 Fixed an issue with the prompt when setting variables to symbol
 values.
-
-Quoted keywords in docstrings are now highlighted.
 
 Smarter handling of keybindings:
 
