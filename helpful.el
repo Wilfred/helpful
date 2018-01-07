@@ -90,11 +90,11 @@ To disable cleanup entirely, set this variable to nil. See also
          (buf-name (format "*helpful %s: %s*"
                            (helpful--kind-name symbol callable-p)
                            symbol))
-         (buf (get-buffer buf-name))
-         (created nil))
+         (buf (get-buffer buf-name)))
     (unless buf
-      ;; If we have too many buffers, kill the least recently used.
-      (when (and created (numberp helpful-max-buffers))
+      ;; If we need to create the buffer, ensure we don't exceed
+      ;; `helpful-max-buffers' by killing the least recently used.
+      (when (numberp helpful-max-buffers)
         (let* ((buffers (buffer-list))
                (helpful-bufs (--filter (with-current-buffer it
                                          (eq major-mode 'helpful-mode))
@@ -106,8 +106,7 @@ To disable cleanup entirely, set this variable to nil. See also
           ;; before we create a new one.
           (-each excess-buffers #'kill-buffer)))
       
-      (setq buf (get-buffer-create buf-name))
-      (setq created t))
+      (setq buf (get-buffer-create buf-name)))
 
     ;; Initialise the buffer with the symbol and associated data.
     (with-current-buffer buf
