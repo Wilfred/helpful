@@ -232,15 +232,17 @@ Return SYM otherwise."
                      (propertize (symbol-name sym)
                                  'face 'font-lock-constant-face)
                      (helpful--indent-rigidly pretty-val 2)
-                     ;; Also offer to disassemble byte-code
-                     ;; properties.
-                     (if (byte-code-function-p val)
-                         (format "\n  %s"
-                                 (helpful--button
-                                  "Disassemble"
-                                  'helpful-disassemble-button
-                                  'object val))
-                       "")))
+                     (cond
+                      ;; Also offer to disassemble byte-code
+                      ;; properties.
+                      ((byte-code-function-p val)
+                       (format "\n  %s"
+                               (helpful--make-disassemble-button val)))
+                      ((eq sym 'ert--test)
+                       (format "\n  %s"
+                               (helpful--make-run-test-button symbol)))
+                      (t
+                       ""))))
            syms-and-vals)))
     (when lines
       (s-join "\n" lines))))
@@ -292,6 +294,16 @@ source code to primitives."
   ;; `disassemble' can handle both symbols (e.g. 'when) and raw
   ;; byte-code objects.
   (disassemble (button-get button 'object)))
+
+(define-button-type 'helpful-run-test-button
+  'action #'helpful--run-test
+  'follow-link t
+  'symbol nil
+  'help-echo "Run ERT test")
+
+(defun helpful--run-test (button)
+  "Disassemble the current symbol."
+  (ert (button-get button 'symbol)))
 
 (define-button-type 'helpful-edebug-button
   'action #'helpful--edebug
@@ -1062,11 +1074,19 @@ POSITION-HEADS takes the form ((123 (defun foo)) (456 (defun bar)))."
    'helpful-trace-button
    'symbol sym))
 
-(defun helpful--make-disassemble-button (sym)
-  "Make disassemble button for SYM."
+(defun helpful--make-disassemble-button (obj)
+  "Make disassemble button for OBJ.
+OBJ may be a symbol or a compiled function object."
   (helpful--button
    "Disassemble"
    'helpful-disassemble-button
+   'object obj))
+
+(defun helpful--make-run-test-button (sym)
+  "Make an ERT test button for SYM."
+  (helpful--button
+   "Run test"
+   'helpful-run-test-button
    'symbol sym))
 
 (defun helpful--make-forget-button (sym callable-p)

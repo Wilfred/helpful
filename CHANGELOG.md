@@ -25,6 +25,9 @@ Smarter handling of keybindings:
 When `helpful-max-buffers` is set, we now kill buffers in the order of
 least recently accessed. Previously, we killed in creation order.
 
+If a function also has a unit test of the same name, allow it to be
+run directly from the property list.
+
 # v0.5
 
 Allow function tracing to be enabled/disabled from Helpful buffers.
