@@ -1,3 +1,7 @@
+# v0.7
+
+Nothing yet.
+
 # v0.6
 
 Added imenu support! You can now navigate between headings with imenu.
