@@ -788,7 +788,11 @@ buffer."
       ;;
       ;; Bind `auto-mode-alist' to nil, so we open the buffer in
       ;; `fundamental-mode' if it isn't already open.
-      (let (auto-mode-alist)
+      (let (auto-mode-alist
+            ;; Don't both setting buffer-local variables, it's
+            ;; annoying to prompt the user since we immediately
+            ;; discard the buffer.
+            enable-local-variables)
         (setq buf (find-file-noselect (find-library-name path))))
 
       (unless (-contains-p initial-buffers buf)
@@ -800,7 +804,8 @@ buffer."
       ;; table for searching.
       (when opened
         (with-current-buffer buf
-          (delay-mode-hooks (normal-mode))))
+          (let (enable-local-variables)
+            (delay-mode-hooks (normal-mode t)))))
 
       ;; Based on `find-function-noselect'.
       (with-current-buffer buf

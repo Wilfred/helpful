@@ -29,6 +29,9 @@ least recently accessed. Previously, we killed in creation order.
 If a function also has a unit test of the same name, allow it to be
 run directly from the property list.
 
+Fixed an issue where we would repeatedly prompt the user regarding
+unsafe buffer-local variables.
+
 # v0.5
 
 Allow function tracing to be enabled/disabled from Helpful buffers.
