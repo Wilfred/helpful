@@ -1343,7 +1343,7 @@ escapes that are used by `substitute-command-keys'."
               ;; TODO: Only do this if the function is advised.
               (setq docstring (helpful--skip-advice docstring)))))
       (setq docstring
-            (documentation-property sym 'variable-documentation)))
+            (documentation-property sym 'variable-documentation t)))
     docstring))
 
 (defun helpful--read-symbol (prompt predicate)

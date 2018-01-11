@@ -7,6 +7,7 @@ Better handling of docstrings:
 * Correctly handle \= escapes
 * Quoted keywords are now highlighted
 * Correctly highlight docstrings that contain standalone `` ` ``
+* Ensure we link command references in variable docstrings too
 
 Added disassemble buttons to byte-code functions in symbol properties.
 
