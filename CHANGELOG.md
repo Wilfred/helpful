@@ -1,6 +1,7 @@
 # v0.7
 
-Nothing yet.
+Fixed a crash on functions defined in a .elc when the .el file is not
+available.
 
 # v0.6
 

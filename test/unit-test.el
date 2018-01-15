@@ -262,3 +262,14 @@ and that buffer has been killed, handle it gracefully."
   (should
    (equal (helpful--aliases 'emacs-repository-version nil)
           (list 'emacs-bzr-version 'emacs-repository-version))))
+
+(defun helpful-fn-in-elc ())
+
+(ert-deftest helpful--elc-only ()
+  "Ensure we handle functions where we have the .elc but no .el
+file."
+  ;; Pretend that we've loaded `helpful-fn-in-elc' from /tmp/foo.elc.
+  (let ((load-history (cons '("/tmp/foo.elc" (defun . helpful-fn-in-elc))
+                            load-history)))
+    ;; This should not error.
+    (helpful-function 'helpful-fn-in-elc)))

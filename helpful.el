@@ -754,6 +754,16 @@ If the source code cannot be found, return the sexp used."
     (or (assoc sym completions)
         (assoc-string sym completions))))
 
+(defun helpful--find-library-name (path)
+  "A wrapper around `find-library-name' that returns nil if PATH
+has no library with that name.
+
+This can happen when users have installed Emacs without its
+source code: they have e.g. org.elc but no org.el."
+  (condition-case _err
+      (find-library-name path)
+    (error nil)))
+
 (defun helpful--definition (sym callable-p)
   "Return a list (BUF POS OPENED) where SYM is defined.
 
@@ -781,45 +791,47 @@ buffer."
 
     (cond
      ((and callable-p path)
-      ;; Open `path' ourselves, so we can widen before searching.
+      ;; Convert foo.elc to foo.el.
+      (-when-let (src-path (helpful--find-library-name path))
+        ;; Open `path' ourselves, so we can widen before searching.
+        ;; 
+        ;; Opening large.c files can be slow (e.g. when looking at
+        ;; `defalias'), especially if the user has configured mode hooks.
+        ;;
+        ;; Bind `auto-mode-alist' to nil, so we open the buffer in
+        ;; `fundamental-mode' if it isn't already open.
+        (let (auto-mode-alist
+              ;; Don't both setting buffer-local variables, it's
+              ;; annoying to prompt the user since we immediately
+              ;; discard the buffer.
+              enable-local-variables)
+          (setq buf (find-file-noselect src-path)))
 
-      ;; Opening large.c files can be slow (e.g. when looking at
-      ;; `defalias'), especially if the user has configured mode hooks.
-      ;;
-      ;; Bind `auto-mode-alist' to nil, so we open the buffer in
-      ;; `fundamental-mode' if it isn't already open.
-      (let (auto-mode-alist
-            ;; Don't both setting buffer-local variables, it's
-            ;; annoying to prompt the user since we immediately
-            ;; discard the buffer.
-            enable-local-variables)
-        (setq buf (find-file-noselect (find-library-name path))))
+        (unless (-contains-p initial-buffers buf)
+          (setq opened t))
 
-      (unless (-contains-p initial-buffers buf)
-        (setq opened t))
+        ;; If it's a freshly opened buffer, we need to switch to the
+        ;; correct mode so we can search correctly. Enable the mode, but
+        ;; don't bother with mode hooks, because we just need the syntax
+        ;; table for searching.
+        (when opened
+          (with-current-buffer buf
+            (let (enable-local-variables)
+              (delay-mode-hooks (normal-mode t)))))
 
-      ;; If it's a freshly opened buffer, we need to switch to the
-      ;; correct mode so we can search correctly. Enable the mode, but
-      ;; don't bother with mode hooks, because we just need the syntax
-      ;; table for searching.
-      (when opened
+        ;; Based on `find-function-noselect'.
         (with-current-buffer buf
-          (let (enable-local-variables)
-            (delay-mode-hooks (normal-mode t)))))
-
-      ;; Based on `find-function-noselect'.
-      (with-current-buffer buf
-        ;; `find-function-search-for-symbol' moves point. Prevent
-        ;; that.
-        (save-excursion
-          ;; Narrowing has been fixed upstream:
-          ;; http://git.savannah.gnu.org/cgit/emacs.git/commit/?id=abd18254aec76b26e86ae27e91d2c916ec20cc46
-          (save-restriction
-            (widen)
-            (setq pos
-                  (if primitive-p
-                      (cdr (find-function-C-source sym path nil))
-                    (cdr (find-function-search-for-symbol sym nil path))))))))
+          ;; `find-function-search-for-symbol' moves point. Prevent
+          ;; that.
+          (save-excursion
+            ;; Narrowing has been fixed upstream:
+            ;; http://git.savannah.gnu.org/cgit/emacs.git/commit/?id=abd18254aec76b26e86ae27e91d2c916ec20cc46
+            (save-restriction
+              (widen)
+              (setq pos
+                    (if primitive-p
+                        (cdr (find-function-C-source sym path nil))
+                      (cdr (find-function-search-for-symbol sym nil path)))))))))
      (callable-p
       ;; Functions defined interactively may have an edebug property
       ;; that contains the location of the definition.
