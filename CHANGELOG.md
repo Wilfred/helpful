@@ -3,6 +3,13 @@
 Fixed a crash on functions defined in a .elc when the .el file is not
 available.
 
+Better handling of docstrings:
+
+* All strings in quotes are highlighted. For example, previously
+  `` `C-M-\' `` was not highlighted because `C-M-\` doesn't look like
+  a symbol.
+* Handle nested key sequences correctly, such as `` `\\[foo]' ``.
+
 # v0.6
 
 Added imenu support! You can now navigate between headings with imenu.

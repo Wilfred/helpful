@@ -155,7 +155,7 @@
     "(advice-add 'bar ...) 1 reference")))
 
 (ert-deftest helpful--format-docstring ()
-  "Ensure we create links in docstrings."
+  "Ensure we handle `foo' formatting correctly."
   ;; If it's bound, we should link it.
   (let* ((formatted (helpful--format-docstring "foo `message'."))
          (m-position (s-index-of "m" formatted)))
@@ -165,7 +165,11 @@
          (m-position (s-index-of "m" formatted)))
     (should (not (get-text-property m-position 'button formatted)))
     ;; But we should always remove the backticks.
-    (should (equal formatted "foo messagexxx."))))
+    (should (equal formatted "foo messagexxx.")))
+  ;; Don't require the text between the quotes to be a valid symbol, e.g.
+  ;; support `C-M-\' (found in `vhdl-mode').
+  (let* ((formatted (helpful--format-docstring "foo `C-M-\\'")))
+    (should (equal formatted "foo C-M-\\"))))
 
 (ert-deftest helpful--format-docstring-command-keys ()
   "Ensure we propertize references to command key sequences."
@@ -175,7 +179,16 @@
     (should
      (string-equal formatted "C-SPC"))
     (should
-     (get-text-property 0 'button formatted))))
+     (get-text-property 0 'button formatted)))
+  ;; If we have quotes around a key sequence, we should not propertize
+  ;; it as the button styling will no longer be visible.
+  (-let [formatted (helpful--format-docstring "`\\[set-mark-command]'")]
+    (should
+     (string-equal formatted "C-SPC"))
+    (should
+     (eq
+      (get-text-property 0 'face formatted)
+      'button))))
 
 (setq helpful-var-without-defvar 'foo)
 

@@ -567,24 +567,30 @@ blank line afterwards."
    docstring
    t t))
 
-(defun helpful--propertize-symbols (docstring)
-  "Convert symbol references in docstrings to buttons."
+(defun helpful--propertize-quoted (docstring)
+  "Convert `foo' in docstrings to buttons (if bound) or else highlight."
   (replace-regexp-in-string
    ;; Replace all text of the form `foo'.
-   (rx "`" symbol-start (+? (not (any "`" "'"))) symbol-end "'")
+   (rx "`" (+? (not (any "`" "'"))) "'")
    (lambda (it)
      (let* ((sym-name
              (s-chop-prefix "`" (s-chop-suffix "'" it)))
             (sym (intern sym-name)))
-       ;; Only create a link if this is a symbol that is bound as a
-       ;; variable or callable.
-       (if (or (boundp sym) (fboundp sym))
-           (helpful--button
-            sym-name
-            'helpful-describe-button
-            'symbol sym)
+       (cond
+        ;; Only create a link if this is a symbol that is bound as a
+        ;; variable or callable.
+        ((or (boundp sym) (fboundp sym))
+         (helpful--button
+          sym-name
+          'helpful-describe-button
+          'symbol sym))
+        ;; If this is already a button, don't modify it.
+        ((get-text-property 0 'button sym-name)
+         sym-name)
+        ;; Highlight the quoted string.
+        (t
          (propertize sym-name
-                     'face 'font-lock-constant-face))))
+                     'face 'font-lock-constant-face)))))
    docstring
    t t))
 
@@ -675,8 +681,8 @@ unescaping too."
       (helpful--format-command-keys)
       (helpful--split-first-line)
       (helpful--propertize-info)
-      (helpful--propertize-symbols)
       (helpful--propertize-keywords)
+      (helpful--propertize-quoted)
       (s-trim)))
 
 (defconst helpful--highlighting-funcs
