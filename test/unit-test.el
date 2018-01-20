@@ -204,6 +204,22 @@
       (message "No Emacs source code found at %S, skipping test. Run ./download_emacs_src.sh"
                emacs-src-path))))
 
+(ert-deftest helpful--definition-edebug-fn ()
+  "Ensure we use the position information set by edebug, if present."
+  ;; Test with both edebug enabled and disabled. The edebug property
+  ;; on the symbol varies based on this.
+  (dolist (edebug-on (list nil t))
+    (let ((edebug-all-forms edebug-on)
+          (edebug-all-defs edebug-on))
+      (with-temp-buffer
+        (insert "(defun test-foo-edebug-defn () 44)")
+        (goto-char (point-min))
+        (shut-up
+          (eval (eval-sexp-add-defvars (edebug-read-top-level-form)) t))
+
+        (-let [(buf pos opened) (helpful--definition 'test-foo-edebug-defn t)]
+          (should buf))))))
+
 (ert-deftest helpful-variable ()
   "Smoke test for `helpful-variable'."
   (helpful-variable 'tab-width))

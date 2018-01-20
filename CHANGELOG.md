@@ -5,6 +5,8 @@ available.
 
 Fixed some crashes on primitive functions.
 
+Improved finding source code when edebug info is available.
+
 Better handling of docstrings:
 
 * All strings in quotes are highlighted. For example, previously

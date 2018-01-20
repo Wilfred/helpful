@@ -841,9 +841,12 @@ buffer."
      (callable-p
       ;; Functions defined interactively may have an edebug property
       ;; that contains the location of the definition.
-      (-when-let (marker (car-safe (get sym 'edebug)))
-        (setq buf (marker-buffer marker))
-        (setq pos (marker-position marker))))
+      (-when-let (edebug-info (get sym 'edebug))
+        (-let [marker (if (consp edebug-info)
+                          (car edebug-info)
+                        edebug-info)]
+          (setq buf (marker-buffer marker))
+          (setq pos (marker-position marker)))))
      ((not callable-p)
       (condition-case _err
           (-let [(sym-buf . sym-pos) (find-definition-noselect sym 'defvar)]
