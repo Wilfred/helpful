@@ -44,6 +44,7 @@
 
 (require 'elisp-refs)
 (require 'help)
+(require 'help-fns)
 (require 'dash)
 (require 'dash-functional)
 (require 's)
@@ -395,10 +396,10 @@ or disable if already enabled."
                                      (marker-buffer button)))
     (goto-char pos)))
 
-(defun helpful--navigate-button (path &optional pos)
+(defun helpful--navigate-button (text path &optional pos)
   "Return a button that opens PATH and puts point at POS."
   (helpful--button
-   (abbreviate-file-name path)
+   text
    'helpful-navigate-button
    'path path
    'position pos))
@@ -1128,6 +1129,63 @@ OBJ may be a symbol or a compiled function object."
    'symbol sym
    'callable-p callable-p))
 
+(defun helpful--summary (sym callable-p)
+  "Return a one sentence summary for SYM."
+  (-let* ((primitive-p (helpful--primitive-p sym callable-p))
+          ((buf pos opened)
+           (if (or (not primitive-p) find-function-C-source-directory)
+               (helpful--definition sym callable-p)
+             '(nil nil nil)))
+          (interactive-button
+           (helpful--button
+            "interactive"
+            'helpful-info-button
+            'info-node "(elisp)Using Interactive"))
+          (autoload-button
+           (helpful--button
+            "autoloaded"
+            'helpful-info-button
+            'info-node "(elisp)Autoload"))
+          ;; TODO: this only reports if a function is autoloaded
+          ;; because we autoloaded it. This ignores newly defined
+          ;; functions that are autoloaded. Built-in help has this
+          ;; limitation too, but if we can find the source, we should
+          ;; instead see if there's an autoload cookie.
+          (autoloaded-p
+           (if (and callable-p buf (buffer-file-name buf))
+               (help-fns--autoloaded-p sym (buffer-file-name buf))))
+          (description
+           (cond
+            ((and callable-p (commandp sym) autoloaded-p)
+             (format "an %s, %s" interactive-button autoload-button))
+            ((and callable-p (commandp sym))
+             (format "an %s" interactive-button))
+            ((and callable-p autoloaded-p)
+             (format "an %s" autoload-button))
+            (t
+             "a")))
+          (kind
+           (cond
+            ((not callable-p) "variable")
+            ((macrop sym) "macro")
+            (t "function")))
+          (defined
+            (cond
+             (buf
+              (let ((path (buffer-file-name buf)))
+                (format
+                 "defined in %s"
+                 (helpful--navigate-button
+                  (file-name-nondirectory path) path pos))))
+             (primitive-p
+              "defined in C source code")
+             (t
+              "without source code"))))
+    (when opened
+      (kill-buffer buf))
+
+    (format "%s is %s %s %s." sym description kind defined)))
+
 (defun helpful-update ()
   "Update the current *Helpful* buffer to the latest
 state of the current symbol."
@@ -1155,13 +1213,13 @@ state of the current symbol."
 
     (erase-buffer)
 
-    (if helpful--callable-p
-        (insert
-         (helpful--heading (format "%s Signature" sym-type))
-         (helpful--syntax-highlight (helpful--signature helpful--sym)))
+    (insert (helpful--summary helpful--sym helpful--callable-p))
+
+    (when helpful--callable-p
+      (helpful--insert-section-break)
       (insert
-       (helpful--heading sym-type)
-       (symbol-name helpful--sym)))
+       (helpful--heading (format "%s Signature" sym-type))
+       (helpful--syntax-highlight (helpful--signature helpful--sym))))
 
     (-when-let (docstring (helpful--docstring helpful--sym helpful--callable-p))
       (helpful--insert-section-break)
@@ -1199,19 +1257,26 @@ state of the current symbol."
 
     (insert
      (helpful--heading "References")
-     (cond
-      ((and source-path references)
-       (format "References in %s:\n%s"
-               (helpful--navigate-button source-path 0)
-               (helpful--format-position-heads references source-path)))
-      (source-path
-       (format "%s is unused in %s."
-               helpful--sym
-               (helpful--navigate-button source-path 0)))
-      ((and primitive-p (null find-function-C-source-directory))
-       "C code is not yet loaded.")
-      (t
-       "Could not find source file."))
+     (let ((src-button
+            (when source-path
+              (helpful--navigate-button
+               (file-name-nondirectory source-path)
+               source-path
+               (or (helpful--source-pos helpful--sym helpful--callable-p)
+                   0)))))
+       (cond
+        ((and source-path references)
+         (format "References in %s:\n%s"
+                 src-button
+                 (helpful--format-position-heads references source-path)))
+        (source-path
+         (format "%s is unused in %s."
+                 helpful--sym
+                 src-button))
+        ((and primitive-p (null find-function-C-source-directory))
+         "C code is not yet loaded.")
+        (t
+         "Could not find source file.")))
      "\n\n"
      (helpful--make-references-button helpful--sym helpful--callable-p))
 
@@ -1277,6 +1342,7 @@ state of the current symbol."
         (propertize (format "%s Defined in " (if primitive-p "//" ";;"))
                     'face 'font-lock-comment-face)
         (helpful--navigate-button
+         source-path
          source-path
          (helpful--source-pos helpful--sym helpful--callable-p))
         "\n"))

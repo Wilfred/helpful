@@ -1,5 +1,10 @@
 # v0.7
 
+Helpful buffers now start with a summary of what you're looking at,
+including quick links to the relevant source code. Interactive and
+autoloaded functions are highlighted and include relevant links to the
+manual.
+
 Fixed a crash on functions defined in a .elc when the .el file is not
 available.
 
