@@ -3,6 +3,8 @@
 Fixed a crash on functions defined in a .elc when the .el file is not
 available.
 
+Fixed some crashes on primitive functions.
+
 Better handling of docstrings:
 
 * All strings in quotes are highlighted. For example, previously

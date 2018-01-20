@@ -790,7 +790,7 @@ buffer."
         ;; `base-sym' is the underlying symbol if `sym' is an alias.
         (setq sym base-sym)
         (setq path src-path)))
-    (when (and primitive-p path)
+    (when (and primitive-p path find-function-C-source-directory)
       ;; Convert "src/foo.c" to "".
       (setq path (f-expand path
                            (f-parent find-function-C-source-directory))))
@@ -849,7 +849,12 @@ buffer."
           (-let [(sym-buf . sym-pos) (find-definition-noselect sym 'defvar)]
             (setq buf sym-buf)
             (setq pos sym-pos))
-        (search-failed nil))))
+        (search-failed nil)
+        ;; If your current Emacs instance doesn't match the source
+        ;; code configured in find-function-C-source-directory, we can
+        ;; get an error about not finding source. Try
+        ;; `default-tab-width' against Emacs trunk.
+        (error nil))))
     (list buf pos opened)))
 
 (defun helpful--source-path (sym callable-p)
