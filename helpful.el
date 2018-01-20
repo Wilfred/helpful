@@ -784,9 +784,32 @@ unescaping too."
       (helpful--format-command-keys)
       (helpful--split-first-line)
       (helpful--propertize-info)
+      (helpful--propertize-links)
       (helpful--propertize-keywords)
       (helpful--propertize-quoted)
       (s-trim)))
+
+(define-button-type 'helpful-link-button
+  'action #'helpful--follow-link
+  'follow-link t
+  'help-echo "Follow this link")
+
+(defun helpful--propertize-links (docstring)
+  "Convert URL links in docstrings to buttons."
+  (replace-regexp-in-string
+   (rx "URL `" (group (*? any)) "'")
+   (lambda (match)
+     (let ((url (match-string 1 match)))
+       (concat "URL "
+               (helpful--button
+                url
+                'helpful-link-button
+                'url url))))
+   docstring))
+
+(defun helpful--follow-link (button)
+  "Follow the URL specified by BUTTON."
+  (browse-url (button-get button 'url)))
 
 (defconst helpful--highlighting-funcs
   '(ert--activate-font-lock-keywords
