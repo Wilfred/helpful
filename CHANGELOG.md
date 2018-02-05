@@ -18,6 +18,7 @@ Better handling of docstrings:
   `` `C-M-\' `` was not highlighted because `C-M-\` doesn't look like
   a symbol.
 * Handle nested key sequences correctly, such as `` `\\[foo]' ``.
+* Handle keymap sequences, such as `\\{foo-mode-map}`.
 
 # v0.6
 

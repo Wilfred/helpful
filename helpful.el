@@ -619,9 +619,99 @@ blank line afterwards."
    docstring
    t t))
 
-;; TODO: handle keymaps of the form \\{foo}.
+(defun helpful--char-table-keys (char-table)
+  "Convert CHAR-TABLE to list of pairs (KEYCODES COMMAND)."
+  ;; Kludge: use `describe-vector' to convert a char-table to a sparse
+  ;; keymap.
+  (let (result)
+    (map-char-table
+     (lambda (key value)
+       (push (list (vector key) value) result))
+     char-table)
+    result))
+
+(defun helpful--keymap-keys (keymap)
+  "Return all the keys and commands in KEYMAP.
+Flattens nested keymaps and follows remapped commands.
+
+Returns a list of pairs (KEYCODES COMMAND), where KEYCODES is a
+vector suitable for `key-description', and COMMAND is a smbol."
+  (let (result)
+    (if (symbolp keymap)
+        (push (list (vector) keymap) result)
+      (dolist (item (cdr keymap))
+        (cond
+         ((and (consp item)
+               (eq (car item) 'menu-bar))
+          ;; Skip menu bar items.
+          nil)
+         ;; Sparse keymaps are lists.
+         ((consp item)
+          (-let [(keycode . value) item]
+            (-each (helpful--keymap-keys value)
+              (-lambda ((keycodes command))
+                (push (list (vconcat (vector keycode) keycodes) command)
+                      result)))))
+         ;; Dense keymaps are char-tables.
+         ((char-table-p item)
+          (map-char-table
+           (lambda (keycode value)
+             (-each (helpful--keymap-keys value)
+               (-lambda ((keycodes command))
+                 (push (list (vconcat (vector keycode) keycodes) command)
+                       result))))
+           item)))))
+    ;; For every command `foo' mapped to a command `bar', show `foo' with
+    ;; the key sequence for `bar'.
+    (setq result
+          (-map-when
+           (-lambda ((keycodes _))
+             (and (> (length keycodes) 1)
+                  (eq (elt keycodes 0) 'remap)))
+           (-lambda ((keycodes command))
+             (list
+              (where-is-internal (elt keycodes 1) global-map t)
+              command))
+           result))
+    ;; Preserve the original order of the keymap.
+    (nreverse result)))
+
+;; TODO: unlike `substitute-command-keys', this shows keybindings
+;; which are currently shadowed (e.g. a global minor mode map).
+(defun helpful--format-keymap (keymap)
+  "Format KEYMAP."
+  (let* ((keys-and-commands (helpful--keymap-keys keymap))
+         ;; Convert keycodes [27 i] to "C-M-i".
+         (keys (-map #'-first-item keys-and-commands))
+         ;; Add padding so all our strings are the same length.
+         (formatted-keys (-map #'key-description keys))
+         (max-formatted-length (-max (cons 0 (-map #'length formatted-keys))))
+         (aligned-keys (--map (s-pad-right (1+ max-formatted-length)
+                                           " " it)
+                              formatted-keys))
+         ;; Format commands as buttons.
+         (commands (-map (-lambda ((_ command)) command)
+                         keys-and-commands))
+         (formatted-commands
+          (--map
+           (helpful--button
+            (symbol-name it)
+            'helpful-describe-button
+            'symbol it)
+           commands))
+         ;; Build lines for display.
+         (lines
+          (-map (-lambda ((key . command)) (format "%s %s" key command))
+                (-zip-pair aligned-keys formatted-commands))))
+    ;; The flattened keymap will have normal bindings first, and
+    ;; inherited bindings last. Sort so that we group by prefix.
+    (s-join "\n" (-sort #'string< lines))))
+
+;; TODO: \\<foo>
 (defun helpful--format-command-keys (docstring)
-  "Convert command key references in docstrings to buttons.
+  "Convert command key references and keymap references
+in DOCSTRING to buttons.
+
 Emacs uses \\= to escape \\[ references, so replace that
 unescaping too."
   ;; Based on `substitute-command-keys', but converts command
@@ -649,6 +739,17 @@ unescaping too."
                            (+ (point) (length symbol-with-parens)))
             ;; Set the new keymap.
             (setq keymap (symbol-value (intern symbol-name)))))
+         ((looking-at
+           ;; Text of the form \\{foo-mode-map}
+           (rx "\\{" (group (+ (not (in "}")))) "}"))
+          (let* ((symbol-with-parens (match-string 0))
+                 (symbol-name (match-string 1))
+                 (keymap (symbol-value (intern symbol-name))))
+            ;; Remove the original string.
+            (delete-region (point)
+                           (+ (point) (length symbol-with-parens)))
+            (insert
+             (helpful--format-keymap keymap))))
          ((looking-at
            ;; Text of the form \\[foo-command]
            (rx "\\[" (group (+ (not (in "]")))) "]"))

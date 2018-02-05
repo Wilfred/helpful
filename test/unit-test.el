@@ -188,7 +188,16 @@
     (should
      (eq
       (get-text-property 0 'face formatted)
-      'button))))
+      'button)))
+  ;; Propertize mode maps.
+  (-let [formatted (helpful--format-docstring "`\\{python-mode-map}'")]
+    (should
+     (string-equal formatted "C-SPC"))
+    (should
+     (eq
+      (get-text-property 0 'face formatted)
+      'button)))
+  )
 
 (setq helpful-var-without-defvar 'foo)
 
@@ -302,3 +311,33 @@ file."
                             load-history)))
     ;; This should not error.
     (helpful-function 'helpful-fn-in-elc)))
+
+(ert-deftest helpful--keymap-keys--sparse ()
+  (let* ((parent-keymap (make-sparse-keymap))
+         (keymap (make-sparse-keymap)))
+    (set-keymap-parent keymap parent-keymap)
+    (define-key parent-keymap (kbd "a") #'forward-char)
+    (define-key keymap (kbd "C-c C-M-a") #'backward-char)
+    (define-key keymap [remap quoted-insert] #'forward-line)
+    (should
+     (equal
+      (helpful--keymap-keys keymap)
+      '(([17] forward-line)
+        ([3 27 1] backward-char)
+        ([97] forward-char))))))
+
+(ert-deftest helpful--keymap-keys ()
+  (let* ((parent-keymap (make-keymap))
+         (keymap (make-keymap)))
+    (set-keymap-parent keymap parent-keymap)
+    (define-key parent-keymap (kbd "a") #'forward-char)
+    (define-key keymap (kbd "C-c C-M-a") #'backward-char)
+    (define-key keymap [remap quoted-insert] #'forward-line)
+    (should
+     (equal
+      ;; This order differs from a sparse keymap. We should fix that
+      ;; if it makes any difference.
+      (helpful--keymap-keys keymap)
+      '(([3 27 1] backward-char)
+        ([17] forward-line)
+        ([97] forward-char))))))
