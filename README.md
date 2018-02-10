@@ -113,6 +113,13 @@ You can trace, debug or disassemble functions from inside
 Helpful. This is discoverable and doesn't require memorisation of
 commands.
 
+### Aliases
+
+![screenshot](screenshots/helpful_aliases.png)
+
+If a function has multiple aliases in Emacs, Helpful will show all of
+the aliases defined.
+
 ## Inspirations
 
 This project has been heavily influenced by:
