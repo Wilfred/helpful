@@ -1,3 +1,7 @@
+# v0.8
+
+No changes yet.
+
 # v0.7
 
 Helpful buffers now start with a summary of what you're looking at,
