@@ -1,6 +1,7 @@
 # v0.8
 
-No changes yet.
+Fixed a crash on functions where the last form in their definition is
+a plain symbol.
 
 # v0.7
 

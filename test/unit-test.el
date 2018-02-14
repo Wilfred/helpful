@@ -88,6 +88,16 @@
         (eval (eval-sexp-add-defvars (edebug-read-top-level-form)) t))))
   (helpful-function #'test-foo-edebug))
 
+(defun test-foo-return-arg (s)
+  "blah blah."
+  s)
+
+(ert-deftest helpful--edebug-p ()
+  "Ensure that we don't crash on a function whose body ends with
+symbol (not a form)."
+  (should
+   (not (helpful--edebug-p #'test-foo-return-arg))))
+
 (defun test-foo-usage-docstring ()
   "\n\n(fn &rest ARGS)"
   nil)

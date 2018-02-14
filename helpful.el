@@ -320,7 +320,9 @@ source code to primitives."
     ;; `edebug-enter', `edebug-after' etc interleaved. This means the
     ;; function is interpreted, so `indirect-function' returns a list.
     (when (and (consp fn-def) (consp (cdr fn-def)))
-      (eq (car (-last-item fn-def)) 'edebug-enter))))
+      (-let [fn-end (-last-item fn-def)]
+        (and (consp fn-end)
+             (eq (car fn-end) 'edebug-enter))))))
 
 (defun helpful--can-edebug-p (sym callable-p)
   "Can we use edebug with SYM?"
