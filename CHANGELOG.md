@@ -3,6 +3,9 @@
 Fixed a crash on functions where the last form in their definition is
 a plain symbol.
 
+Fixed an issue where we would show function source code for variables
+where we can't find the variable definition.
+
 # v0.7
 
 Helpful buffers now start with a summary of what you're looking at,

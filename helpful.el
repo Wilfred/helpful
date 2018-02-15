@@ -847,13 +847,13 @@ If the source code cannot be found, return the sexp used."
                                  'helpful-pos-is-start t))))
     (when (and buf created)
       (kill-buffer buf))
-    (if source
-        source
+    (when (and (null source) callable-p)
       ;; Could not find source -- probably defined interactively, or via
       ;; a macro, or file has changed.
       ;; TODO: verify that the source hasn't changed before showing.
       ;; TODO: offer to download C sources for current version.
-      (indirect-function sym))))
+      (setq source (indirect-function sym)))
+    source))
 
 (defun helpful--in-manual-p (sym)
   "Return non-nil if SYM is in an Info manual."
@@ -1461,7 +1461,7 @@ state of the current symbol."
          'helpful-c-source-directory)))
       (t
        (helpful--syntax-highlight
-        (format ";; Source file is unknown\n")))))
+        (format ";; Source file is unknown")))))
     (when source
       (insert
        (cond
