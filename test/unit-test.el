@@ -1,6 +1,7 @@
 (require 'ert)
 (require 'edebug)
 (require 'helpful)
+(require 'python)
 
 (defun test-foo ()
   "Docstring here."
@@ -202,12 +203,7 @@ symbol (not a form)."
   ;; Propertize mode maps.
   (-let [formatted (helpful--format-docstring "`\\{python-mode-map}'")]
     (should
-     (string-equal formatted "C-SPC"))
-    (should
-     (eq
-      (get-text-property 0 'face formatted)
-      'button)))
-  )
+     (s-contains-p "run-python" formatted))))
 
 (setq helpful-var-without-defvar 'foo)
 
