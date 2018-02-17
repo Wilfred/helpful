@@ -318,6 +318,20 @@ file."
     ;; This should not error.
     (helpful-function 'helpful-fn-in-elc)))
 
+(ert-deftest helpful--unnamed-func ()
+  "Ensure we handle unnamed functions too.
+
+This is important for `helpful-key', where a user may have
+associated a lambda with a keybinding."
+  (let* ((fun (lambda (x) x))
+         (buf (helpful--buffer fun t)))
+    ;; There's no name, so just show lambda in the buffer name.
+    (should
+     (equal (buffer-name buf) "*helpful lambda*"))
+    ;; Don't crash when we show the buffer.
+    (with-current-buffer buf
+      (helpful-update))))
+
 (ert-deftest helpful--keymap-keys--sparse ()
   (let* ((parent-keymap (make-sparse-keymap))
          (keymap (make-sparse-keymap)))
