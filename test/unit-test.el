@@ -361,3 +361,8 @@ associated a lambda with a keybinding."
       '(([3 27 1] backward-char)
         ([17] forward-line)
         ([97] forward-char))))))
+
+(ert-deftest helpful--source ()
+  (let* ((source (helpful--source #'helpful--source t)))
+    (should
+     (s-starts-with-p "(defun " source))))

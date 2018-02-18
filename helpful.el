@@ -835,7 +835,7 @@ hooks.")
   "Return the source code of SYM.
 If the source code cannot be found, return the sexp used."
   (catch 'source
-    (when (functionp sym)
+    (unless (symbolp sym)
       (throw 'source sym))
 
     (-let (((buf start-pos created) (helpful--definition sym callable-p))
