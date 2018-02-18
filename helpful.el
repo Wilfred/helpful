@@ -111,7 +111,7 @@ To disable cleanup entirely, set this variable to nil. See also
           ;; Kill buffers so we have one buffer less than the maximum
           ;; before we create a new one.
           (-each excess-buffers #'kill-buffer)))
-      
+
       (setq buf (get-buffer-create buf-name)))
 
     ;; Initialise the buffer with the symbol and associated data.
@@ -200,17 +200,20 @@ Return SYM otherwise."
      aliases)))
 
 (defun helpful--format-alias (sym callable-p)
-  (let ((obsolete-info (if callable-p
-                           (get sym 'byte-obsolete-info)
-                         (get sym 'byte-obsolete-variable)))
-        (sym-button (helpful--button
-                     (symbol-name sym)
-                     'helpful-describe-exactly-button
-                     'symbol sym
-                     'callable-p callable-p)))
+  (let* ((obsolete-info (if callable-p
+                            (get sym 'byte-obsolete-info)
+                          (get sym 'byte-obsolete-variable)))
+         (obsolete-when (if (not obsolete-info)
+                            nil
+                          (-last-item obsolete-info)))
+         (sym-button (helpful--button
+                      (symbol-name sym)
+                      'helpful-describe-exactly-button
+                      'symbol sym
+                      'callable-p callable-p)))
     (cond
-     (obsolete-info
-      (format "%s (obsolete since %s)" sym-button (-last-item obsolete-info)))
+     (obsolete-when
+      (format "%s (obsolete since %s)" sym-button obsolete-when))
      (t
       sym-button))))
 
@@ -916,7 +919,7 @@ buffer."
       ;; Convert foo.elc to foo.el.
       (-when-let (src-path (helpful--find-library-name path))
         ;; Open `path' ourselves, so we can widen before searching.
-        ;; 
+        ;;
         ;; Opening large.c files can be slow (e.g. when looking at
         ;; `defalias'), especially if the user has configured mode hooks.
         ;;
