@@ -210,7 +210,9 @@ Return SYM otherwise."
                      'callable-p callable-p)))
     (cond
      (obsolete-info
-      (format "%s (obsolete since %s)" sym-button (-last-item obsolete-info)))
+      (-if-let (version (-last-item obsolete-info))
+          (format "%s (obsolete since %s)" sym-button version)
+        (format "%s (obsolete)" sym-button)))
      (t
       sym-button))))
 

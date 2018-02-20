@@ -11,6 +11,8 @@ file. We now provide a button to navigate to that buffer.
 
 Improved wording for functions with no source at all.
 
+Fixed an issue with obsolete aliases without version information.
+
 # v0.7
 
 Helpful buffers now start with a summary of what you're looking at,
