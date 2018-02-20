@@ -9,6 +9,8 @@ where we can't find the variable definition.
 Fixed a crash on functions defined in a buffer that isn't backed by a
 file. We now provide a button to navigate to that buffer.
 
+Improved wording for functions with no source at all.
+
 # v0.7
 
 Helpful buffers now start with a summary of what you're looking at,
