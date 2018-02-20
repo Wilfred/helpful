@@ -6,6 +6,9 @@ a plain symbol.
 Fixed an issue where we would show function source code for variables
 where we can't find the variable definition.
 
+Fixed a crash on functions defined in a buffer that isn't backed by a
+file. We now provide a button to navigate to that buffer.
+
 # v0.7
 
 Helpful buffers now start with a summary of what you're looking at,
