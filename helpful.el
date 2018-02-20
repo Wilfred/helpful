@@ -414,19 +414,24 @@ or disable if already enabled."
 (define-button-type 'helpful-buffer-button
   'action #'helpful--switch-to-buffer
   'buffer nil
+  'position nil
   'follow-link t
   'help-echo "Switch to this buffer")
 
 (defun helpful--switch-to-buffer (button)
   "Navigate to the buffer this BUTTON represents."
-  (switch-to-buffer (button-get button 'buffer)))
+  (let ((buf (button-get button 'buffer))
+        (pos (button-get button 'position)))
+    (switch-to-buffer buf)
+    (goto-char pos)))
 
-(defun helpful--buffer-button (buffer)
-  "Return a button that opens PATH and puts point at POS."
+(defun helpful--buffer-button (buffer pos)
+  "Return a button that switches to BUFFER and puts point at POS."
   (helpful--button
    (buffer-name buffer)
    'helpful-buffer-button
-   'buffer buffer))
+   'buffer buffer
+   'position pos))
 
 (define-button-type 'helpful-customize-button
   'action #'helpful--customize
@@ -1312,7 +1317,7 @@ OBJ may be a symbol or a compiled function object."
                      (helpful--navigate-button
                       (file-name-nondirectory path) path pos))
                   (format "defined in buffer %s"
-                          (helpful--buffer-button buf)))))
+                          (helpful--buffer-button buf pos)))))
              (primitive-p
               "defined in C source code")
              (t
