@@ -1321,7 +1321,7 @@ OBJ may be a symbol or a compiled function object."
              (primitive-p
               "defined in C source code")
              (t
-              "without source code"))))
+              "without a source file"))))
     (when opened
       (kill-buffer buf))
 
@@ -1500,8 +1500,7 @@ state of the current symbol."
          "Set C source directory"
          'helpful-c-source-directory)))
       (t
-       (helpful--syntax-highlight
-        (format ";; Source file is unknown\n")))))
+       "")))
     (when source
       (insert
        (cond
@@ -1514,7 +1513,9 @@ state of the current symbol."
                    (helpful--format-closure helpful--sym source)))))
         (t
          (helpful--syntax-highlight
-          (helpful--pretty-print source))))))
+          (concat
+           ";; Source file is unknown, showing raw function object.\n"
+           (helpful--pretty-print source)))))))
 
     (helpful--insert-section-break)
 
@@ -1635,7 +1636,7 @@ escapes that are used by `substitute-command-keys'."
       (pop-to-buffer (helpful--buffer sym t))
       (helpful-update))
      (t
-      (user-error "%s is bound to symbol %s which is not a command"
+      (user-error "%s is bound to %s which is not a command"
                   (key-description key-sequence)
                   sym)))))
 
