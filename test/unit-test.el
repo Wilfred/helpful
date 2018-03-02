@@ -366,3 +366,31 @@ associated a lambda with a keybinding."
   (let* ((source (helpful--source #'helpful--source t)))
     (should
      (s-starts-with-p "(defun " source))))
+
+(ert-deftest helpful--outer-sexp ()
+  ;; If point is in the middle of a form, we should return its position.
+  (with-temp-buffer
+    (insert "(foo bar baz)")
+    (goto-char (point-min))
+    (search-forward "b")
+
+    (-let [(pos subforms)
+           (helpful--outer-sexp (current-buffer) (point))]
+      (should
+       (equal pos (point-min)))
+      (should
+       (equal subforms '(foo bar)))))
+  ;; If point is at the beginning of a form, we should still return its position.
+  (with-temp-buffer
+    (insert "(foo) (bar)")
+    (goto-char (point-min))
+    (search-forward "b")
+    (backward-char 2)
+
+    (-let [(pos subforms)
+           (save-excursion
+             (helpful--outer-sexp (current-buffer) (point)))]
+      (should
+       (equal pos (point)))
+      (should
+       (equal subforms '(bar))))))

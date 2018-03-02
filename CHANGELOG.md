@@ -13,6 +13,9 @@ Improved wording for functions with no source at all.
 
 Fixed an issue with obsolete aliases without version information.
 
+Fixed an issue with top-level references where we would show the
+previous form rather than the relevant one.
+
 # v0.7
 
 Helpful buffers now start with a summary of what you're looking at,

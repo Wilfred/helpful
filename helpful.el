@@ -1098,10 +1098,14 @@ from parent keymaps."
 
 (defun helpful--outer-sexp (buf pos)
   "Find position POS in BUF, and return the name of the outer sexp,
-along with its position."
+along with its position.
+
+Moves point in BUF."
   (with-current-buffer buf
     (goto-char pos)
-    (beginning-of-defun)
+    (let* ((ppss (syntax-ppss)))
+      (unless (zerop (syntax-ppss-depth ppss))
+        (beginning-of-defun)))
     (list (point) (-take 2 (read buf)))))
 
 (defun helpful--count-values (items)
