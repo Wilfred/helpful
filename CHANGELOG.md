@@ -1,5 +1,8 @@
 # v0.8
 
+Added setting `helpful-switch-buffer-function` to allow users to
+control how the Helpful buffer is shown.
+
 Fixed a crash on functions where the last form in their definition is
 a plain symbol.
 

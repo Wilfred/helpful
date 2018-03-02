@@ -73,8 +73,13 @@ if there are more than this many.
 
 To disable cleanup entirely, set this variable to nil. See also
 `helpful-kill-buffers' for a one-off cleanup."
-  :group 'help
   :type '(choice (const nil) number)
+  :group 'helpful)
+
+(defcustom helpful-switch-buffer-function
+  #'pop-to-buffer
+  "Function called to display the *Helpful* buffer."
+  :type 'function
   :group 'helpful)
 
 (defun helpful--kind-name (symbol callable-p)
@@ -1617,7 +1622,7 @@ escapes that are used by `substitute-command-keys'."
   "Show help for function named SYMBOL."
   (interactive
    (list (helpful--read-symbol "Function: " #'functionp)))
-  (pop-to-buffer (helpful--buffer symbol t))
+  (funcall helpful-switch-buffer-function (helpful--buffer symbol t))
   (helpful-update))
 
 ;;;###autoload
@@ -1625,7 +1630,7 @@ escapes that are used by `substitute-command-keys'."
   "Show help for interactive function named SYMBOL."
   (interactive
    (list (helpful--read-symbol "Command: " #'commandp)))
-  (pop-to-buffer (helpful--buffer symbol t))
+  (funcall helpful-switch-buffer-function (helpful--buffer symbol t))
   (helpful-update))
 
 ;;;###autoload
@@ -1639,7 +1644,7 @@ escapes that are used by `substitute-command-keys'."
       (user-error "No command is bound to %s"
                   (key-description key-sequence)))
      ((commandp sym)
-      (pop-to-buffer (helpful--buffer sym t))
+      (funcall helpful-switch-buffer-function (helpful--buffer sym t))
       (helpful-update))
      (t
       (user-error "%s is bound to %s which is not a command"
@@ -1651,7 +1656,7 @@ escapes that are used by `substitute-command-keys'."
   "Show help for macro named SYMBOL."
   (interactive
    (list (helpful--read-symbol "Macro: " #'macrop)))
-  (pop-to-buffer (helpful--buffer symbol t))
+  (funcall helpful-switch-buffer-function (helpful--buffer symbol t))
   (helpful-update))
 
 ;;;###autoload
@@ -1661,7 +1666,7 @@ escapes that are used by `substitute-command-keys'."
 See also `helpful-macro' and `helpful-function'."
   (interactive
    (list (helpful--read-symbol "Callable: " #'fboundp)))
-  (pop-to-buffer (helpful--buffer symbol t))
+  (funcall helpful-switch-buffer-function (helpful--buffer symbol t))
   (helpful-update))
 
 (defun helpful--variable-p (symbol)
@@ -1706,7 +1711,7 @@ See also `helpful-callable' and `helpful-variable'."
   "Show help for variable named SYMBOL."
   (interactive
    (list (helpful--read-symbol "Variable: " #'helpful--variable-p)))
-  (pop-to-buffer (helpful--buffer symbol nil))
+  (funcall helpful-switch-buffer-function (helpful--buffer symbol nil))
   (helpful-update))
 
 ;;;###autoload
