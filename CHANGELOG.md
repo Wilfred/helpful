@@ -1,3 +1,7 @@
+# v0.9
+
+No changes yet.
+
 # v0.8
 
 Added setting `helpful-switch-buffer-function` to allow users to
