@@ -205,19 +205,21 @@ symbol (not a form)."
     (should
      (s-contains-p "run-python" formatted))))
 
-(setq helpful-var-without-defvar 'foo)
-
-(ert-deftest helpful--definition ()
-  ;; Ensure we don't crash on calling `helpful--definition' on
-  ;; variables defined without `defvar'.
-  (helpful--definition 'helpful-var-without-defvar nil)
-  ;; Handle definitions of variables in C source code.
+(ert-deftest helpful--definition-c-vars ()
+  "Handle definitions of variables in C source code."
   (let* ((emacs-src-path (f-join default-directory "emacs-25.3" "src")))
     (if (f-exists-p emacs-src-path)
         (let ((find-function-C-source-directory emacs-src-path))
           (helpful--definition 'default-directory nil))
       (message "No Emacs source code found at %S, skipping test. Run ./download_emacs_src.sh"
                emacs-src-path))))
+
+(setq helpful-var-without-defvar 'foo)
+
+(ert-deftest helpful--definition-no-defvar ()
+  "Ensure we don't crash on calling `helpful--definition' on
+variables defined without `defvar'."
+  (helpful--definition 'helpful-var-without-defvar nil))
 
 (ert-deftest helpful--definition-edebug-fn ()
   "Ensure we use the position information set by edebug, if present."
