@@ -1,6 +1,7 @@
 # v0.9
 
-No changes yet.
+Fixed an issue when looking at variable docs where we would visit the
+definition buffer without the user requesting it.
 
 # v0.8
 

@@ -221,6 +221,15 @@ symbol (not a form)."
 variables defined without `defvar'."
   (helpful--definition 'helpful-var-without-defvar nil))
 
+(ert-deftest helpful--definition-buffer-opened ()
+  "Ensure we mark buffers as opened for variables."
+  (require 'python)
+  ;; This test will fail if you already have python.el.gz open in your
+  ;; Emacs instance.
+  (-let [(buf pos opened) (helpful--definition 'python-indent-offset nil)]
+    (should (bufferp buf))
+    (should opened)))
+
 (ert-deftest helpful--definition-edebug-fn ()
   "Ensure we use the position information set by edebug, if present."
   ;; Test with both edebug enabled and disabled. The edebug property

@@ -996,6 +996,8 @@ buffer."
       (condition-case _err
           (-let [(sym-buf . sym-pos) (find-definition-noselect sym 'defvar)]
             (setq buf sym-buf)
+            (unless (-contains-p initial-buffers buf)
+              (setq opened t))
             (setq pos sym-pos))
         (search-failed nil)
         ;; If your current Emacs instance doesn't match the source
