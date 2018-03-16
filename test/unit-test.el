@@ -357,6 +357,24 @@ associated a lambda with a keybinding."
         ([3 27 1] backward-char)
         ([97] forward-char))))))
 
+(defvar helpful--dummy-keymap
+  (let ((keymap (make-sparse-keymap)))
+    (define-key keymap (kbd "a") #'forward-char)
+    keymap))
+
+;; `fset' is necessary for keymaps as prefixes. This is a quirky Emacs
+;; API: https://emacs.stackexchange.com/q/28576/304
+(fset 'helpful--dummy-keymap helpful--dummy-keymap)
+
+(ert-deftest helpful--keymap-keys--prefix ()
+  "Test we flatten keymaps with prefix keys."
+  (let* ((keymap (make-sparse-keymap)))
+    (define-key keymap (kbd "C-c") 'helpful--dummy-keymap)
+    (should
+     (equal
+      (helpful--keymap-keys keymap)
+      '(([3 97] forward-char))))))
+
 (ert-deftest helpful--keymap-keys ()
   (let* ((parent-keymap (make-keymap))
          (keymap (make-keymap)))

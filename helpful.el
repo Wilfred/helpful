@@ -669,9 +669,21 @@ Flattens nested keymaps and follows remapped commands.
 
 Returns a list of pairs (KEYCODES COMMAND), where KEYCODES is a
 vector suitable for `key-description', and COMMAND is a smbol."
-  (let (result)
-    (if (symbolp keymap)
-        (push (list (vector) keymap) result)
+  (cond
+   ;; Prefix keys.
+   ((and
+     (symbolp keymap)
+     (fboundp keymap)
+     ;; Prefix keys use a keymap in the function slot of a symbol.
+     (keymapp (symbol-function keymap)))
+    (helpful--keymap-keys (symbol-function keymap)))
+   ;; Other symbols mean we've reached a leaf, so this is a command
+   ;; we can call.
+   ((symbolp keymap)
+    `(([] ,keymap)))
+   ;; Otherwise, recurse on the keys at this level of the keymap.
+   (t
+    (let (result)
       (dolist (item (cdr keymap))
         (cond
          ((and (consp item)
@@ -693,21 +705,21 @@ vector suitable for `key-description', and COMMAND is a smbol."
                (-lambda ((keycodes command))
                  (push (list (vconcat (vector keycode) keycodes) command)
                        result))))
-           item)))))
-    ;; For every command `foo' mapped to a command `bar', show `foo' with
-    ;; the key sequence for `bar'.
-    (setq result
-          (-map-when
-           (-lambda ((keycodes _))
-             (and (> (length keycodes) 1)
-                  (eq (elt keycodes 0) 'remap)))
-           (-lambda ((keycodes command))
-             (list
-              (where-is-internal (elt keycodes 1) global-map t)
-              command))
-           result))
-    ;; Preserve the original order of the keymap.
-    (nreverse result)))
+           item))))
+      ;; For every command `new-func' mapped to a command `orig-func', show `new-func' with
+      ;; the key sequence for `orig-func'.
+      (setq result
+            (-map-when
+             (-lambda ((keycodes _))
+               (and (> (length keycodes) 1)
+                    (eq (elt keycodes 0) 'remap)))
+             (-lambda ((keycodes command))
+               (list
+                (where-is-internal (elt keycodes 1) global-map t)
+                command))
+             result))
+      ;; Preserve the original order of the keymap.
+      (nreverse result)))))
 
 ;; TODO: unlike `substitute-command-keys', this shows keybindings
 ;; which are currently shadowed (e.g. a global minor mode map).
@@ -829,6 +841,8 @@ unescaping too."
 This is used in `helpful--syntax-highlight' to support extra
 highlighting that the user may have configured in their mode
 hooks.")
+
+;; TODO: crashes on `backtrace-frame' on a recent checkout.
 
 (defun helpful--syntax-highlight (source &optional mode)
   "Return a propertized version of SOURCE in MODE."
