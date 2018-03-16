@@ -1,5 +1,10 @@
 # v0.9
 
+Much better handling of aliases: show aliases differently to their
+underlying symbol, show the `defalias` call in the source code, don't
+show duplicates in the Aliases list, and cross-reference the Elisp
+manual.
+
 Fixed an issue when looking at variable docs where we would visit the
 definition buffer without the user requesting it.
 

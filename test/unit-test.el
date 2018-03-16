@@ -313,10 +313,10 @@ and that buffer has been killed, handle it gracefully."
 (ert-deftest helpful--aliases ()
   (should
    (equal (helpful--aliases 'null t)
-          (list 'not 'null)))
+          (list 'not)))
   (should
    (equal (helpful--aliases 'emacs-repository-version nil)
-          (list 'emacs-bzr-version 'emacs-repository-version))))
+          (list 'emacs-bzr-version))))
 
 (defun helpful-fn-in-elc ())
 
@@ -405,3 +405,14 @@ associated a lambda with a keybinding."
        (equal pos (point)))
       (should
        (equal subforms '(bar))))))
+
+(ert-deftest helpful--summary--aliases ()
+  ;; exclude the sym itself
+  "Ensure we mention that a symbol is an alias."
+  (let* ((summary (helpful--summary '-select t)))
+    ;; Strip properties to make assertion messages more readable.
+    (set-text-properties 0 (1- (length summary)) nil summary)
+    (should
+     (equal
+      summary
+      "-select is a function alias for -filter, defined in dash.el."))))
