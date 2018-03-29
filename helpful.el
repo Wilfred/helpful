@@ -633,8 +633,10 @@ blank line afterwards."
   "Convert info references in docstrings to buttons."
   (replace-regexp-in-string
    ;; Replace all text of the form `foo'.
-   (rx "Info node"
-       (group (+ whitespace))
+   (rx "Info "
+       (group
+        (or "anchor" "node")
+        (+ whitespace))
        "`"
        (group (+ (not (in "'"))))
        "'")
@@ -643,7 +645,7 @@ blank line afterwards."
      (let ((space (match-string 1 it))
            (info-node (match-string 2 it)))
        (concat
-        "Info node"
+        "Info "
         space
         (helpful--button
          info-node

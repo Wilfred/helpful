@@ -13,6 +13,9 @@ definition buffer without the user requesting it.
 
 Wording polish for finding references of primitives.
 
+Fixed some corner cases in references to info manual sections not
+being linkified.
+
 # v0.8
 
 Added setting `helpful-switch-buffer-function` to allow users to

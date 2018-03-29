@@ -205,6 +205,30 @@ symbol (not a form)."
     (should
      (s-contains-p "run-python" formatted))))
 
+(ert-deftest helpful--format-docstring--info ()
+  "Ensure we propertize references to the info manual."
+  ;; This is the typical format.
+  (let* ((formatted (helpful--format-docstring "Info node `(elisp)foo'"))
+         (paren-position (s-index-of "(" formatted)))
+    (should
+     (string-equal formatted "Info node (elisp)foo"))
+    (should
+     (get-text-property paren-position 'button formatted)))
+  ;; Some functions, such as `signal', use 'anchor'.
+  (let* ((formatted (helpful--format-docstring "Info anchor `(elisp)foo'"))
+         (paren-position (s-index-of "(" formatted)))
+    (should
+     (string-equal formatted "Info anchor (elisp)foo"))
+    (should
+     (get-text-property paren-position 'button formatted)))
+  ;; Ensure we handle wrapped lines too, e.g. in `org-odt-pixels-per-inch'.
+  (let* ((formatted (helpful--format-docstring "Info node `(elisp)foo \nbar'"))
+         (paren-position (s-index-of "(" formatted)))
+    (should
+     (string-equal formatted "Info node (elisp)foo \nbar"))
+    (should
+     (get-text-property paren-position 'button formatted))))
+
 (ert-deftest helpful--definition-c-vars ()
   "Handle definitions of variables in C source code."
   (let* ((emacs-src-path (f-join default-directory "emacs-25.3" "src")))
