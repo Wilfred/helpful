@@ -11,6 +11,8 @@ correctly.
 Fixed an issue when looking at variable docs where we would visit the
 definition buffer without the user requesting it.
 
+Wording polish for finding references of primitives.
+
 # v0.8
 
 Added setting `helpful-switch-buffer-function` to allow users to

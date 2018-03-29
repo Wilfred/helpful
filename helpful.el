@@ -1463,6 +1463,10 @@ state of the current symbol."
          (format "References in %s:\n%s"
                  src-button
                  (helpful--format-position-heads references source-path)))
+        ((and source-path primitive-p)
+         (format
+          "Finding references in a .%s file is not supported."
+          (f-ext source-path)))
         (source-path
          (format "%s is unused in %s."
                  helpful--sym
