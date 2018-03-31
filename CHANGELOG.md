@@ -19,6 +19,9 @@ being linkified.
 Fixed an issue where the definition of interactively defined functions
 wasn't shown.
 
+Pretty-printing is now much more robust, gracefully handling very
+large lists.
+
 # v0.8
 
 Added setting `helpful-switch-buffer-function` to allow users to

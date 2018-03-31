@@ -152,12 +152,15 @@ To disable cleanup entirely, set this variable to nil. See also
 
 (defun helpful--pretty-print (value)
   "Pretty-print VALUE.
-Break lists over large lines, and ensure strings are surrounded
-with double-quotes."
-  (with-temp-buffer
-    (delay-mode-hooks (lisp-mode))
-    (cl-prettyprint value)
-    (s-trim (buffer-string))))
+
+If VALUE is self-referential, or just very big, the user may
+press \\[keyboard-quit] to gracefully stop the printing."
+  ;; Inspired by `ielm-eval-input'.
+  (condition-case nil
+      (s-trim-right (pp-to-string value))
+    (quit
+     (propertize "(User quit during pretty-printing.)"
+                 'face 'font-lock-comment-face))))
 
 (defun helpful--button (text type &rest properties)
   ;; `make-text-button' mutates our string to add properties. Copy
