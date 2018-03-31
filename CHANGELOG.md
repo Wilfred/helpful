@@ -1,3 +1,7 @@
+# v0.10
+
+No changes yet.
+
 # v0.9
 
 Much better handling of aliases: show aliases differently to their
