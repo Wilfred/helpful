@@ -16,6 +16,9 @@ Wording polish for finding references of primitives.
 Fixed some corner cases in references to info manual sections not
 being linkified.
 
+Fixed an issue where the definition of interactively defined functions
+wasn't shown.
+
 # v0.8
 
 Added setting `helpful-switch-buffer-function` to allow users to

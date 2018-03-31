@@ -420,6 +420,15 @@ associated a lambda with a keybinding."
     (should
      (s-starts-with-p "(defun " source))))
 
+(ert-deftest helpful--source--interactively-defined-fn ()
+  "We should return the raw sexp for functions where we can't
+find the source code."
+  (eval '(defun test-foo-defined-interactively () 42))
+  (should
+   (not
+    (null
+     (helpful--source #'test-foo-defined-interactively t)))))
+
 (ert-deftest helpful--outer-sexp ()
   ;; If point is in the middle of a form, we should return its position.
   (with-temp-buffer

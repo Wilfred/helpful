@@ -895,10 +895,10 @@ If the source code cannot be found, return the sexp used."
           (setq source (propertize source
                                    'helpful-path (buffer-file-name buf)
                                    'helpful-pos start-pos
-                                   'helpful-pos-is-start t))))
-      (when (and buf created)
-        (kill-buffer buf))
-      (throw 'source source))
+                                   'helpful-pos-is-start t)))
+        (when (and buf created)
+          (kill-buffer buf))
+        (throw 'source source)))
 
     (when callable-p
       ;; Could not find source -- probably defined interactively, or via
