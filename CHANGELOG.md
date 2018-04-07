@@ -1,6 +1,6 @@
 # v0.10
 
-No changes yet.
+URLs in docstrings are now converted to buttons.
 
 # v0.9
 

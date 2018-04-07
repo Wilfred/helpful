@@ -835,6 +835,7 @@ unescaping too."
       (helpful--split-first-line)
       (helpful--propertize-info)
       (helpful--propertize-links)
+      (helpful--propertize-bare-links)
       (helpful--propertize-keywords)
       (helpful--propertize-quoted)
       (s-trim)))
@@ -855,6 +856,26 @@ unescaping too."
                 url
                 'helpful-link-button
                 'url url))))
+   docstring))
+
+(defun helpful--propertize-bare-links (docstring)
+  "Convert URL links in docstrings to buttons."
+  (replace-regexp-in-string
+   (rx (group (or string-start space))
+       (group "http" (? "s") "://" (+? (not (any space))))
+       (group (? (any "." ">" ")"))
+              (or space string-end)))
+   (lambda (match)
+     (let ((space-before (match-string 1 match))
+           (url (match-string 2 match))
+           (after (match-string 3 match)))
+       (concat
+        space-before
+        (helpful--button
+         url
+         'helpful-link-button
+         'url url)
+        after)))
    docstring))
 
 (defun helpful--follow-link (button)
