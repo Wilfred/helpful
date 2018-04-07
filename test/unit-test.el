@@ -229,6 +229,16 @@ symbol (not a form)."
     (should
      (get-text-property paren-position 'button formatted))))
 
+(ert-deftest helpful--format-docstring--url ()
+  "Ensure we propertize URLs."
+  ;; This is the typical format.
+  (let* ((formatted (helpful--format-docstring "URL `http://example.com'"))
+         (url-position (s-index-of "h" formatted)))
+    (should
+     (string-equal formatted "URL http://example.com"))
+    (should
+     (get-text-property url-position 'button formatted))))
+
 (ert-deftest helpful--definition-c-vars ()
   "Handle definitions of variables in C source code."
   (let* ((emacs-src-path (f-join default-directory "emacs-25.3" "src")))
