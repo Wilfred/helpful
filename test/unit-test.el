@@ -229,6 +229,37 @@ symbol (not a form)."
     (should
      (get-text-property paren-position 'button formatted))))
 
+(ert-deftest helpful--format-docstring--url ()
+  "Ensure we propertize URLs with backticks."
+  (let* ((formatted (helpful--format-docstring "URL `http://example.com'"))
+         (url-position (s-index-of "h" formatted)))
+    (should
+     (string-equal formatted "URL http://example.com"))
+    (should
+     (get-text-property url-position 'button formatted))))
+
+(ert-deftest helpful--format-docstring--bare-url ()
+  "Ensure we propertize URLs without backticks."
+  (let* ((formatted (helpful--format-docstring "http://example.com\nbar"))
+         (url-position (s-index-of "h" formatted)))
+    (should
+     (string-equal formatted "http://example.com\nbar"))
+    (should
+     (get-text-property url-position 'button formatted))
+    (should
+     (equal
+      (get-text-property url-position 'url formatted)
+      "http://example.com")))
+  ;; Don't consider trailing punctuation to be part of the URL.
+  (let* ((formatted (helpful--format-docstring "See http://example.com."))
+         (url-position (s-index-of "h" formatted)))
+    (should
+     (string-equal formatted "See http://example.com."))
+    (should
+     (equal
+      (get-text-property url-position 'url formatted)
+      "http://example.com"))))
+
 (ert-deftest helpful--definition-c-vars ()
   "Handle definitions of variables in C source code."
   (let* ((emacs-src-path (f-join default-directory "emacs-25.3" "src")))

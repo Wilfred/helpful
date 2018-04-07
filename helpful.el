@@ -834,9 +834,53 @@ unescaping too."
       (helpful--format-command-keys)
       (helpful--split-first-line)
       (helpful--propertize-info)
+      (helpful--propertize-links)
+      (helpful--propertize-bare-links)
       (helpful--propertize-keywords)
       (helpful--propertize-quoted)
       (s-trim)))
+
+(define-button-type 'helpful-link-button
+  'action #'helpful--follow-link
+  'follow-link t
+  'help-echo "Follow this link")
+
+(defun helpful--propertize-links (docstring)
+  "Convert URL links in docstrings to buttons."
+  (replace-regexp-in-string
+   (rx "URL `" (group (*? any)) "'")
+   (lambda (match)
+     (let ((url (match-string 1 match)))
+       (concat "URL "
+               (helpful--button
+                url
+                'helpful-link-button
+                'url url))))
+   docstring))
+
+(defun helpful--propertize-bare-links (docstring)
+  "Convert URL links in docstrings to buttons."
+  (replace-regexp-in-string
+   (rx (group (or string-start space))
+       (group "http" (? "s") "://" (+? (not (any space))))
+       (group (? (any "." ">" ")"))
+              (or space string-end)))
+   (lambda (match)
+     (let ((space-before (match-string 1 match))
+           (url (match-string 2 match))
+           (after (match-string 3 match)))
+       (concat
+        space-before
+        (helpful--button
+         url
+         'helpful-link-button
+         'url url)
+        after)))
+   docstring))
+
+(defun helpful--follow-link (button)
+  "Follow the URL specified by BUTTON."
+  (browse-url (button-get button 'url)))
 
 (defconst helpful--highlighting-funcs
   '(ert--activate-font-lock-keywords
