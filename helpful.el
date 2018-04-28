@@ -1124,7 +1124,10 @@ buffer."
 along with the keybindings in each keymap.
 
 We ignore keybindings that are menu items, and ignore keybindings
-from parent keymaps."
+from parent keymaps.
+
+`widget-global-map' is also ignored as it generally contains the
+same bindings as `global-map'."
   (let (matching-keymaps)
     ;; Look for this command in all keymaps.
     (dolist (keymap-sym (helpful--all-keymap-syms))
@@ -1142,7 +1145,7 @@ from parent keymaps."
               ;; Ignore keybindings that we've just inherited from the
               ;; parent.
               (-difference keycodes parent-keycodes))
-        (when keycodes
+        (when (and keycodes (not (eq keymap-sym 'widget-global-map)))
           (push (cons keymap-sym
                       (-map #'key-description keycodes))
                 matching-keymaps))))

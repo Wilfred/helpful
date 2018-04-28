@@ -3,6 +3,9 @@
 When visiting a reference, the occurrences of the symbol are
 temporarily highlighted.
 
+Keybindings in `widget-global-map` are now ignored as they're rarely
+informative.
+
 URLs in docstrings are now converted to buttons.
 
 Function signatures are now correct when a function uses
