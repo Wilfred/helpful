@@ -1651,17 +1651,23 @@ state of the current symbol."
   "Get the signature for function SYM, as a string.
 For example, \"(some-func FOO &optional BAR)\"."
   (let (docstring-sig
-        source-sig)
+        source-sig
+        (advertised-args
+         (when (symbolp sym)
+           (gethash (symbol-function sym) advertised-signature-table))))
     ;; Get the usage from the function definition.
     (let* ((function-args
             (if (symbolp sym)
                 (help-function-arglist sym)
               (cadr sym)))
            (formatted-args
-            (if (listp function-args)
-                (-map #'helpful--format-argument
-                      function-args)
-              (list function-args))))
+            (cond
+             (advertised-args
+              (-map #'helpful--format-argument advertised-args))
+             ((listp function-args)
+              (-map #'helpful--format-argument function-args))
+             (t
+              (list function-args)))))
       (setq source-sig
             (cond
              ;; If it's a function object, just show the arguments.
@@ -1681,7 +1687,16 @@ For example, \"(some-func FOO &optional BAR)\"."
       (-when-let (docstring-with-usage (help-split-fundoc docstring sym))
         (setq docstring-sig (car docstring-with-usage))))
 
-    (or docstring-sig source-sig)))
+    (cond
+     ;; Advertised signature always wins.
+     (advertised-args
+      source-sig)
+     ;; If that's not set, use the usage specification in the
+     ;; docstring, if present.
+     (docstring-sig)
+     (t
+      ;; Otherwise, just use the signature from the source code.
+      source-sig))))
 
 (defun helpful--docstring (sym callable-p)
   "Get the docstring for SYM.

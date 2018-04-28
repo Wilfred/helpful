@@ -2,6 +2,9 @@
 
 URLs in docstrings are now converted to buttons.
 
+Function signatures are now correct when a function uses
+`(declare (advertised-calling-convention ...))`.
+
 # v0.9
 
 Much better handling of aliases: show aliases differently to their

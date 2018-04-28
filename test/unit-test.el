@@ -311,6 +311,12 @@ variables defined without `defvar'."
    (equal (helpful--signature 'some-unused-function)
           "(some-unused-function [Arg list not available until function definition is loaded.])")))
 
+(ert-deftest helpful--signature--advertised ()
+  "Ensure that we respect functions that declare `advertised-calling-convention'."
+  (should
+   (equal (helpful--signature 'start-process-shell-command)
+          "(start-process-shell-command NAME BUFFER COMMAND)")))
+
 (ert-deftest helpful-function--single-buffer ()
   "Ensure that calling `helpful-buffer' does not leave any extra
 buffers lying around."
