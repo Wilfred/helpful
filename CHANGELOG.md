@@ -1,5 +1,8 @@
 # v0.10
 
+When visiting a reference, the occurrences of the symbol are
+temporarily highlighted.
+
 URLs in docstrings are now converted to buttons.
 
 Function signatures are now correct when a function uses
