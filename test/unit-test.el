@@ -504,3 +504,14 @@ find the source code."
      (equal
       summary
       "-select is a function alias for -filter, defined in dash.el."))))
+
+(ert-deftest helpful--bound-p ()
+  ;; Functions.
+  (should (helpful--bound-p 'message))
+  ;; Variables
+  (should (helpful--bound-p 'tab-width))
+  ;; Unbound.
+  (should (not (helpful--bound-p 'this-variable-does-not-exist)))
+  ;; For our purposes, we don't consider nil or t to be bound.
+  (should (not (helpful--bound-p 'nil)))
+  (should (not (helpful--bound-p 't))))
