@@ -182,6 +182,13 @@ symbol (not a form)."
   (let* ((formatted (helpful--format-docstring "foo `C-M-\\'")))
     (should (equal formatted "foo C-M-\\"))))
 
+(ert-deftest helpful--format-docstring-escapes ()
+  "Ensure we handle escaped quotes correctly."
+  (let* ((formatted (helpful--format-docstring "foo \\=`message\\='."))
+         (m-position (s-index-of "m" formatted)))
+    (should (equal formatted "foo `message'."))
+    (should (not (get-text-property m-position 'button formatted)))))
+
 (ert-deftest helpful--format-docstring-command-keys ()
   "Ensure we propertize references to command key sequences."
   ;; This test will fail in your current Emacs instance if you've

@@ -5,6 +5,9 @@ URLs in docstrings are now converted to buttons.
 Function signatures are now correct when a function uses
 `(declare (advertised-calling-convention ...))`.
 
+Fixed an issue where escaped backticks were confused with unescaped
+backticks in docstrings.
+
 # v0.9
 
 Much better handling of aliases: show aliases differently to their

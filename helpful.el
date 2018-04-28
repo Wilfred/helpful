@@ -609,12 +609,15 @@ blank line afterwards."
   "Convert `foo' in docstrings to buttons (if bound) or else highlight."
   (replace-regexp-in-string
    ;; Replace all text of the form `foo'.
-   (rx "`" (+? (not (any "`" "'"))) "'")
+   (rx (? "\\=") "`" (+? (not (any "`" "'"))) "'")
    (lambda (it)
      (let* ((sym-name
              (s-chop-prefix "`" (s-chop-suffix "'" it)))
             (sym (intern sym-name)))
        (cond
+        ;; If the quote is escaped, don't modify it.
+        ((s-starts-with-p "\\=" it)
+         it)
         ;; Only create a link if this is a symbol that is bound as a
         ;; variable or callable.
         ((or (boundp sym) (fboundp sym))
@@ -831,13 +834,15 @@ unescaping too."
 (defun helpful--format-docstring (docstring)
   "Replace cross-references with links in DOCSTRING."
   (-> docstring
-      (helpful--format-command-keys)
       (helpful--split-first-line)
       (helpful--propertize-info)
       (helpful--propertize-links)
       (helpful--propertize-bare-links)
       (helpful--propertize-keywords)
       (helpful--propertize-quoted)
+      ;; This needs to happen after we've replaced quoted chars, so we
+      ;; don't confuse \\=` with `.
+      (helpful--format-command-keys)
       (s-trim)))
 
 (define-button-type 'helpful-link-button
