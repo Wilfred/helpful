@@ -312,6 +312,15 @@ variables defined without `defvar'."
   "Smoke test for `helpful-variable'."
   (helpful-variable 'tab-width))
 
+(ert-deftest helpful-visit-reference ()
+  "Smoke test for `helpful-visit-reference'."
+  (helpful-function 'replace-regexp-in-string)
+  (goto-char (point-min))
+  ;; Move forward to the first reference.
+  (while (not (get-text-property (point) 'helpful-pos))
+    (forward-char 1))
+  (helpful-visit-reference))
+
 (ert-deftest helpful--signature ()
   "Ensure that autoloaded functions are handled gracefully"
   (should
