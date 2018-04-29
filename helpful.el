@@ -1900,6 +1900,7 @@ imenu."
                 (> pos (point-max)))
         (widen))
       (goto-char pos)
+      (recenter 0)
       (save-excursion
         (let ((defun-end (scan-sexps (point) 1)))
           (while (re-search-forward
