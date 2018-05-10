@@ -14,6 +14,10 @@ Function signatures are now correct when a function uses
 Fixed an issue where escaped backticks were confused with unescaped
 backticks in docstrings.
 
+Fixed an issue with very large code snippets making helpful hang due
+to slow syntax highlighting. This was particularly problematic for C
+functions and variables.
+
 # v0.9
 
 Much better handling of aliases: show aliases differently to their
