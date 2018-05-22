@@ -55,6 +55,7 @@
 (require 'info-look)
 (require 'edebug)
 (require 'trace)
+(require 'imenu)
 
 (defvar-local helpful--sym nil)
 (defvar-local helpful--callable-p nil)
