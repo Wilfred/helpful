@@ -473,6 +473,12 @@ associated a lambda with a keybinding."
     (should
      (s-starts-with-p "(defun " source))))
 
+(ert-deftest helpful--source-autoloaded ()
+  "We should include the autoload cookie."
+  (let* ((source (helpful--source #'helpful-at-point t)))
+    (should
+     (s-starts-with-p ";;;###autoload" source))))
+
 (ert-deftest helpful--source--interactively-defined-fn ()
   "We should return the raw sexp for functions where we can't
 find the source code."

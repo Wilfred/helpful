@@ -950,7 +950,12 @@ If the source code cannot be found, return the sexp used."
           (save-excursion
             (save-restriction
               (goto-char start-pos)
-              (narrow-to-defun)
+              (narrow-to-defun t)
+
+              ;; If there was a preceding comment, START-POS will be
+              ;; after that comment. Move the position to include that comment.
+              (setq start-pos (point-min))
+
               (setq source (buffer-substring-no-properties (point-min) (point-max))))))
         (setq source (s-trim-right source))
         (when (and source (buffer-file-name buf))

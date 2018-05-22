@@ -18,6 +18,9 @@ Fixed an issue with very large code snippets making helpful hang due
 to slow syntax highlighting. This was particularly problematic for C
 functions and variables.
 
+When extracting the source for an item, include preceding comments and
+autoload cookies.
+
 # v0.9
 
 Much better handling of aliases: show aliases differently to their
