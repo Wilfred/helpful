@@ -1,3 +1,7 @@
+# v0.11
+
+No changes yet.
+
 # v0.10
 
 When visiting a reference, the occurrences of the symbol are
