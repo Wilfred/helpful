@@ -1134,36 +1134,68 @@ buffer."
          (push sym keymaps))))
     keymaps))
 
+(defun helpful--key-sequences (command-sym keymap)
+  "Return all the key sequences of COMMAND-SYM in KEYMAP."
+  (let* ((keycodes
+          ;; Look up this command in the keymap, its parent and the
+          ;; global map. We need to include the global map to find
+          ;; remapped commands.
+          (where-is-internal command-sym keymap nil t))
+         ;; Look up this command in the parent keymap.
+         (parent-keymap (keymap-parent keymap))
+         (parent-keycodes
+          (when parent-keymap
+            (where-is-internal
+             command-sym (list parent-keymap) nil t)))
+         ;; Look up this command in the global map.
+         (global-keycodes
+          (unless (eq keymap global-map)
+            (where-is-internal
+             command-sym (list global-map) nil t))))
+    (->> keycodes
+         ;; Ignore keybindings from the parent or global map.
+         (--remove (-contains-p parent-keycodes it))
+         (--remove (-contains-p global-keycodes it))
+         ;; Convert raw keycode vectors into human-readable strings.
+         (-map #'key-description))))
+
 (defun helpful--keymaps-containing (command-sym)
-  "Return a list of pairs listing keymap symbols that contain COMMAND-SYM,
+  "Return a list of pairs listing keymap names that contain COMMAND-SYM,
 along with the keybindings in each keymap.
+
+Keymap names are typically variable names, but may also be
+descriptions of values in `minor-mode-map-alist'.
 
 We ignore keybindings that are menu items, and ignore keybindings
 from parent keymaps.
 
 `widget-global-map' is also ignored as it generally contains the
 same bindings as `global-map'."
-  (let (matching-keymaps)
-    ;; Look for this command in all keymaps.
-    (dolist (keymap-sym (helpful--all-keymap-syms))
-      (let* ((keymap (symbol-value keymap-sym))
-             (keycodes
-              (where-is-internal
-               command-sym (list keymap) nil t))
-             ;; Look up this command in the parent keymap.
-             (parent-keymap (keymap-parent keymap))
-             (parent-keycodes
-              (when parent-keymap
-                (where-is-internal
-                 command-sym (list parent-keymap) nil t))))
-        (setq keycodes
-              ;; Ignore keybindings that we've just inherited from the
-              ;; parent.
-              (-difference keycodes parent-keycodes))
-        (when (and keycodes (not (eq keymap-sym 'widget-global-map)))
-          (push (cons keymap-sym
-                      (-map #'key-description keycodes))
-                matching-keymaps))))
+  (let* ((keymap-syms (helpful--all-keymap-syms))
+         (keymap-sym-vals (-map #'symbol-value keymap-syms))
+         matching-keymaps)
+    ;; Look for this command in all keymaps bound to variables.
+    (-map
+     (-lambda ((keymap-sym . keymap))
+       (let ((key-sequences (helpful--key-sequences command-sym keymap)))
+         (when (and key-sequences (not (eq keymap-sym 'widget-global-map)))
+           (push (cons (symbol-name keymap-sym) key-sequences)
+                 matching-keymaps))))
+     (-zip keymap-syms keymap-sym-vals))
+
+    ;; Look for this command in keymaps used by minor modes that
+    ;; aren't bound to variables.
+    (-map
+     (-lambda ((minor-mode . keymap))
+       ;; Only consider this keymap if we didn't find it bound to a variable.
+       (unless (memq keymap keymap-sym-vals)
+         (let ((key-sequences (helpful--key-sequences command-sym keymap)))
+           (when key-sequences
+             (push (cons (format "minor-mode-map-alist (%s)" minor-mode)
+                         key-sequences)
+                   matching-keymaps)))))
+     minor-mode-map-alist)
+
     matching-keymaps))
 
 (defun helpful--format-keys (command-sym)
@@ -1175,7 +1207,7 @@ same bindings as `global-map'."
         (dolist (key keys)
           (push
            (format "%s %s"
-                   (propertize (symbol-name map) 'face 'font-lock-variable-name-face)
+                   (propertize map 'face 'font-lock-variable-name-face)
                    key)
            (if (eq map 'global-map) global-lines mode-lines)))))
     (setq global-lines (-sort #'string< global-lines))

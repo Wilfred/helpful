@@ -1,6 +1,7 @@
 # v0.11
 
-No changes yet.
+Fixed an issue where Helpful didn't find keybindings if the command
+was only referenced in `minor-mode-map-alist`.
 
 # v0.10
 

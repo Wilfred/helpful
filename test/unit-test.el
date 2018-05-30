@@ -468,6 +468,31 @@ associated a lambda with a keybinding."
         ([17] forward-line)
         ([97] forward-char))))))
 
+(defun helpful--dummy-command ()
+  (interactive))
+
+(ert-deftest helpful--keymaps-containing ()
+  "Ensure that we find keymaps for variables with bindings."
+  ;; This is defined in the global map.
+  (should
+   (helpful--keymaps-containing #'where-is))
+  ;; This is only defined in `minor-mode-map-alist'.
+  (should
+   (helpful--keymaps-containing #'ido-display-buffer))
+  ;; Create a keybinding that is very unlikely to clobber actually
+  ;; defined keybindings in the current emacs instance.
+  (global-set-key (kbd "C-c M-S-c") #'helpful--dummy-command)
+
+  ;; This command should only be in `global-map' and
+  ;; `mode-specific-map'.
+  (should
+   (equal
+    (length (helpful--keymaps-containing #'helpful--dummy-command))
+    2))
+
+  ;; Undo keybinding.
+  (global-set-key (kbd "C-c M-S-c") nil))
+
 (ert-deftest helpful--source ()
   (let* ((source (helpful--source #'helpful--source t)))
     (should
