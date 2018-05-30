@@ -476,9 +476,15 @@ associated a lambda with a keybinding."
   ;; This is defined in the global map.
   (should
    (helpful--keymaps-containing #'where-is))
-  ;; This is only defined in `minor-mode-map-alist'.
-  (should
-   (helpful--keymaps-containing #'ido-display-buffer))
+
+  ;; Only defined in `minor-mode-map-alist'.
+  (let ((keymap (make-sparse-keymap)))
+    (define-key keymap (kbd "a") #'helpful--dummy-command)
+    (let ((minor-mode-map-alist
+           (cons (cons 'foo-mode keymap) minor-mode-map-alist)))
+      (should
+       (helpful--keymaps-containing #'helpful--dummy-command))))
+
   ;; Create a keybinding that is very unlikely to clobber actually
   ;; defined keybindings in the current emacs instance.
   (global-set-key (kbd "C-c M-S-c") #'helpful--dummy-command)
