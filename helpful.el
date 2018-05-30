@@ -125,7 +125,7 @@ as describing `this-command'.")
           ;; Kill buffers so we have one buffer less than the maximum
           ;; before we create a new one.
           (-each excess-buffers #'kill-buffer)))
-      
+
       (setq buf (get-buffer-create buf-name)))
 
     ;; Initialise the buffer with the symbol and associated data.
@@ -1024,7 +1024,7 @@ buffer."
       ;; Convert foo.elc to foo.el.
       (-when-let (src-path (helpful--find-library-name path))
         ;; Open `path' ourselves, so we can widen before searching.
-        ;; 
+        ;;
         ;; Opening large.c files can be slow (e.g. when looking at
         ;; `defalias'), especially if the user has configured mode hooks.
         ;;
