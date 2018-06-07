@@ -3,6 +3,8 @@
 Fixed an issue where Helpful didn't find keybindings if the command
 was only referenced in `minor-mode-map-alist`.
 
+Fixed a crash when minor modes had invalid keymaps.
+
 # v0.10
 
 When visiting a reference, the occurrences of the symbol are

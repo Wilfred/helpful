@@ -485,6 +485,14 @@ associated a lambda with a keybinding."
       (should
        (helpful--keymaps-containing #'helpful--dummy-command))))
 
+  ;; Don't crash if there are dodgy values in `minor-mode-map-alist'.
+  (let ((minor-mode-map-alist
+         ;; I'm not convinced this is legal, but
+         ;; pdf-cache-prefetch-minor-mode in pdf-tools has t as a
+         ;; keymap.
+         (cons (cons 'foo-mode t) minor-mode-map-alist)))
+    (helpful--keymaps-containing #'helpful--dummy-command))
+
   ;; Create a keybinding that is very unlikely to clobber actually
   ;; defined keybindings in the current emacs instance.
   (global-set-key (kbd "C-c M-S-c") #'helpful--dummy-command)

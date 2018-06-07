@@ -1188,12 +1188,14 @@ same bindings as `global-map'."
     (-map
      (-lambda ((minor-mode . keymap))
        ;; Only consider this keymap if we didn't find it bound to a variable.
-       (unless (memq keymap keymap-sym-vals)
+       (when (and (keymapp keymap)
+                  (not (memq keymap keymap-sym-vals)))
          (let ((key-sequences (helpful--key-sequences command-sym keymap)))
            (when key-sequences
              (push (cons (format "minor-mode-map-alist (%s)" minor-mode)
                          key-sequences)
                    matching-keymaps)))))
+     ;; TODO: examine `minor-mode-overriding-map-alist' too.
      minor-mode-map-alist)
 
     matching-keymaps))
