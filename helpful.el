@@ -1650,7 +1650,7 @@ state of the current symbol."
         (propertize (format "%s Defined in " (if primitive-p "//" ";;"))
                     'face 'font-lock-comment-face)
         (helpful--navigate-button
-         source-path
+         (f-abbrev source-path)
          source-path
          (helpful--source-pos helpful--sym helpful--callable-p))
         "\n"))
