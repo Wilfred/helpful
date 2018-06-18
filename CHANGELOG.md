@@ -5,6 +5,9 @@ was only referenced in `minor-mode-map-alist`.
 
 Fixed a crash when minor modes had invalid keymaps.
 
+Fixed an issue with `helpful-variable` where the user was pointlessly
+prompted about file variables.
+
 # v0.10
 
 When visiting a reference, the occurrences of the symbol are

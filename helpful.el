@@ -1009,9 +1009,9 @@ buffer."
          (buf nil)
          (pos nil)
          (opened nil)
-         ;; If we end up opening a buffer, don't bother with
-         ;; buffer-local variables. It prompts the user and we discard
-         ;; the buffer afterwards anyway.
+         ;; If we end up opening a buffer, don't bother with file
+         ;; variables. It prompts the user, and we discard the buffer
+         ;; afterwards anyway.
          (enable-local-variables nil))
     (when (and (symbolp sym) callable-p)
       (-let [(_ . src-path) (find-function-library sym)]
