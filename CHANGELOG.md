@@ -1,5 +1,9 @@
 # v0.11
 
+Further work on syntax highlighting performance for large code
+snippets. Helpful now informs the user when it has intentionally
+disabled highlighting, and shows a link to the relevant setting.
+
 Fixed an issue where Helpful didn't find keybindings if the command
 was only referenced in `minor-mode-map-alist`.
 

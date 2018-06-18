@@ -88,8 +88,12 @@ To disable cleanup entirely, set this variable to nil. See also
 ;; font-lock-keywords-1.
 (defconst helpful-max-highlight 5000
   "Don't highlight code with more than this many characters.
-This is particularly important for large pieces of C code, such
-as describing `this-command'.")
+
+This is currently only used for C code, as lisp highlighting
+seems to be more efficient. This may change again in future.
+
+See `this-command' as an example of a large piece of C code that
+can make Helpful very slow.")
 
 (defun helpful--kind-name (symbol callable-p)
   "Describe what kind of symbol this is."
@@ -915,30 +919,47 @@ hooks.")
   "Return a propertized version of SOURCE in MODE."
   (unless mode
     (setq mode #'emacs-lisp-mode))
-  (with-temp-buffer
-    (insert source)
+  (if (or
+       (< (length source) helpful-max-highlight)
+       (eq mode 'emacs-lisp-mode))
+      (with-temp-buffer
+        (insert source)
 
-    (when (< (length source) helpful-max-highlight)
-      ;; Switch to major-mode MODE, but don't run any hooks.
-      (delay-mode-hooks (funcall mode))
+        ;; Switch to major-mode MODE, but don't run any hooks.
+        (delay-mode-hooks (funcall mode))
 
-      ;; `delayed-mode-hooks' contains mode hooks like
-      ;; `emacs-lisp-mode-hook'. Build a list of functions that are run
-      ;; when the mode hooks run.
-      (let (hook-funcs)
-        (dolist (hook delayed-mode-hooks)
-          (let ((funcs (symbol-value hook)))
-            (setq hook-funcs (append hook-funcs funcs))))
+        ;; `delayed-mode-hooks' contains mode hooks like
+        ;; `emacs-lisp-mode-hook'. Build a list of functions that are run
+        ;; when the mode hooks run.
+        (let (hook-funcs)
+          (dolist (hook delayed-mode-hooks)
+            (let ((funcs (symbol-value hook)))
+              (setq hook-funcs (append hook-funcs funcs))))
 
-        ;; Filter hooks to those that relate to highlighting, and run them.
-        (setq hook-funcs (-intersection hook-funcs helpful--highlighting-funcs))
-        (-map #'funcall hook-funcs))
+          ;; Filter hooks to those that relate to highlighting, and run them.
+          (setq hook-funcs (-intersection hook-funcs helpful--highlighting-funcs))
+          (-map #'funcall hook-funcs))
 
-      (if (fboundp 'font-lock-ensure)
-          (font-lock-ensure)
-        (with-no-warnings
-          (font-lock-fontify-buffer))))
-    (buffer-string)))
+        (if (fboundp 'font-lock-ensure)
+            (font-lock-ensure)
+          (with-no-warnings
+            (font-lock-fontify-buffer)))
+        (buffer-string))
+    ;; SOURCE was too long to highlight in a reasonable amount of
+    ;; time.
+    (concat
+     (propertize
+      "// Skipping highlighting due to "
+      'face 'font-lock-comment-face)
+     (helpful--button
+      "helpful-max-highlight"
+      'helpful-describe-exactly-button
+      'symbol 'helpful-max-highlight
+      'callable-p nil)
+     (propertize
+      ".\n"
+      'face 'font-lock-comment-face)
+     source)))
 
 (defun helpful--source (sym callable-p)
   "Return the source code of SYM.
