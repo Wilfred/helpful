@@ -805,12 +805,17 @@ unescaping too."
            (rx "\\{" (group (+ (not (in "}")))) "}"))
           (let* ((symbol-with-parens (match-string 0))
                  (symbol-name (match-string 1))
-                 (keymap (symbol-value (intern symbol-name))))
+                 (keymap
+                  ;; Gracefully handle variables not being defined.
+                  (ignore-errors
+                    (symbol-value (intern symbol-name)))))
             ;; Remove the original string.
             (delete-region (point)
                            (+ (point) (length symbol-with-parens)))
-            (insert
-             (helpful--format-keymap keymap))))
+            (if keymap
+                (insert (helpful--format-keymap keymap))
+              (insert (format "Keymap %s is not currently defined."
+                              symbol-name)))))
          ((looking-at
            ;; Text of the form \\[foo-command]
            (rx "\\[" (group (+ (not (in "]")))) "]"))

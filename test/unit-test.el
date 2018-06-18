@@ -210,7 +210,11 @@ symbol (not a form)."
   ;; Propertize mode maps.
   (-let [formatted (helpful--format-docstring "`\\{python-mode-map}'")]
     (should
-     (s-contains-p "run-python" formatted))))
+     (s-contains-p "run-python" formatted)))
+  ;; Handle non-existent mode maps gracefully.
+  (-let [formatted (helpful--format-docstring "`\\{no-such-mode-map}'")]
+    (should
+     (s-contains-p "not currently defined" formatted))))
 
 (ert-deftest helpful--format-docstring--info ()
   "Ensure we propertize references to the info manual."

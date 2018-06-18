@@ -8,6 +8,8 @@ Fixed a crash when minor modes had invalid keymaps.
 Fixed an issue with `helpful-variable` where the user was pointlessly
 prompted about file variables.
 
+Fixed a crash when a docstring referenced a non-existent keymap.
+
 # v0.10
 
 When visiting a reference, the occurrences of the symbol are
