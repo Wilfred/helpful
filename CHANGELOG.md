@@ -244,6 +244,9 @@ Added a command `helpful-symbol`, which offers help on variables,
 functions and macros. It prompts the user if a symbol is both a
 variable and a callable.
 
+If a symbol is mentioned in the Emacs manual, show a link to the
+relevant section.
+
 # v0.1
 
 First release.
