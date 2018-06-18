@@ -883,10 +883,10 @@ unescaping too."
 (defun helpful--propertize-bare-links (docstring)
   "Convert URL links in docstrings to buttons."
   (replace-regexp-in-string
-   (rx (group (or string-start space))
+   (rx (group (or string-start space "<"))
        (group "http" (? "s") "://" (+? (not (any space))))
        (group (? (any "." ">" ")"))
-              (or space string-end)))
+              (or space string-end ">")))
    (lambda (match)
      (let ((space-before (match-string 1 match))
            (url (match-string 2 match))

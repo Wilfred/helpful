@@ -269,6 +269,13 @@ symbol (not a form)."
     (should
      (equal
       (get-text-property url-position 'url formatted)
+      "http://example.com")))
+  ;; Format markdown-style links.
+  (let* ((formatted (helpful--format-docstring "See <http://example.com>."))
+         (url-position (s-index-of "h" formatted)))
+    (should
+     (equal
+      (get-text-property url-position 'url formatted)
       "http://example.com"))))
 
 (ert-deftest helpful--definition-c-vars ()

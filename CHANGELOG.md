@@ -14,6 +14,8 @@ prompted about file variables.
 
 Fixed a crash when a docstring referenced a non-existent keymap.
 
+Linkify docstring URLs of the form `<http://foo>`.
+
 # v0.10
 
 When visiting a reference, the occurrences of the symbol are
