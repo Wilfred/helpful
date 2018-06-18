@@ -1,3 +1,7 @@
+# v0.12
+
+No changes yet.
+
 # v0.11
 
 Further work on syntax highlighting performance for large code
