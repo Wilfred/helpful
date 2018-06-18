@@ -182,8 +182,8 @@ Show the name of variables at the top of the helpful buffer.
 Improved handling of special forms, and prevent users from
 accidentally unbinding special forms.
 
-Ensure we can find (and jump to) the definition of functions even if the source
-buffer has narrowing in effect.
+Ensure we can find (and jump to) the definition of functions even if
+the source buffer has narrowing in effect.
 
 Fixed an issue where calling helpful commands on interactively defined
 functions would overwrite unrelated buffers. Fixed a crash with
