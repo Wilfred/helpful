@@ -1008,7 +1008,11 @@ buffer."
          (path nil)
          (buf nil)
          (pos nil)
-         (opened nil))
+         (opened nil)
+         ;; If we end up opening a buffer, don't bother with
+         ;; buffer-local variables. It prompts the user and we discard
+         ;; the buffer afterwards anyway.
+         (enable-local-variables nil))
     (when (and (symbolp sym) callable-p)
       (-let [(_ . src-path) (find-function-library sym)]
         (setq path src-path)))
@@ -1030,11 +1034,7 @@ buffer."
         ;;
         ;; Bind `auto-mode-alist' to nil, so we open the buffer in
         ;; `fundamental-mode' if it isn't already open.
-        (let (auto-mode-alist
-              ;; Don't both setting buffer-local variables, it's
-              ;; annoying to prompt the user since we immediately
-              ;; discard the buffer.
-              enable-local-variables)
+        (let ((auto-mode-alist nil))
           (setq buf (find-file-noselect src-path)))
 
         (unless (-contains-p initial-buffers buf)
@@ -1046,8 +1046,7 @@ buffer."
         ;; table for searching.
         (when opened
           (with-current-buffer buf
-            (let (enable-local-variables)
-              (delay-mode-hooks (normal-mode t)))))
+            (delay-mode-hooks (normal-mode t))))
 
         ;; Based on `find-function-noselect'.
         (with-current-buffer buf
