@@ -65,7 +65,8 @@ show the value of buffer-local variables.")
 
 (defgroup helpful nil
   "A rich help system with contextual information."
-  :group 'helpful)
+  :link '(url-link "https://github.com/Wilfred/helpful")
+  :group 'help)
 
 (defcustom helpful-max-buffers
   5
