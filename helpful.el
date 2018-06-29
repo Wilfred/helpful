@@ -756,6 +756,21 @@ vector suitable for `key-description', and COMMAND is a smbol."
       ;; Preserve the original order of the keymap.
       (nreverse result)))))
 
+(defun helpful--format-hook (hook-val)
+  "Given a list value assigned to a hook, format it with links to functions."
+  (let ((lines
+         (--map
+          (if (and (symbolp it) (fboundp it))
+              (helpful--button
+               (symbol-name it)
+               'helpful-describe-exactly-button
+               'symbol it
+               'callable-p t)
+            (helpful--syntax-highlight (helpful--pretty-print it)))
+          hook-val)))
+    (format "(%s)"
+            (s-join "\n " lines))))
+
 ;; TODO: unlike `substitute-command-keys', this shows keybindings
 ;; which are currently shadowed (e.g. a global minor mode map).
 (defun helpful--format-keymap (keymap)
@@ -1580,22 +1595,33 @@ state of the current symbol."
       (helpful--insert-section-break)
       (let* ((sym helpful--sym)
              (buf (or helpful--associated-buffer (current-buffer)))
-             (val (helpful--sym-value sym buf)))
+             (val (helpful--sym-value sym buf))
+             (multiple-views-p
+              (or (stringp val)
+                  (keymapp val)
+                  (and (s-ends-with-p "-hook" (symbol-name sym))
+                       (consp val)))))
         (insert
          (helpful--heading "Value")
          (cond
+          (helpful--view-literal
+           (helpful--pretty-print val))
           ;; Allow strings to be viewed with properties rendered in
           ;; Emacs, rather than as a literal.
-          ((and (stringp val) (not helpful--view-literal))
+          ((stringp val)
            val)
           ;; Allow keymaps to be viewed with keybindings shown and
           ;; links to the commands bound.
-          ((and (keymapp val) (not helpful--view-literal))
+          ((keymapp val)
            (helpful--format-keymap val))
+          ((and (s-ends-with-p "-hook" (symbol-name sym))
+                (consp val))
+           (helpful--format-hook val))
           (t
-           (helpful--pretty-print val)))
+           (error "don't know how to format value of type %s"
+                  (type-of val))))
          "\n\n")
-        (when (or (stringp val) (keymapp val))
+        (when multiple-views-p
           (insert (helpful--make-toggle-literal-button) " "))
         (when (memq (helpful--sym-value helpful--sym buf) '(nil t))
           (insert (helpful--make-toggle-button helpful--sym buf) " "))

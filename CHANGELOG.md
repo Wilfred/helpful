@@ -1,9 +1,14 @@
 # v0.12
 
-Added a 'pretty view' for variables that have string or keymap
-values. For strings, we show properties natively in Emacs. For
-keymaps, we render each keybinding in a human-readable way along with
-a link to the relevant command.
+Added a 'pretty view' for string values, keymap values, and hooks.
+
+* For strings, we show properties natively in Emacs.
+
+* For keymaps, we render each keybinding in a human-readable way along
+with a link to the relevant command.
+
+* For hooks, which are lists of functions and symbols, convert symbols
+  to links.
 
 # v0.11
 
