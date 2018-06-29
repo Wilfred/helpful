@@ -1,6 +1,9 @@
 # v0.12
 
-No changes yet.
+Added a 'pretty view' for variables that have string or keymap
+values. For strings, we show properties natively in Emacs. For
+keymaps, we render each keybinding in a human-readable way along with
+a link to the relevant command.
 
 # v0.11
 

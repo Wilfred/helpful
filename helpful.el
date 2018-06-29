@@ -62,6 +62,9 @@
 (defvar-local helpful--associated-buffer nil
   "We store a reference to the buffer we were called from, so we can
 show the value of buffer-local variables.")
+(defvar-local helpful--view-literal t
+  "Whether to show a value as a literal, or a pretty interactive
+view.")
 
 (defgroup helpful nil
   "A rich help system with contextual information."
@@ -521,6 +524,16 @@ or disable if already enabled."
         (set-buffer buf))
       (eval-expression expr))
     (helpful-update)))
+
+(define-button-type 'helpful-view-literal-button
+  'action #'helpful--view-literal
+  'help-echo "Toggle viewing as a literal")
+
+(defun helpful--view-literal (_button)
+  "Set the value of this symbol."
+  (setq helpful--view-literal
+        (not helpful--view-literal))
+  (helpful-update))
 
 (define-button-type 'helpful-all-references-button
   'action #'helpful--all-references
@@ -1365,6 +1378,14 @@ POSITION-HEADS takes the form ((123 (defun foo)) (456 (defun bar)))."
    'symbol sym
    'buffer buffer))
 
+(defun helpful--make-toggle-literal-button ()
+  "Make set button for SYM in BUFFER."
+  (helpful--button
+   (if helpful--view-literal
+       "Pretty view"
+     "View as literal")
+   'helpful-view-literal-button))
+
 (defun helpful--make-customize-button (sym)
   "Make customize button for SYM."
   (helpful--button
@@ -1557,13 +1578,25 @@ state of the current symbol."
 
     (when (not helpful--callable-p)
       (helpful--insert-section-break)
-      (let ((sym helpful--sym)
-            (buf (or helpful--associated-buffer (current-buffer))))
+      (let* ((sym helpful--sym)
+             (buf (or helpful--associated-buffer (current-buffer)))
+             (val (helpful--sym-value sym buf)))
         (insert
          (helpful--heading "Value")
-         (helpful--pretty-print
-          (helpful--sym-value sym buf))
+         (cond
+          ;; Allow strings to be viewed with properties rendered in
+          ;; Emacs, rather than as a literal.
+          ((and (stringp val) (not helpful--view-literal))
+           val)
+          ;; Allow keymaps to be viewed with keybindings shown and
+          ;; links to the commands bound.
+          ((and (keymapp val) (not helpful--view-literal))
+           (helpful--format-keymap val))
+          (t
+           (helpful--pretty-print val)))
          "\n\n")
+        (when (or (stringp val) (keymapp val))
+          (insert (helpful--make-toggle-literal-button) " "))
         (when (memq (helpful--sym-value helpful--sym buf) '(nil t))
           (insert (helpful--make-toggle-button helpful--sym buf) " "))
         (insert (helpful--make-set-button helpful--sym buf))
