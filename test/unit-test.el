@@ -479,6 +479,23 @@ associated a lambda with a keybinding."
         ([17] forward-line)
         ([97] forward-char))))))
 
+(ert-deftest helpful--keymap-keys--strings ()
+  "Test that we handle maps with format (TYPE ITEM-NAME . BINDING)."
+  ;; This is an actual piece of smerge-mode-map.
+  (let ((keymap '(keymap (3 keymap
+                            (94 keymap
+                                (61 keymap
+                                    (61 "upper-lower" . smerge-diff-upper-lower)
+                                    (62 "base-lower" . smerge-diff-base-lower)
+                                    (60 "base-upper" . smerge-diff-base-upper)
+                                    "Diff"))))))
+    (should
+     (equal
+      (helpful--keymap-keys keymap)
+      '(([3 94 61 61] smerge-diff-upper-lower)
+        ([3 94 61 62] smerge-diff-base-lower)
+        ([3 94 61 60] smerge-diff-base-upper))))))
+
 (defun helpful--dummy-command ()
   (interactive))
 

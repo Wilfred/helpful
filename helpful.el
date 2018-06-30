@@ -716,6 +716,8 @@ vector suitable for `key-description', and COMMAND is a smbol."
    ;; we can call.
    ((symbolp keymap)
     `(([] ,keymap)))
+   ((stringp (car keymap))
+    (helpful--keymap-keys (cdr keymap)))
    ;; Otherwise, recurse on the keys at this level of the keymap.
    (t
     (let (result)
