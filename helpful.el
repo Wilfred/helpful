@@ -362,7 +362,7 @@ source code to primitives."
    (not (helpful--primitive-p sym callable-p))
    ;; We need to be able to find its definition, or we can't step
    ;; through the source.
-   (-let* (((buf pos opened) (helpful--definition sym t))
+   (-let* (((buf pos opened) (helpful--definition sym callable-p))
            (have-definition (and buf pos)))
      (when opened
        (kill-buffer buf))
