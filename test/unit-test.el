@@ -496,6 +496,16 @@ associated a lambda with a keybinding."
         ([3 94 61 62] smerge-diff-base-lower)
         ([3 94 61 60] smerge-diff-base-upper))))))
 
+(ert-deftest helpful--keymap-keys--anonymous-fns ()
+  (let* ((keymap (make-keymap)))
+    (define-key keymap (kbd "a")
+      (lambda () (message)))
+    (define-key keymap (kbd "a")
+      (byte-compile-sexp (lambda () (message))))
+
+    ;; Don't crash on anonymous functions in a keymap.
+    (helpful--keymap-keys keymap)))
+
 (defun helpful--dummy-command ()
   (interactive))
 

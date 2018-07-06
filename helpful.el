@@ -752,9 +752,11 @@ vector suitable for `key-description', and COMMAND is a smbol."
      ;; Prefix keys use a keymap in the function slot of a symbol.
      (keymapp (symbol-function keymap)))
     (helpful--keymap-keys (symbol-function keymap)))
-   ;; Other symbols mean we've reached a leaf, so this is a command
-   ;; we can call.
-   ((symbolp keymap)
+   ;; Other symbols or compiled functions mean we've reached a leaf,
+   ;; so this is a command we can call.
+   ((or
+     (symbolp keymap)
+     (functionp keymap))
     `(([] ,keymap)))
    ((stringp (car keymap))
     (helpful--keymap-keys (cdr keymap)))
@@ -831,10 +833,12 @@ vector suitable for `key-description', and COMMAND is a smbol."
                          keys-and-commands))
          (formatted-commands
           (--map
-           (helpful--button
-            (symbol-name it)
-            'helpful-describe-button
-            'symbol it)
+           (if (symbolp it)
+               (helpful--button
+                (symbol-name it)
+                'helpful-describe-button
+                'symbol it)
+             "#<anonymous-function>")
            commands))
          ;; Build lines for display.
          (lines

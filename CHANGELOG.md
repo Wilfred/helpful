@@ -13,6 +13,8 @@ with a link to the relevant command.
 Added a 'view callees' button which shows functions called inside the
 bodies of source code, with links to view them inside helpful.
 
+Fixed a crash on keymaps where keys are bound to anonymous functions.
+
 # v0.11
 
 Further work on syntax highlighting performance for large code
