@@ -546,13 +546,15 @@ associated a lambda with a keybinding."
   (global-set-key (kbd "C-c M-S-c") nil))
 
 (ert-deftest helpful--source ()
-  (let* ((source (helpful--source #'helpful--source t)))
+  (-let* (((buf pos opened) (helpful--definition #'helpful--source t))
+          (source (helpful--source #'helpful--source t buf pos)))
     (should
      (s-starts-with-p "(defun " source))))
 
 (ert-deftest helpful--source-autoloaded ()
   "We should include the autoload cookie."
-  (let* ((source (helpful--source #'helpful-at-point t)))
+  (-let* (((buf pos opened) (helpful--definition #'helpful-at-point t))
+          (source (helpful--source #'helpful-at-point t buf pos)))
     (should
      (s-starts-with-p ";;;###autoload" source))))
 
@@ -560,10 +562,11 @@ associated a lambda with a keybinding."
   "We should return the raw sexp for functions where we can't
 find the source code."
   (eval '(defun test-foo-defined-interactively () 42))
-  (should
-   (not
-    (null
-     (helpful--source #'test-foo-defined-interactively t)))))
+  (-let* (((buf pos opened) (helpful--definition #'test-foo-defined-interactively t)))
+    (should
+     (not
+      (null
+       (helpful--source #'test-foo-defined-interactively t buf pos))))))
 
 (ert-deftest helpful--outer-sexp ()
   ;; If point is in the middle of a form, we should return its position.
@@ -596,7 +599,10 @@ find the source code."
 (ert-deftest helpful--summary--aliases ()
   ;; exclude the sym itself
   "Ensure we mention that a symbol is an alias."
-  (let* ((summary (helpful--summary '-select t)))
+  (-let* (((buf pos opened) (helpful--definition '-select t))
+          (summary (helpful--summary '-select t buf pos)))
+    (when opened
+      (kill-buffer buf))
     ;; Strip properties to make assertion messages more readable.
     (set-text-properties 0 (1- (length summary)) nil summary)
     (should
