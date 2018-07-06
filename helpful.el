@@ -353,7 +353,7 @@ source code to primitives."
         (and (consp fn-end)
              (eq (car fn-end) 'edebug-enter))))))
 
-(defun helpful--can-edebug-p (sym callable-p)
+(defun helpful--can-edebug-p (sym callable-p buf pos opened)
   "Can we use edebug with SYM?"
   (and
    ;; SYM must be a function.
@@ -362,8 +362,7 @@ source code to primitives."
    (not (helpful--primitive-p sym callable-p))
    ;; We need to be able to find its definition, or we can't step
    ;; through the source.
-   (-let* (((buf pos opened) (helpful--definition sym t))
-           (have-definition (and buf pos)))
+   (let ((have-definition (and buf pos)))
      (when opened
        (kill-buffer buf))
      have-definition)))
@@ -1036,34 +1035,33 @@ hooks.")
       'face 'font-lock-comment-face)
      source)))
 
-(defun helpful--source (sym callable-p)
+(defun helpful--source (sym callable-p buf pos opened)
   "Return the source code of SYM.
 If the source code cannot be found, return the sexp used."
   (catch 'source
     (unless (symbolp sym)
       (throw 'source sym))
 
-    (-let (((buf start-pos created) (helpful--definition sym callable-p))
-           (source nil))
-      (when (and buf start-pos)
+    (let ((source nil))
+      (when (and buf pos)
         (with-current-buffer buf
           (save-excursion
             (save-restriction
-              (goto-char start-pos)
+              (goto-char pos)
               (narrow-to-defun t)
 
-              ;; If there was a preceding comment, START-POS will be
+              ;; If there was a preceding comment, POS will be
               ;; after that comment. Move the position to include that comment.
-              (setq start-pos (point-min))
+              (setq pos (point-min))
 
               (setq source (buffer-substring-no-properties (point-min) (point-max))))))
         (setq source (s-trim-right source))
         (when (and source (buffer-file-name buf))
           (setq source (propertize source
                                    'helpful-path (buffer-file-name buf)
-                                   'helpful-pos start-pos
+                                   'helpful-pos pos
                                    'helpful-pos-is-start t)))
-        (when (and buf created)
+        (when (and buf opened)
           (kill-buffer buf))
         (throw 'source source)))
 
@@ -1185,25 +1183,15 @@ buffer."
         (error nil))))
     (list buf pos opened)))
 
-(defun helpful--source-path (sym callable-p)
+(defun helpful--source-path (sym callable-p buf opened)
   "Return the path where SYM is defined."
-  (-let* (((buf _ opened) (helpful--definition sym callable-p))
-          (path nil))
+  (let ((path nil))
     (when buf
       (setq path (buffer-file-name buf))
       (when opened
         ;; If we've just created this buffer, close it.
         (kill-buffer buf)))
     path))
-
-(defun helpful--source-pos (sym callable-p)
-  "Return the file position where SYM is defined."
-  (-let (((buf pos opened) (helpful--definition sym callable-p)))
-    ;; If we've just created this buffer, close it.
-    (when opened
-      ;; If we've just created this buffer, close it.
-      (kill-buffer buf))
-    pos))
 
 (defun helpful--reference-positions (sym callable-p buf)
   "Return all the buffer positions of references to SYM in BUF."
@@ -1503,14 +1491,14 @@ OBJ may be a symbol or a compiled function object."
    'symbol sym
    'callable-p callable-p))
 
-(defun helpful--summary (sym callable-p)
+(defun helpful--summary (sym callable-p buf pos opened)
   "Return a one sentence summary for SYM."
   (-let* ((primitive-p (helpful--primitive-p sym callable-p))
           (canonical-sym (helpful--canonical-symbol sym callable-p))
           (alias-p (not (eq canonical-sym sym)))
           ((buf pos opened)
            (if (or (not primitive-p) find-function-C-source-directory)
-               (helpful--definition sym callable-p)
+               `(,buf ,pos ,opened)
              '(nil nil nil)))
           (alias-button
            (if callable-p
@@ -1697,27 +1685,28 @@ state of the current symbol."
   (cl-assert (not (null helpful--sym)))
   (unless (buffer-live-p helpful--associated-buffer)
     (setq helpful--associated-buffer nil))
-  (let* ((inhibit-read-only t)
-         (start-line (line-number-at-pos))
-         (start-column (current-column))
-         (primitive-p (helpful--primitive-p helpful--sym helpful--callable-p))
-         (sym-type (cond
-                    ((not helpful--callable-p) "Variable")
-                    ((macrop helpful--sym) "Macro")
-                    (t "Function")))
-         (look-for-src (or (not primitive-p)
-                           find-function-C-source-directory))
-         (source (when look-for-src
-                   (helpful--source helpful--sym helpful--callable-p)))
-         (source-path (when (and look-for-src (symbolp helpful--sym))
-                        (helpful--source-path helpful--sym helpful--callable-p)))
-         (references (helpful--calculate-references
-                      helpful--sym helpful--callable-p
-                      source-path)))
+  (-let* ((inhibit-read-only t)
+          (start-line (line-number-at-pos))
+          (start-column (current-column))
+          (primitive-p (helpful--primitive-p helpful--sym helpful--callable-p))
+          (sym-type (cond
+                     ((not helpful--callable-p) "Variable")
+                     ((macrop helpful--sym) "Macro")
+                     (t "Function")))
+          (look-for-src (or (not primitive-p)
+                            find-function-C-source-directory))
+          ((buf pos opened) (helpful--definition helpful--sym helpful--callable-p))
+          (source (when look-for-src
+                    (helpful--source helpful--sym helpful--callable-p buf pos opened)))
+          (source-path (when (and look-for-src (symbolp helpful--sym))
+                         (helpful--source-path helpful--sym helpful--callable-p buf opened)))
+          (references (helpful--calculate-references
+                       helpful--sym helpful--callable-p
+                       source-path)))
 
     (erase-buffer)
 
-    (insert (helpful--summary helpful--sym helpful--callable-p))
+    (insert (helpful--summary helpful--sym helpful--callable-p buf pos opened))
 
     (when helpful--callable-p
       (helpful--insert-section-break)
@@ -1737,8 +1726,8 @@ state of the current symbol."
     (when (not helpful--callable-p)
       (helpful--insert-section-break)
       (let* ((sym helpful--sym)
-             (buf (or helpful--associated-buffer (current-buffer)))
-             (val (helpful--sym-value sym buf))
+             (buff (or helpful--associated-buffer (current-buffer)))
+             (val (helpful--sym-value sym buff))
              (multiple-views-p
               (or (stringp val)
                   (keymapp val)
@@ -1766,9 +1755,9 @@ state of the current symbol."
          "\n\n")
         (when multiple-views-p
           (insert (helpful--make-toggle-literal-button) " "))
-        (when (memq (helpful--sym-value helpful--sym buf) '(nil t))
-          (insert (helpful--make-toggle-button helpful--sym buf) " "))
-        (insert (helpful--make-set-button helpful--sym buf))
+        (when (memq (helpful--sym-value helpful--sym buff) '(nil t))
+          (insert (helpful--make-toggle-button helpful--sym buff) " "))
+        (insert (helpful--make-set-button helpful--sym buff))
         (when (custom-variable-p helpful--sym)
           (insert " " (helpful--make-customize-button helpful--sym)))))
 
@@ -1789,7 +1778,7 @@ state of the current symbol."
               (helpful--navigate-button
                (file-name-nondirectory source-path)
                source-path
-               (or (helpful--source-pos helpful--sym helpful--callable-p)
+               (or pos
                    0)))))
        (cond
         ((and source-path references)
@@ -1827,7 +1816,7 @@ state of the current symbol."
        (format "This %s is advised." (downcase sym-type))))
 
     (let ((can-edebug
-           (helpful--can-edebug-p helpful--sym helpful--callable-p))
+           (helpful--can-edebug-p helpful--sym helpful--callable-p buf pos opened))
           (can-trace
            (and (symbolp helpful--sym)
                 helpful--callable-p
@@ -1885,7 +1874,7 @@ state of the current symbol."
         (helpful--navigate-button
          (f-abbrev source-path)
          source-path
-         (helpful--source-pos helpful--sym helpful--callable-p))
+         pos)
         "\n"))
       (primitive-p
        (concat
