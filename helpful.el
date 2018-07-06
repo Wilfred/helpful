@@ -1102,6 +1102,8 @@ buffer."
          (buf nil)
          (pos nil)
          (opened nil)
+         ;; Skip running find-file-hook since it may prompt the user.
+         (find-file-hook nil)
          ;; If we end up opening a buffer, don't bother with file
          ;; variables. It prompts the user, and we discard the buffer
          ;; afterwards anyway.
