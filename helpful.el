@@ -1106,6 +1106,12 @@ buffer."
          ;; variables. It prompts the user, and we discard the buffer
          ;; afterwards anyway.
          (enable-local-variables nil))
+    ;; We shouldn't be called on primitive functions if we don't have
+    ;; a directory of Emacs C sourcecode.
+    (cl-assert
+     (or find-function-C-source-directory
+         (not primitive-p)))
+
     (when (and (symbolp sym) callable-p)
       (-let [(_ . src-path) (find-function-library sym)]
         (setq path src-path)))
@@ -1177,11 +1183,6 @@ buffer."
         ;; `default-tab-width' against Emacs trunk.
         (error nil))))
     (list buf pos opened)))
-
-(defun helpful--source-path (buf)
-  "Given a source buffer BUF, return its path."
-  (when buf
-    (buffer-file-name buf)))
 
 (defun helpful--reference-positions (sym callable-p buf)
   "Return all the buffer positions of references to SYM in BUF."
@@ -1679,11 +1680,14 @@ state of the current symbol."
                      (t "Function")))
           (look-for-src (or (not primitive-p)
                             find-function-C-source-directory))
-          ((buf pos opened) (helpful--definition helpful--sym helpful--callable-p))
+          ((buf pos opened)
+           (if look-for-src
+               (helpful--definition helpful--sym helpful--callable-p)
+             '(nil nil nil)))
           (source (when look-for-src
                     (helpful--source helpful--sym helpful--callable-p buf pos)))
-          (source-path (when (and look-for-src (symbolp helpful--sym))
-                         (helpful--source-path buf)))
+          (source-path (when buf
+                         (buffer-file-name buf)))
           (references (helpful--calculate-references
                        helpful--sym helpful--callable-p
                        source-path)))
