@@ -10,6 +10,9 @@ with a link to the relevant command.
 * For hooks, which are lists of functions and symbols, convert symbols
   to links.
 
+Added a 'view callees' button which shows functions called inside the
+bodies of source code, with links to view them inside helpful.
+
 # v0.11
 
 Further work on syntax highlighting performance for large code

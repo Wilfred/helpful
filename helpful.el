@@ -554,6 +554,46 @@ or disable if already enabled."
      ((macrop sym)
       (elisp-refs-macro sym)))))
 
+(define-button-type 'helpful-callees-button
+  'action #'helpful--show-callees
+  'symbol nil
+  'source nil
+  'follow-link t
+  'help-echo "Find the functions called by this function/macro")
+
+(defun helpful--show-callees (button)
+  "Find all the references to the symbol that this BUTTON represents."
+  (let* ((buf (get-buffer-create "*helpful callees*"))
+         (sym (button-get button 'symbol))
+         (raw-source (button-get button 'source))
+         (source
+          (if (stringp raw-source)
+              (read raw-source)
+            raw-source))
+         (syms (helpful--callees source)))
+    (setq syms
+          (--sort
+           (string< (symbol-name it) (symbol-name other))
+           syms))
+
+    (pop-to-buffer buf)
+    (let ((inhibit-read-only t))
+      (erase-buffer)
+      (insert
+       ;; TODO: Macros used, special forms used, global vars used.
+       (format "Functions called by %s:\n\n"
+               (symbol-name sym)))
+      (dolist (sym syms)
+        (insert "  "
+                (helpful--button
+                 (symbol-name sym)
+                 'helpful-describe-exactly-button
+                 'symbol sym
+                 'callable-p t)
+                "\n"))
+      (goto-char (point-min))
+      (special-mode))))
+
 (define-button-type 'helpful-manual-button
   'action #'helpful--manual
   'symbol nil
@@ -1549,6 +1589,103 @@ OBJ may be a symbol or a compiled function object."
              (if (symbolp sym) sym "This lambda")
              description kind defined))))
 
+(defun helpful--callees (form)
+  "Given source code FORM, return a list of all the functions called."
+  (let* ((expanded-form (macroexpand-all form))
+         ;; Find all the functions called after macro expansion.
+         (all-fns (helpful--callees-1 expanded-form))
+         ;; Only consider the functions that were in the original code
+         ;; before macro expansion.
+         (form-syms (-filter #'symbolp (-flatten form)))
+         (form-fns (--filter (memq it form-syms) all-fns)))
+    (-distinct form-fns)))
+
+(defun helpful--callees-1 (form)
+  "Return a list of all the functions called in FORM.
+Assumes FORM has been macro expanded. The returned list
+may contain duplicates."
+  (cond
+   ((not (consp form))
+    nil)
+   ;; See `(elisp)Special Forms'. For these special forms, we recurse
+   ;; just like functions but ignore the car.
+   ((memq (car form) '(and catch defconst defvar if interactive
+                           or prog1 prog2 progn save-current-buffer
+                           save-restriction setq setq-default
+                           track-mouse unwind-protect while))
+    (-flatten
+     (-map #'helpful--callees-1 (cdr form))))
+
+   ((eq (car form) 'cond)
+    (let* ((clauses (cdr form))
+           (clause-fns
+            ;; Each clause is a list of forms.
+            (--map
+             (-map #'helpful--callees-1 it) clauses)))
+      (-flatten clause-fns)))
+
+   ((eq (car form) 'condition-case)
+    (let* ((protected-form (nth 2 form))
+           (protected-form-fns (helpful--callees-1 protected-form))
+           (handlers (-drop 3 form))
+           (handler-bodies (-map #'cdr handlers))
+           (handler-fns
+            (--map
+             (-map #'helpful--callees-1 it) handler-bodies)))
+      (append
+       protected-form-fns
+       (-flatten handler-fns))))
+
+   ;; Calling a function with `funcall' or `apply', for example
+   ;; (funcall 'foo 1 2).
+   ((and
+     (memq (car form) '(funcall apply))
+     (eq (car-safe (nth 1 form)) 'quote))
+    (cons
+     (cadr (nth 1 form))
+     (-flatten
+      (-map #'helpful--callees-1 (cdr form)))))
+
+   ((eq (car form) 'function)
+    (let ((arg (nth 1 form)))
+      (if (symbolp arg)
+          ;; #'foo, which is the same as (function foo), is a function
+          ;; reference.
+          (list arg)
+        ;; Handle (function (lambda ...)).
+        (helpful--callees-1 arg))))
+
+   ((eq (car form) 'lambda)
+    ;; Only consider the body, not the param list.
+    (-flatten (-map #'helpful--callees-1 (-drop 2 form))))
+
+   ((eq (car form) 'closure)
+    ;; Same as lambda, but has an additional argument of the
+    ;; closed-over variables.
+    (-flatten (-map #'helpful--callees-1 (-drop 3 form))))
+
+   ((memq (car form) '(let let*))
+    ;; Extract function calls used to set the let-bound variables.
+    (let* ((var-vals (-second-item form))
+           (var-val-callees
+            (--map
+             (if (consp it)
+                 (-map #'helpful--callees-1 it)
+               nil)
+             var-vals)))
+      (append
+       (-flatten var-val-callees)
+       ;; Function calls in the let body.
+       (-map #'helpful--callees-1 (-drop 2 form)))))
+
+   ((eq (car form) 'quote)
+    nil)
+   (t
+    (cons
+     (car form)
+     (-flatten
+      (-map #'helpful--callees-1 (cdr form)))))))
+
 (defun helpful-update ()
   "Update the current *Helpful* buffer to the latest
 state of the current symbol."
@@ -1669,6 +1806,15 @@ state of the current symbol."
          "Could not find source file.")))
      "\n\n"
      (helpful--make-references-button helpful--sym helpful--callable-p))
+
+    (when (and helpful--callable-p source (not primitive-p))
+      (insert
+       " "
+       (helpful--button
+        "Find callees"
+        'helpful-callees-button
+        'symbol helpful--sym
+        'source source)))
 
     (when (helpful--advised-p helpful--sym)
       (helpful--insert-section-break)

@@ -604,3 +604,91 @@ find the source code."
   ;; For our purposes, we don't consider nil or t to be bound.
   (should (not (helpful--bound-p 'nil)))
   (should (not (helpful--bound-p 't))))
+
+(ert-deftest helpful--callees ()
+  (should
+   (equal
+    (helpful--callees '(quote (foo)))
+    nil))
+  ;; Simple function calls.
+  (should
+   (equal
+    (helpful--callees '(foo (bar 1) 2))
+    '(foo bar))))
+
+(ert-deftest helpful--callees-let ()
+  (should
+   (equal
+    (helpful--callees
+     '(progn
+        (let ((x (foo))
+              (y t))
+          (bar x y))
+        (let (y)
+          (baz))
+        (let* ((z (quux))))))
+    '(foo bar baz quux))))
+
+(ert-deftest helpful--callees--lambda ()
+  (should
+   (equal
+    (helpful--callees '(lambda (x) (foo x)))
+    '(foo))))
+
+(ert-deftest helpful--callees--closure ()
+  (should
+   (equal
+    (helpful--callees '(closure (t) (x) (foo x)))
+    '(foo))))
+
+(ert-deftest helpful--callees--function ()
+  (should
+   (equal
+    (helpful--callees '(function (lambda (x) (foo x))))
+    '(foo)))
+  (should
+   (equal
+    (helpful--callees '(function foo))
+    '(foo))))
+
+(ert-deftest helpful--callees--cond ()
+  (should
+   (equal
+    (helpful--callees
+     '(cond
+       (x)
+       ((foo))
+       ((bar)
+        (baz))
+       (t
+        (quux))
+       ))
+    '(foo bar baz quux))))
+
+(ert-deftest helpful--callees--condition-case ()
+  (should
+   (equal
+    (helpful--callees
+     '(condition-case e
+          (foo)
+        (error (bar))
+        ((arith-error file-error) (baz))))
+    '(foo bar baz))))
+
+(ert-deftest helpful--callees--funcall ()
+  (let ((result (helpful--callees
+                 '(progn
+                    (funcall 'foo 1)
+                    (apply 'bar 2)
+                    (apply (baz) 3)
+                    (apply unknown-var 3)))))
+    (should (memq 'foo result))
+    (should (memq 'bar result))
+    (should (memq 'baz result))
+    (should (not (memq 'unknown-var result))))
+  (let ((result (helpful--callees
+                 '(progn
+                    (funcall #'foo 1)
+                    (apply #'bar 2)))))
+    (should (memq 'foo result))
+    (should (memq 'bar result))))
