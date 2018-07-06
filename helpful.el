@@ -353,7 +353,7 @@ source code to primitives."
         (and (consp fn-end)
              (eq (car fn-end) 'edebug-enter))))))
 
-(defun helpful--can-edebug-p (sym callable-p buf pos opened)
+(defun helpful--can-edebug-p (sym callable-p buf pos)
   "Can we use edebug with SYM?"
   (and
    ;; SYM must be a function.
@@ -362,10 +362,7 @@ source code to primitives."
    (not (helpful--primitive-p sym callable-p))
    ;; We need to be able to find its definition, or we can't step
    ;; through the source.
-   (let ((have-definition (and buf pos)))
-     (when opened
-       (kill-buffer buf))
-     have-definition)))
+   buf pos))
 
 (defun helpful--toggle-edebug (sym)
   "Enable edebug when function SYM is called,
@@ -1035,7 +1032,7 @@ hooks.")
       'face 'font-lock-comment-face)
      source)))
 
-(defun helpful--source (sym callable-p buf pos opened)
+(defun helpful--source (sym callable-p buf pos)
   "Return the source code of SYM.
 If the source code cannot be found, return the sexp used."
   (catch 'source
@@ -1061,8 +1058,6 @@ If the source code cannot be found, return the sexp used."
                                    'helpful-path (buffer-file-name buf)
                                    'helpful-pos pos
                                    'helpful-pos-is-start t)))
-        (when (and buf opened)
-          (kill-buffer buf))
         (throw 'source source)))
 
     (when callable-p
@@ -1183,15 +1178,10 @@ buffer."
         (error nil))))
     (list buf pos opened)))
 
-(defun helpful--source-path (sym callable-p buf opened)
-  "Return the path where SYM is defined."
-  (let ((path nil))
-    (when buf
-      (setq path (buffer-file-name buf))
-      (when opened
-        ;; If we've just created this buffer, close it.
-        (kill-buffer buf)))
-    path))
+(defun helpful--source-path (buf)
+  "Given a source buffer BUF, return its path."
+  (when buf
+    (buffer-file-name buf)))
 
 (defun helpful--reference-positions (sym callable-p buf)
   "Return all the buffer positions of references to SYM in BUF."
@@ -1491,15 +1481,11 @@ OBJ may be a symbol or a compiled function object."
    'symbol sym
    'callable-p callable-p))
 
-(defun helpful--summary (sym callable-p buf pos opened)
+(defun helpful--summary (sym callable-p buf pos)
   "Return a one sentence summary for SYM."
   (-let* ((primitive-p (helpful--primitive-p sym callable-p))
           (canonical-sym (helpful--canonical-symbol sym callable-p))
           (alias-p (not (eq canonical-sym sym)))
-          ((buf pos opened)
-           (if (or (not primitive-p) find-function-C-source-directory)
-               `(,buf ,pos ,opened)
-             '(nil nil nil)))
           (alias-button
            (if callable-p
                ;; Show a link to 'defalias' in the manual.
@@ -1572,8 +1558,6 @@ OBJ may be a symbol or a compiled function object."
               "defined in C source code")
              (t
               "without a source file"))))
-    (when opened
-      (kill-buffer buf))
 
     (s-word-wrap
      70
@@ -1697,16 +1681,16 @@ state of the current symbol."
                             find-function-C-source-directory))
           ((buf pos opened) (helpful--definition helpful--sym helpful--callable-p))
           (source (when look-for-src
-                    (helpful--source helpful--sym helpful--callable-p buf pos opened)))
+                    (helpful--source helpful--sym helpful--callable-p buf pos)))
           (source-path (when (and look-for-src (symbolp helpful--sym))
-                         (helpful--source-path helpful--sym helpful--callable-p buf opened)))
+                         (helpful--source-path buf)))
           (references (helpful--calculate-references
                        helpful--sym helpful--callable-p
                        source-path)))
 
     (erase-buffer)
 
-    (insert (helpful--summary helpful--sym helpful--callable-p buf pos opened))
+    (insert (helpful--summary helpful--sym helpful--callable-p buf pos))
 
     (when helpful--callable-p
       (helpful--insert-section-break)
@@ -1816,7 +1800,7 @@ state of the current symbol."
        (format "This %s is advised." (downcase sym-type))))
 
     (let ((can-edebug
-           (helpful--can-edebug-p helpful--sym helpful--callable-p buf pos opened))
+           (helpful--can-edebug-p helpful--sym helpful--callable-p buf pos))
           (can-trace
            (and (symbolp helpful--sym)
                 helpful--callable-p
@@ -1912,7 +1896,10 @@ state of the current symbol."
 
     (goto-char (point-min))
     (forward-line (1- start-line))
-    (forward-char start-column)))
+    (forward-char start-column)
+
+    (when opened
+      (kill-buffer buf))))
 
 ;; TODO: this isn't sufficient for `edebug-eval-defun'.
 (defun helpful--skip-advice (docstring)

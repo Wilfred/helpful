@@ -547,14 +547,14 @@ associated a lambda with a keybinding."
 
 (ert-deftest helpful--source ()
   (-let* (((buf pos opened) (helpful--definition #'helpful--source t))
-          (source (helpful--source #'helpful--source t buf pos opened)))
+          (source (helpful--source #'helpful--source t buf pos)))
     (should
      (s-starts-with-p "(defun " source))))
 
 (ert-deftest helpful--source-autoloaded ()
   "We should include the autoload cookie."
   (-let* (((buf pos opened) (helpful--definition #'helpful-at-point t))
-          (source (helpful--source #'helpful-at-point t buf pos opened)))
+          (source (helpful--source #'helpful-at-point t buf pos)))
     (should
      (s-starts-with-p ";;;###autoload" source))))
 
@@ -566,7 +566,7 @@ find the source code."
     (should
      (not
       (null
-       (helpful--source #'test-foo-defined-interactively t buf pos opened))))))
+       (helpful--source #'test-foo-defined-interactively t buf pos))))))
 
 (ert-deftest helpful--outer-sexp ()
   ;; If point is in the middle of a form, we should return its position.
@@ -600,7 +600,9 @@ find the source code."
   ;; exclude the sym itself
   "Ensure we mention that a symbol is an alias."
   (-let* (((buf pos opened) (helpful--definition '-select t))
-          (summary (helpful--summary '-select t buf pos opened)))
+          (summary (helpful--summary '-select t buf pos)))
+    (when opened
+      (kill-buffer buf))
     ;; Strip properties to make assertion messages more readable.
     (set-text-properties 0 (1- (length summary)) nil summary)
     (should
