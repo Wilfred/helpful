@@ -1615,10 +1615,11 @@ may contain duplicates."
        protected-form-fns
        (-flatten handler-fns))))
 
-   ;; Calling a function with `funcall' or `apply', for example
-   ;; (funcall 'foo 1 2).
+   ;; Calling a function with a well known higher order function, for
+   ;; example (funcall 'foo 1 2).
    ((and
-     (memq (car form) '(funcall apply))
+     (memq (car form) '(funcall apply call-interactively
+                                mapcar mapc -map))
      (eq (car-safe (nth 1 form)) 'quote))
     (cons
      (cadr (nth 1 form))
