@@ -1619,7 +1619,7 @@ may contain duplicates."
    ;; example (funcall 'foo 1 2).
    ((and
      (memq (car form) '(funcall apply call-interactively
-                                mapcar mapc -map))
+                                mapcar mapc mapconcat -map))
      (eq (car-safe (nth 1 form)) 'quote))
     (cons
      (cadr (nth 1 form))
