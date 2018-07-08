@@ -17,6 +17,9 @@ Fixed a crash on keymaps where keys are bound to anonymous functions.
 
 Improved performance (PR by @nickdrozd).
 
+It's now possible to move between buttons in the Helpful buffer with
+`n` and `p`.
+
 # v0.11
 
 Further work on syntax highlighting performance for large code
