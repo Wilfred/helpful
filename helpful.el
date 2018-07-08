@@ -1236,8 +1236,8 @@ buffer."
              command-sym (list global-map) nil t))))
     (->> keycodes
          ;; Ignore keybindings from the parent or global map.
-         (--remove (-contains-p parent-keycodes it))
-         (--remove (-contains-p global-keycodes it))
+         (--remove (or (-contains-p global-keycodes it)
+                       (-contains-p parent-keycodes it)))
          ;; Convert raw keycode vectors into human-readable strings.
          (-map #'key-description))))
 
