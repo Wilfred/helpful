@@ -588,6 +588,8 @@ or disable if already enabled."
                  'callable-p t)
                 "\n"))
       (goto-char (point-min))
+      ;; TODO: define our own mode, so we can move between links
+      ;; conveniently.
       (special-mode))))
 
 (define-button-type 'helpful-manual-button
