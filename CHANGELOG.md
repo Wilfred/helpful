@@ -1,3 +1,7 @@
+# v0.13
+
+No changes yet.
+
 # v0.12
 
 Added a 'pretty view' for string values, keymap values, and hooks.
