@@ -2007,7 +2007,13 @@ escapes that are used by `substitute-command-keys'."
 (defun helpful-function (symbol)
   "Show help for function named SYMBOL."
   (interactive
-   (list (helpful--read-symbol "Function: " #'functionp)))
+   (let ((fn (function-called-at-point)))
+       (list (helpful--read-symbol
+              (if fn
+                  (format
+                   "Describe function (default %s): " fn)
+                  "Describe function: ")
+              #'functionp))))
   (funcall helpful-switch-buffer-function (helpful--buffer symbol t))
   (helpful-update))
 
@@ -2096,7 +2102,13 @@ See also `helpful-callable' and `helpful-variable'."
 (defun helpful-variable (symbol)
   "Show help for variable named SYMBOL."
   (interactive
-   (list (helpful--read-symbol "Variable: " #'helpful--variable-p)))
+   (let ((v (variable-at-point)))
+       (list (helpful--read-symbol
+              (if (symbolp v)
+                  (format
+                   "Describe variable (default %s): " v)
+                  "Describe variable: ")
+              #'helpful--variable-p))))
   (funcall helpful-switch-buffer-function (helpful--buffer symbol nil))
   (helpful-update))
 
