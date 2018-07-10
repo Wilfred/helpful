@@ -2083,7 +2083,18 @@ or :foo."
 
 See also `helpful-callable' and `helpful-variable'."
   (interactive
-   (list (helpful--read-symbol "Symbol: " #'helpful--bound-p)))
+   (let* ((v-or-f (symbol-at-point))
+          (found (if v-or-f (cl-some (lambda (x) (funcall (nth 1 x) v-or-f))
+                                     describe-symbol-backends)))
+          (v-or-f (if found v-or-f (function-called-at-point)))
+          (found (or found v-or-f)))
+       (list (helpful--read-symbol
+              (if found
+                  (format
+                   "Symbol (default %s): " v-or-f)
+                  "Symbol: "
+                  )
+              #'helpful--bound-p))))
   (cond
    ((and (boundp symbol) (fboundp symbol))
     (if (y-or-n-p
