@@ -1514,6 +1514,11 @@ OBJ may be a symbol or a compiled function object."
             "autoloaded"
             'helpful-info-button
             'info-node "(elisp)Autoload"))
+          (buffer-local-button
+           (helpful--button
+            "buffer-local"
+            'helpful-info-button
+            'info-node "(elisp)Buffer-Local Variables"))
           ;; TODO: this only reports if a function is autoloaded
           ;; because we autoloaded it. This ignores newly defined
           ;; functions that are autoloaded. Built-in help has this
@@ -1534,6 +1539,9 @@ OBJ may be a symbol or a compiled function object."
              (format "an %s" interactive-button))
             ((and callable-p autoloaded-p)
              (format "an %s" autoload-button))
+            ((and (not callable-p)
+                  (local-variable-if-set-p sym))
+             (format "a %s" buffer-local-button))
             (t
              "a")))
           (kind

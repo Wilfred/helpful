@@ -1,5 +1,7 @@
 # v0.13
 
+Buffer-local variables are now highlighted.
+
 Variable values are now shown before docstrings.
 
 # v0.12
