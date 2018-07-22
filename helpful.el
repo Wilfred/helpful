@@ -1707,15 +1707,6 @@ state of the current symbol."
        (helpful--heading (format "%s Signature" sym-type))
        (helpful--syntax-highlight (helpful--signature helpful--sym))))
 
-    (-when-let (docstring (helpful--docstring helpful--sym helpful--callable-p))
-      (helpful--insert-section-break)
-      (insert
-       (helpful--heading (format "%s Documentation" sym-type))
-       (helpful--format-docstring docstring))
-      (when (helpful--in-manual-p helpful--sym)
-        (insert "\n\n")
-        (insert (helpful--make-manual-button helpful--sym))))
-
     (when (not helpful--callable-p)
       (helpful--insert-section-break)
       (let* ((sym helpful--sym)
@@ -1753,6 +1744,15 @@ state of the current symbol."
         (insert (helpful--make-set-button helpful--sym val-buf))
         (when (custom-variable-p helpful--sym)
           (insert " " (helpful--make-customize-button helpful--sym)))))
+
+    (-when-let (docstring (helpful--docstring helpful--sym helpful--callable-p))
+      (helpful--insert-section-break)
+      (insert
+       (helpful--heading (format "%s Documentation" sym-type))
+       (helpful--format-docstring docstring))
+      (when (helpful--in-manual-p helpful--sym)
+        (insert "\n\n")
+        (insert (helpful--make-manual-button helpful--sym))))
 
     ;; Show keybindings.
     ;; TODO: allow users to conveniently add and remove keybindings.

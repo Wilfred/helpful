@@ -1,6 +1,6 @@
 # v0.13
 
-No changes yet.
+Variable values are now shown before docstrings.
 
 # v0.12
 
