@@ -1426,6 +1426,8 @@ POSITION-HEADS takes the form ((123 (defun foo)) (456 (defun bar)))."
   "Make set button for SYM in BUFFER."
   (helpful--button
    (if helpful--view-literal
+       ;; TODO: only offer for strings that have newlines, tabs or
+       ;; properties.
        "Pretty view"
      "View as literal")
    'helpful-view-literal-button))
