@@ -1,6 +1,7 @@
 # v0.13
 
-Buffer-local variables are now highlighted.
+Buffer-local variables are now highlighted, and it's possible to see
+all the different values of a buffer-local variable.
 
 Variable values are now shown before docstrings.
 
