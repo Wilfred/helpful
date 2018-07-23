@@ -5,6 +5,9 @@ all the different values of a buffer-local variable.
 
 Variable values are now shown before docstrings.
 
+Fixed an issue where special forms were incorrectly described as
+functions.
+
 # v0.12
 
 Added a 'pretty view' for string values, keymap values, and hooks.

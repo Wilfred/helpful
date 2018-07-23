@@ -610,6 +610,14 @@ find the source code."
       summary
       "-select is a function alias for -filter, defined in dash.el."))))
 
+(ert-deftest helpful--summary--special-form ()
+  "Ensure we describe special forms correctly"
+  (-let* ((summary (helpful--summary 'if t nil nil)))
+    ;; Strip properties to make assertion messages more readable.
+    (set-text-properties 0 (1- (length summary)) nil summary)
+    (should
+     (s-starts-with-p "if is a special form defined in" summary))))
+
 (ert-deftest helpful--bound-p ()
   ;; Functions.
   (should (helpful--bound-p 'message))

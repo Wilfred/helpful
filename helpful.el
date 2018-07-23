@@ -1550,6 +1550,11 @@ OBJ may be a symbol or a compiled function object."
               "alias"
               'helpful-info-button
               'info-node "(elisp)Variable Aliases")))
+          (special-form-button
+           (helpful--button
+            "special form"
+            'helpful-info-button
+            'info-node "(elisp)Special Forms"))
           (interactive-button
            (helpful--button
             "interactive"
@@ -1592,6 +1597,8 @@ OBJ may be a symbol or a compiled function object."
              "a")))
           (kind
            (cond
+            ((special-form-p sym)
+             special-form-button)
             (alias-p
              (format "for %s,"
                      (helpful--button
