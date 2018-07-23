@@ -716,10 +716,7 @@ find the source code."
                    '(defun whatever () (something) (test 5)))))
       (insert button)
       (goto-char (point-min))
-      (push-button))))
-
-(ert-deftest helpful--callees-button--smoke-fail ()
-  :expected-result :failed
+      (push-button)))
   (with-temp-buffer
     (let ((button (helpful--make-callees-button
                    '(lambda () (interactive) (other-window -1))

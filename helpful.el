@@ -610,8 +610,7 @@ overrides that to include previously opened buffers."
       (erase-buffer)
       (insert
        ;; TODO: Macros used, special forms used, global vars used.
-       (format "Functions called by %s:\n\n"
-               (symbol-name sym)))
+       (format "Functions called by %s:\n\n" sym))
       (dolist (sym syms)
         (insert "  "
                 (helpful--button
