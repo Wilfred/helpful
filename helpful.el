@@ -1791,7 +1791,7 @@ state of the current symbol."
            (t "Value")))
          (cond
           (helpful--view-literal
-           (helpful--pretty-print val))
+           (helpful--syntax-highlight (helpful--pretty-print val)))
           ;; Allow strings to be viewed with properties rendered in
           ;; Emacs, rather than as a literal.
           ((stringp val)
