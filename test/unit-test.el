@@ -118,6 +118,12 @@ symbol (not a form)."
   ;; Defined in elisp.
   (should (not (helpful--primitive-p 'when t))))
 
+(ert-deftest helpful--primitive-p-fail ()
+  :expected-result :failed
+  ;; `rename-buffer' is primitive, but it's advised (by uniquify), and
+  ;; this confuses `helpful--primitive-p'.
+  (should (helpful--primitive-p 'rename-buffer t)))
+
 (ert-deftest helpful-callable ()
   ;; We should not crash when looking at macros.
   (helpful-callable 'when)
