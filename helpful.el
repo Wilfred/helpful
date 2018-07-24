@@ -610,8 +610,7 @@ overrides that to include previously opened buffers."
       (erase-buffer)
       (insert
        ;; TODO: Macros used, special forms used, global vars used.
-       (format "Functions called by %s:\n\n"
-               (symbol-name sym)))
+       (format "Functions called by %s:\n\n" sym))
       (dolist (sym syms)
         (insert "  "
                 (helpful--button
@@ -1532,6 +1531,13 @@ OBJ may be a symbol or a compiled function object."
    'symbol sym
    'callable-p callable-p))
 
+(defun helpful--make-callees-button (sym source)
+  (helpful--button
+   "Find callees"
+   'helpful-callees-button
+   'symbol sym
+   'source source))
+
 (defun helpful--summary (sym callable-p buf pos)
   "Return a one sentence summary for SYM."
   (-let* ((primitive-p (helpful--primitive-p sym callable-p))
@@ -1888,11 +1894,7 @@ state of the current symbol."
     (when (and helpful--callable-p source (not primitive-p))
       (insert
        " "
-       (helpful--button
-        "Find callees"
-        'helpful-callees-button
-        'symbol helpful--sym
-        'source source)))
+       (helpful--make-callees-button helpful--sym source)))
 
     (when (helpful--advised-p helpful--sym)
       (helpful--insert-section-break)

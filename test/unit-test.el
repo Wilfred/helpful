@@ -716,3 +716,19 @@ find the source code."
                     (apply #'bar 2)))))
     (should (memq 'foo result))
     (should (memq 'bar result))))
+
+(ert-deftest helpful--callees-button--smoke ()
+  (with-temp-buffer
+    (let ((button (helpful--make-callees-button
+                   'whatever
+                   '(defun whatever () (something) (test 5)))))
+      (insert button)
+      (goto-char (point-min))
+      (push-button)))
+  (with-temp-buffer
+    (let ((button (helpful--make-callees-button
+                   '(lambda () (interactive) (other-window -1))
+                   '(lambda () (interactive) (other-window -1)))))
+      (insert button)
+      (goto-char (point-min))
+      (push-button))))
