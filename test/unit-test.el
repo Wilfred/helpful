@@ -553,6 +553,35 @@ associated a lambda with a keybinding."
     '(("minor-mode-map-alist (ido-mode)" "<open>" "C-x C-f"))))
   (ido-mode 0))
 
+(defalias 'helpful--dummy-command-alias #'helpful--dummy-command)
+
+(ert-deftest helpful--keymaps-containing-aliases ()
+  "Ensure that we find keymaps that we've bound command aliases
+in."
+  ;; Create keybindings that are very unlikely to clobber actually
+  ;; defined keybindings in the current emacs instance.
+  (global-set-key (kbd "C-c M-S-c") #'helpful--dummy-command)
+  (global-set-key (kbd "C-c M-S-d") #'helpful--dummy-command-alias)
+
+  (unwind-protect
+      (let* ((keymaps (helpful--keymaps-containing-aliases #'helpful--dummy-command))
+             (global-keybindings (cdr (assoc "global-map" keymaps))))
+        (should
+         (equal global-keybindings (list "C-c M-S-c" "C-c M-S-d"))))
+
+    ;; Undo keybindings.
+    (global-set-key (kbd "C-c M-S-c") nil)
+    (global-set-key (kbd "C-c M-S-d") nil)))
+
+(ert-deftest helpful--merge-alists ()
+  (should
+   (equal
+    (helpful--merge-alists '((a . (1 2 3)) (b . (4)))
+                           '((a . (10)) (c . (11))))
+    '((a . (1 2 3 10))
+      (b . (4))
+      (c . (11))))))
+
 (ert-deftest helpful--source ()
   (-let* (((buf pos opened) (helpful--definition #'helpful--source t))
           (source (helpful--source #'helpful--source t buf pos)))

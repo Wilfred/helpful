@@ -1315,11 +1315,37 @@ same bindings as `global-map'."
 
     matching-keymaps))
 
+(defun helpful--merge-alists (l1 l2)
+  "Given two alists mapping symbols to lists, return a single
+alist with the lists concatenated."
+  (let* ((l1-keys (-map #'-first-item l1))
+         (l2-keys (-map #'-first-item l2))
+         (l2-extra-keys (-difference l2-keys l1-keys))
+         (l2-extra-values
+          (--map (assoc it l2) l2-extra-keys))
+         (l1-with-values
+          (-map (-lambda ((key . values))
+                  (cons key (append values
+                                    (cdr (assoc key l2)))))
+                l1)))
+    (append l1-with-values l2-extra-values)))
+
+(defun helpful--keymaps-containing-aliases (command-sym)
+  "Return a list of pairs mapping keymap symbols to the
+keybindings for COMMAND-SYM in each keymap.
+
+Includes keybindings for aliases, unlike
+`helpful--keymaps-containing'."
+  (let* ((aliases (helpful--aliases 'helpful--dummy-command t))
+         (syms (cons command-sym aliases))
+         (syms-keymaps (-map #'helpful--keymaps-containing syms)))
+    (-reduce #'helpful--merge-alists syms-keymaps)))
+
 (defun helpful--format-keys (command-sym)
   "Describe all the keys that call COMMAND-SYM."
   (let (mode-lines
         global-lines)
-    (--each (helpful--keymaps-containing command-sym)
+    (--each (helpful--keymaps-containing-aliases command-sym)
       (-let [(map . keys) it]
         (dolist (key keys)
           (push

@@ -1,4 +1,4 @@
-# v0.13
+# v0.13 (unreleased)
 
 Buffer-local variables are now highlighted, and it's possible to see
 all the different values of a buffer-local variable.
@@ -7,6 +7,8 @@ Variable values are now shown before docstrings.
 
 Fixed an issue where special forms were incorrectly described as
 functions.
+
+Helpful now shows keybindings for aliases of the current command too.
 
 # v0.12
 
