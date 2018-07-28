@@ -543,7 +543,15 @@ associated a lambda with a keybinding."
     2))
 
   ;; Undo keybinding.
-  (global-set-key (kbd "C-c M-S-c") nil))
+  (global-set-key (kbd "C-c M-S-c") nil)
+
+  ;; Check for ido command remapping.
+  (ido-mode 1)
+  (should
+   (equal
+    (helpful--keymaps-containing 'ido-find-file)
+    '(("minor-mode-map-alist (ido-mode)" "<open>" "C-x C-f"))))
+  (ido-mode 0))
 
 (ert-deftest helpful--source ()
   (-let* (((buf pos opened) (helpful--definition #'helpful--source t))

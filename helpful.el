@@ -1248,7 +1248,7 @@ buffer."
          (push sym keymaps))))
     keymaps))
 
-(defun helpful--key-sequences (command-sym keymap)
+(defun helpful--key-sequences (command-sym keymap global-keycodes)
   "Return all the key sequences of COMMAND-SYM in KEYMAP."
   (let* ((keycodes
           ;; Look up this command in the keymap, its parent and the
@@ -1264,12 +1264,11 @@ buffer."
          ;; Look up this command in the global map.
          (global-keycodes
           (unless (eq keymap global-map)
-            (where-is-internal
-             command-sym (list global-map) nil t))))
+            global-keycodes)))
     (->> keycodes
          ;; Ignore keybindings from the parent or global map.
-         (--remove (-contains-p parent-keycodes it))
-         (--remove (-contains-p global-keycodes it))
+         (--remove (or (-contains-p global-keycodes it)
+                       (-contains-p parent-keycodes it)))
          ;; Convert raw keycode vectors into human-readable strings.
          (-map #'key-description))))
 
@@ -1287,11 +1286,13 @@ from parent keymaps.
 same bindings as `global-map'."
   (let* ((keymap-syms (helpful--all-keymap-syms))
          (keymap-sym-vals (-map #'symbol-value keymap-syms))
+         (global-keycodes (where-is-internal
+                           command-sym (list global-map) nil t))
          matching-keymaps)
     ;; Look for this command in all keymaps bound to variables.
     (-map
      (-lambda ((keymap-sym . keymap))
-       (let ((key-sequences (helpful--key-sequences command-sym keymap)))
+       (let ((key-sequences (helpful--key-sequences command-sym keymap global-keycodes)))
          (when (and key-sequences (not (eq keymap-sym 'widget-global-map)))
            (push (cons (symbol-name keymap-sym) key-sequences)
                  matching-keymaps))))
@@ -1304,7 +1305,7 @@ same bindings as `global-map'."
        ;; Only consider this keymap if we didn't find it bound to a variable.
        (when (and (keymapp keymap)
                   (not (memq keymap keymap-sym-vals)))
-         (let ((key-sequences (helpful--key-sequences command-sym keymap)))
+         (let ((key-sequences (helpful--key-sequences command-sym keymap global-keycodes)))
            (when key-sequences
              (push (cons (format "minor-mode-map-alist (%s)" minor-mode)
                          key-sequences)
