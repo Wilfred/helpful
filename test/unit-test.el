@@ -769,3 +769,9 @@ find the source code."
       (insert button)
       (goto-char (point-min))
       (push-button))))
+
+(ert-deftest helpful--autoloaded-p ()
+  (-let [(buf pos opened) (helpful--definition 'rx-to-string t)]
+    (should (helpful--autoloaded-p 'rx-to-string buf))
+    (when opened
+      (kill-buffer buf))))

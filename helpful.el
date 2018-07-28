@@ -1565,6 +1565,17 @@ OBJ may be a symbol or a compiled function object."
    'symbol sym
    'source source))
 
+;; TODO: this only reports if a function is autoloaded because we
+;; autoloaded it. This ignores newly defined functions that are
+;; autoloaded. Built-in help has this limitation too, but if we can
+;; find the source, we should instead see if there's an autoload
+;; cookie.
+(defun helpful--autoloaded-p (sym buf)
+  "Return non-nil if function SYM is autoloaded."
+  (-when-let (file-name (buffer-file-name buf))
+    (setq file-name (s-chop-suffix ".gz" file-name))
+    (help-fns--autoloaded-p sym file-name)))
+
 (defun helpful--summary (sym callable-p buf pos)
   "Return a one sentence summary for SYM."
   (-let* ((primitive-p (helpful--primitive-p sym callable-p))
@@ -1603,14 +1614,8 @@ OBJ may be a symbol or a compiled function object."
             "buffer-local"
             'helpful-info-button
             'info-node "(elisp)Buffer-Local Variables"))
-          ;; TODO: this only reports if a function is autoloaded
-          ;; because we autoloaded it. This ignores newly defined
-          ;; functions that are autoloaded. Built-in help has this
-          ;; limitation too, but if we can find the source, we should
-          ;; instead see if there's an autoload cookie.
           (autoloaded-p
-           (if (and callable-p buf (buffer-file-name buf))
-               (help-fns--autoloaded-p sym (buffer-file-name buf))))
+           (and callable-p buf (helpful--autoloaded-p sym buf)))
           (description
            (cond
             (alias-p

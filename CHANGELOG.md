@@ -10,6 +10,9 @@ functions.
 
 Helpful now shows keybindings for aliases of the current command too.
 
+Fixed an issue where functions defined in .el.gz files were not
+recognised as being autoloaded.
+
 # v0.12
 
 Added a 'pretty view' for string values, keymap values, and hooks.
