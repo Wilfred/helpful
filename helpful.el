@@ -2140,7 +2140,13 @@ escapes that are used by `substitute-command-keys'."
 (defun helpful-function (symbol)
   "Show help for function named SYMBOL."
   (interactive
-   (list (helpful--read-symbol "Function: " #'functionp)))
+   (let ((fn (function-called-at-point)))
+       (list (helpful--read-symbol
+              (if fn
+                  (format
+                   "Describe function (default %s): " fn)
+                  "Describe function: ")
+              #'functionp))))
   (funcall helpful-switch-buffer-function (helpful--buffer symbol t))
   (helpful-update))
 
@@ -2210,7 +2216,18 @@ or :foo."
 
 See also `helpful-callable' and `helpful-variable'."
   (interactive
-   (list (helpful--read-symbol "Symbol: " #'helpful--bound-p)))
+   (let* ((v-or-f (symbol-at-point))
+          (found (if v-or-f (cl-some (lambda (x) (funcall (nth 1 x) v-or-f))
+                                     describe-symbol-backends)))
+          (v-or-f (if found v-or-f (function-called-at-point)))
+          (found (or found v-or-f)))
+       (list (helpful--read-symbol
+              (if found
+                  (format
+                   "Symbol (default %s): " v-or-f)
+                  "Symbol: "
+                  )
+              #'helpful--bound-p))))
   (cond
    ((and (boundp symbol) (fboundp symbol))
     (if (y-or-n-p
@@ -2229,7 +2246,13 @@ See also `helpful-callable' and `helpful-variable'."
 (defun helpful-variable (symbol)
   "Show help for variable named SYMBOL."
   (interactive
-   (list (helpful--read-symbol "Variable: " #'helpful--variable-p)))
+   (let ((v (variable-at-point)))
+       (list (helpful--read-symbol
+              (if (symbolp v)
+                  (format
+                   "Describe variable (default %s): " v)
+                  "Describe variable: ")
+              #'helpful--variable-p))))
   (funcall helpful-switch-buffer-function (helpful--buffer symbol nil))
   (helpful-update))
 
