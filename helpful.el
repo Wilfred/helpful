@@ -1336,7 +1336,7 @@ keybindings for COMMAND-SYM in each keymap.
 
 Includes keybindings for aliases, unlike
 `helpful--keymaps-containing'."
-  (let* ((aliases (helpful--aliases 'helpful--dummy-command t))
+  (let* ((aliases (helpful--aliases command-sym t))
          (syms (cons command-sym aliases))
          (syms-keymaps (-map #'helpful--keymaps-containing syms)))
     (-reduce #'helpful--merge-alists syms-keymaps)))
