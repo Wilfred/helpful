@@ -13,6 +13,9 @@ Helpful now shows keybindings for aliases of the current command too.
 Fixed an issue where functions defined in .el.gz files were not
 recognised as being autoloaded.
 
+Fixed an issue where we didn't show the source code for advised
+primitives.
+
 # v0.12
 
 Added a 'pretty view' for string values, keymap values, and hooks.

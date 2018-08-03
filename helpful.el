@@ -1381,6 +1381,12 @@ E.g. (x x y z y) -> ((x . 2) (y . 2) (z . 1))"
           (setcdr item-and-count (1+ (cdr item-and-count)))
         (push (cons item 1) counts)))))
 
+(defun helpful--without-advice (sym)
+  "Given advised function SYM, return the function object
+without the advice."
+  (advice--cdr
+   (advice--symbol-function sym)))
+
 (defun helpful--advised-p (sym)
   "A list of advice associated with SYM."
   (and (symbolp sym)
@@ -1428,12 +1434,16 @@ POSITION-HEADS takes the form ((123 (defun foo)) (456 (defun bar)))."
 
 (defun helpful--primitive-p (sym callable-p)
   "Return t if SYM is defined in C."
-  (if callable-p
-      (subrp (indirect-function sym))
+  (cond
+   ((and callable-p (helpful--advised-p sym))
+    (subrp (helpful--without-advice sym)))
+   (callable-p
+    (subrp (indirect-function sym)))
+   (t
     (let ((filename (find-lisp-object-file-name sym 'defvar)))
       (or (eq filename 'C-source)
           (and (stringp filename)
-               (equal (file-name-extension filename) "c"))))))
+               (equal (file-name-extension filename) "c")))))))
 
 (defun helpful--sym-value (sym buf)
   "Return the value of SYM in BUF."

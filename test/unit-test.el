@@ -118,10 +118,9 @@ symbol (not a form)."
   ;; Defined in elisp.
   (should (not (helpful--primitive-p 'when t))))
 
-(ert-deftest helpful--primitive-p-fail ()
-  :expected-result :failed
-  ;; `rename-buffer' is primitive, but it's advised (by uniquify), and
-  ;; this confuses `helpful--primitive-p'.
+(ert-deftest helpful--primitive-p--advised ()
+  "Ensure we handly advised primitive functions correctly."
+  ;; `rename-buffer' is primitive, but it's advised by uniquify.
   (should (helpful--primitive-p 'rename-buffer t)))
 
 (ert-deftest helpful-callable ()
