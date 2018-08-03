@@ -1152,7 +1152,7 @@ buffer."
       (-let [(_ . src-path) (find-function-library sym)]
         (setq path src-path)))
     (when (and primitive-p path find-function-C-source-directory)
-      ;; Convert "src/foo.c" to "".
+      ;; Convert relative to absolute path.
       (setq path (f-expand path
                            (f-parent find-function-C-source-directory))))
 
