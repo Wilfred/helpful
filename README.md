@@ -126,3 +126,11 @@ This project has been heavily influenced by:
 
 * [help+.el](https://www.emacswiki.org/emacs/help+.el), help-fns+.el, help-mode+.el
 * [Dave Williams' demo of Lucid's Energize](https://www.youtube.com/watch?v=pQQTScuApWk)
+
+## License
+
+GPLv2.
+
+I am providing code in the repository to you under an open source
+license. Because this is my personal repository, the license you
+receive to my code is from me and not my employer.
