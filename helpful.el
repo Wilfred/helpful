@@ -1130,18 +1130,18 @@ the buffer when done.
 
 POS is the position of the start of the definition within the
 buffer."
-  (-let ((initial-buffers (buffer-list))
-         (primitive-p (helpful--primitive-p sym callable-p))
-         (path nil)
-         (buf nil)
-         (pos nil)
-         (opened nil)
-         ;; Skip running find-file-hook since it may prompt the user.
-         (find-file-hook nil)
-         ;; If we end up opening a buffer, don't bother with file
-         ;; variables. It prompts the user, and we discard the buffer
-         ;; afterwards anyway.
-         (enable-local-variables nil))
+  (let ((initial-buffers (buffer-list))
+        (primitive-p (helpful--primitive-p sym callable-p))
+        (path nil)
+        (buf nil)
+        (pos nil)
+        (opened nil)
+        ;; Skip running find-file-hook since it may prompt the user.
+        (find-file-hook nil)
+        ;; If we end up opening a buffer, don't bother with file
+        ;; variables. It prompts the user, and we discard the buffer
+        ;; afterwards anyway.
+        (enable-local-variables nil))
     ;; We shouldn't be called on primitive functions if we don't have
     ;; a directory of Emacs C sourcecode.
     (cl-assert
