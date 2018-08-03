@@ -129,7 +129,7 @@ This project has been heavily influenced by:
 
 ## License
 
-GPLv2.
+GPLv3+.
 
 I am providing code in the repository to you under an open source
 license. Because this is my personal repository, the license you
