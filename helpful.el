@@ -2130,11 +2130,21 @@ escapes that are used by `substitute-command-keys'."
     docstring))
 
 (defun helpful--read-symbol (prompt predicate)
-  (let ((sym-here (symbol-at-point)))
+  (let* ((sym-here (symbol-at-point))
+         (default-val
+           (when (funcall predicate sym-here)
+             (symbol-name sym-here))))
+    (when default-val
+      ;; TODO: Only modify the prompt when we don't have ido/ivy/helm,
+      ;; because the default is obvious for them.
+      (setq prompt
+            (replace-regexp-in-string
+             (rx ": " eos)
+             (format " (default: %s): " default-val)
+             prompt)))
     (read (completing-read prompt obarray
                            predicate t nil nil
-                           (when (funcall predicate sym-here)
-                             (symbol-name sym-here))))))
+                           default-val))))
 
 ;;;###autoload
 (defun helpful-function (symbol)

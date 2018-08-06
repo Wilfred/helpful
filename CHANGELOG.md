@@ -16,6 +16,8 @@ recognised as being autoloaded.
 Fixed an issue where we didn't show the source code for advised
 primitives.
 
+Show the default value for the symbol in the minibuffer prompt.
+
 # v0.12
 
 Added a 'pretty view' for string values, keymap values, and hooks.
