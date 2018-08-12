@@ -3,6 +3,16 @@
 (require 'helpful)
 (require 'python)
 
+(when noninteractive
+  (unless find-function-C-source-directory
+    (let* ((emacs-src-path (f-join default-directory "emacs-25.3" "src")))
+      (if (f-exists-p emacs-src-path)
+          (setq find-function-C-source-directory emacs-src-path)
+        (message "No Emacs source code found at %S, some tests will be skipped. Run ./download_emacs_src.sh"
+                 emacs-src-path))))
+
+  (setq jka-compr-verbose nil))
+
 (defun test-foo ()
   "Docstring here."
   nil)
@@ -127,15 +137,12 @@ symbol (not a form)."
   ;; We should not crash when looking at macros.
   (helpful-callable 'when)
   ;; Special forms should work too.
-  (helpful-callable 'if)
-  ;; Smoke test for special forms when we have the Emacs C source
-  ;; loaded.
-  (let* ((emacs-src-path (f-join default-directory "emacs-25.3" "src")))
-    (if (f-exists-p emacs-src-path)
-        (let ((find-function-C-source-directory emacs-src-path))
-          (helpful-callable 'if))
-      (message "No Emacs source code found at %S, skipping test. Run ./download_emacs_src.sh."
-               emacs-src-path))))
+  (helpful-callable 'if))
+
+(ert-deftest helpful-callable--with-C-source ()
+  "Smoke test for special forms when we have the Emacs C source loaded."
+  (skip-unless find-function-C-source-directory)
+  (helpful-callable 'if))
 
 (ert-deftest helpful--no-symbol-properties ()
   "Helpful should handle functions without any symbol properties."
@@ -285,12 +292,8 @@ symbol (not a form)."
 
 (ert-deftest helpful--definition-c-vars ()
   "Handle definitions of variables in C source code."
-  (let* ((emacs-src-path (f-join default-directory "emacs-25.3" "src")))
-    (if (f-exists-p emacs-src-path)
-        (let ((find-function-C-source-directory emacs-src-path))
-          (helpful--definition 'default-directory nil))
-      (message "No Emacs source code found at %S, skipping test. Run ./download_emacs_src.sh"
-               emacs-src-path))))
+  (skip-unless find-function-C-source-directory)
+  (helpful--definition 'default-directory nil))
 
 (setq helpful-var-without-defvar 'foo)
 
