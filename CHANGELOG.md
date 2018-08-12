@@ -1,4 +1,8 @@
-# v0.13 (unreleased)
+# v0.14 (unreleased)
+
+No changes yet.
+
+# v0.13
 
 Buffer-local variables are now highlighted, and it's possible to see
 all the different values of a buffer-local variable.
