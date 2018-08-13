@@ -1,6 +1,6 @@
 # v0.14 (unreleased)
 
-No changes yet.
+Fixed an issue with Remacs compatibility.
 
 # v0.13
 
