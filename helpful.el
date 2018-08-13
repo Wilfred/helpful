@@ -1160,16 +1160,14 @@ buffer."
      ((and (not (symbolp sym)) (functionp sym))
       (list nil nil nil))
      ((and callable-p library-name)
-      ;; Convert foo.elc to foo.el.
       (-when-let (src-path (helpful--library-path library-name))
-        ;; Open `src-path' ourselves, so we can widen before searching.
-        ;;
         ;; Opening large .c files can be slow (e.g. when looking at
         ;; `defalias'), especially if the user has configured mode hooks.
         ;;
         ;; Bind `auto-mode-alist' to nil, so we open the buffer in
         ;; `fundamental-mode' if it isn't already open.
         (let ((auto-mode-alist nil))
+          ;; Open `src-path' ourselves, so we can widen before searching.
           (setq buf (find-file-noselect src-path)))
 
         (unless (-contains-p initial-buffers buf)
