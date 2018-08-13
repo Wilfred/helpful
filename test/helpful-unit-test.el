@@ -295,6 +295,14 @@ symbol (not a form)."
   (skip-unless find-function-C-source-directory)
   (helpful--definition 'default-directory nil))
 
+(ert-deftest helpful--definition-special-form ()
+  "Ensure we find the position of special forms."
+  (skip-unless find-function-C-source-directory)
+  (-let [(buf pos _)
+         (helpful--definition 'if t)]
+    (should buf)
+    (should pos)))
+
 (setq helpful-var-without-defvar 'foo)
 
 (ert-deftest helpful--definition-no-defvar ()

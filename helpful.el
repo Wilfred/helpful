@@ -1111,14 +1111,19 @@ If the source code cannot be found, return the sexp used."
     (or (assoc sym completions)
         (assoc-string sym completions))))
 
-(defun helpful--find-library-name (path)
-  "A wrapper around `find-library-name' that returns nil if PATH
-has no library with that name.
+(defun helpful--library-path (library-name)
+  "Find the absolute path for the source of LIBRARY-NAME.
 
-This can happen when users have installed Emacs without its
-source code: they have e.g. org.elc but no org.el."
-  (condition-case _err
-      (find-library-name path)
+LIBRARY-NAME takes the form \"foo.el\" , \"foo.el\" or
+\"src/foo.c\".
+
+If .elc files exist without the corresponding .el, return nil."
+  (when (member (f-ext library-name) '("c" "rs"))
+    (setq library-name
+          (f-expand library-name
+                    (f-parent find-function-C-source-directory))))
+  (condition-case nil
+      (find-library-name library-name)
     (error nil)))
 
 (defun helpful--definition (sym callable-p)
@@ -1132,7 +1137,7 @@ POS is the position of the start of the definition within the
 buffer."
   (let ((initial-buffers (buffer-list))
         (primitive-p (helpful--primitive-p sym callable-p))
-        (path nil)
+        (library-name nil)
         (buf nil)
         (pos nil)
         (opened nil)
@@ -1149,22 +1154,17 @@ buffer."
          (not primitive-p)))
 
     (when (and (symbolp sym) callable-p)
-      (-let [(_ . src-path) (find-function-library sym)]
-        (setq path src-path)))
-    (when (and primitive-p path find-function-C-source-directory)
-      ;; Convert relative to absolute path.
-      (setq path (f-expand path
-                           (f-parent find-function-C-source-directory))))
+      (setq library-name (cdr (find-function-library sym))))
 
     (cond
      ((and (not (symbolp sym)) (functionp sym))
       (list nil nil nil))
-     ((and callable-p path)
+     ((and callable-p library-name)
       ;; Convert foo.elc to foo.el.
-      (-when-let (src-path (helpful--find-library-name path))
-        ;; Open `path' ourselves, so we can widen before searching.
+      (-when-let (src-path (helpful--library-path library-name))
+        ;; Open `src-path' ourselves, so we can widen before searching.
         ;;
-        ;; Opening large.c files can be slow (e.g. when looking at
+        ;; Opening large .c files can be slow (e.g. when looking at
         ;; `defalias'), especially if the user has configured mode hooks.
         ;;
         ;; Bind `auto-mode-alist' to nil, so we open the buffer in
@@ -1193,9 +1193,7 @@ buffer."
             (save-restriction
               (widen)
               (setq pos
-                    (if primitive-p
-                        (cdr (find-function-C-source sym path nil))
-                      (cdr (find-function-search-for-symbol sym nil path)))))))))
+                    (cdr (find-function-search-for-symbol sym nil library-name))))))))
      (callable-p
       ;; Functions defined interactively may have an edebug property
       ;; that contains the location of the definition.
