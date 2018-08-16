@@ -603,7 +603,9 @@ overrides that to include previously opened buffers."
           (if (stringp raw-source)
               (read raw-source)
             raw-source))
-         (syms (helpful--sort-symbols (helpful--callees source))))
+         (syms (helpful--sort-symbols (helpful--callees source)))
+         (primitives (-filter (lambda (sym) (helpful--primitive-p sym t)) syms))
+         (compounds (-remove (lambda (sym) (helpful--primitive-p sym t)) syms)))
 
     (pop-to-buffer buf)
     (let ((inhibit-read-only t))
@@ -611,7 +613,7 @@ overrides that to include previously opened buffers."
       (insert
        ;; TODO: Macros used, special forms used, global vars used.
        (format "Functions called by %s:\n\n" sym))
-      (dolist (sym syms)
+      (dolist (sym compounds)
         (insert "  "
                 (helpful--button
                  (symbol-name sym)
@@ -619,7 +621,21 @@ overrides that to include previously opened buffers."
                  'symbol sym
                  'callable-p t)
                 "\n"))
+
+      (insert "\n")
+
+      (insert (format "Primitives called by %s:\n\n" sym))
+      (dolist (sym primitives)
+        (insert "  "
+                (helpful--button
+                 (symbol-name sym)
+                 'helpful-describe-exactly-button
+                 'symbol sym
+                 'callable-p t)
+                "\n"))
+
       (goto-char (point-min))
+
       ;; TODO: define our own mode, so we can move between links
       ;; conveniently.
       (special-mode))))
