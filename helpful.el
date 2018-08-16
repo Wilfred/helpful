@@ -594,6 +594,17 @@ overrides that to include previously opened buffers."
   'follow-link t
   'help-echo "Find the functions called by this function/macro")
 
+(defun helpful--display-callee-group (callees)
+  "Insert every entry in CALLEES."
+  (dolist (sym (helpful--sort-symbols callees))
+    (insert "  "
+            (helpful--button
+             (symbol-name sym)
+             'helpful-describe-exactly-button
+             'symbol sym
+             'callable-p t)
+            "\n")))
+
 (defun helpful--show-callees (button)
   "Find all the references to the symbol that this BUTTON represents."
   (let* ((buf (get-buffer-create "*helpful callees*"))
@@ -603,36 +614,22 @@ overrides that to include previously opened buffers."
           (if (stringp raw-source)
               (read raw-source)
             raw-source))
-         (syms (helpful--sort-symbols (helpful--callees source)))
+         (syms (helpful--callees source))
          (primitives (-filter (lambda (sym) (helpful--primitive-p sym t)) syms))
          (compounds (-remove (lambda (sym) (helpful--primitive-p sym t)) syms)))
 
     (pop-to-buffer buf)
     (let ((inhibit-read-only t))
       (erase-buffer)
-      (insert
+
        ;; TODO: Macros used, special forms used, global vars used.
-       (format "Functions called by %s:\n\n" sym))
-      (dolist (sym compounds)
-        (insert "  "
-                (helpful--button
-                 (symbol-name sym)
-                 'helpful-describe-exactly-button
-                 'symbol sym
-                 'callable-p t)
-                "\n"))
+      (insert (format "Functions called by %s:\n\n" sym))
+      (helpful--display-callee-group compounds)
 
       (insert "\n")
 
       (insert (format "Primitives called by %s:\n\n" sym))
-      (dolist (sym primitives)
-        (insert "  "
-                (helpful--button
-                 (symbol-name sym)
-                 'helpful-describe-exactly-button
-                 'symbol sym
-                 'callable-p t)
-                "\n"))
+      (helpful--display-callee-group primitives)
 
       (goto-char (point-min))
 
