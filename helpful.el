@@ -179,6 +179,12 @@ press \\[keyboard-quit] to gracefully stop the printing."
      (propertize "(User quit during pretty-printing.)"
                  'face 'font-lock-comment-face))))
 
+(defun helpful--sort-symbols (sym-list)
+  "Sort symbols in SYM-LIST alphabetically."
+  (--sort
+   (string< (symbol-name it) (symbol-name other))
+   sym-list))
+
 (defun helpful--button (text type &rest properties)
   ;; `make-text-button' mutates our string to add properties. Copy
   ;; TEXT to prevent mutating our arguments, and to support 'pure'
@@ -218,9 +224,7 @@ Return SYM otherwise."
               ;; Don't include SYM.
               (not (eq sym s)))
          (push s aliases))))
-    (--sort
-     (string< (symbol-name it) (symbol-name other))
-     aliases)))
+    (helpful--sort-symbols aliases)))
 
 (defun helpful--format-alias (sym callable-p)
   (let ((obsolete-info (if callable-p
@@ -599,11 +603,7 @@ overrides that to include previously opened buffers."
           (if (stringp raw-source)
               (read raw-source)
             raw-source))
-         (syms (helpful--callees source)))
-    (setq syms
-          (--sort
-           (string< (symbol-name it) (symbol-name other))
-           syms))
+         (syms (helpful--sort-symbols (helpful--callees source))))
 
     (pop-to-buffer buf)
     (let ((inhibit-read-only t))
