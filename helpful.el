@@ -179,6 +179,12 @@ press \\[keyboard-quit] to gracefully stop the printing."
      (propertize "(User quit during pretty-printing.)"
                  'face 'font-lock-comment-face))))
 
+(defun helpful--sort-symbols (sym-list)
+  "Sort symbols in SYM-LIST alphabetically."
+  (--sort
+   (string< (symbol-name it) (symbol-name other))
+   sym-list))
+
 (defun helpful--button (text type &rest properties)
   ;; `make-text-button' mutates our string to add properties. Copy
   ;; TEXT to prevent mutating our arguments, and to support 'pure'
@@ -218,9 +224,7 @@ Return SYM otherwise."
               ;; Don't include SYM.
               (not (eq sym s)))
          (push s aliases))))
-    (--sort
-     (string< (symbol-name it) (symbol-name other))
-     aliases)))
+    (helpful--sort-symbols aliases)))
 
 (defun helpful--format-alias (sym callable-p)
   (let ((obsolete-info (if callable-p
@@ -590,6 +594,17 @@ overrides that to include previously opened buffers."
   'follow-link t
   'help-echo "Find the functions called by this function/macro")
 
+(defun helpful--display-callee-group (callees)
+  "Insert every entry in CALLEES."
+  (dolist (sym (helpful--sort-symbols callees))
+    (insert "  "
+            (helpful--button
+             (symbol-name sym)
+             'helpful-describe-exactly-button
+             'symbol sym
+             'callable-p t)
+            "\n")))
+
 (defun helpful--show-callees (button)
   "Find all the references to the symbol that this BUTTON represents."
   (let* ((buf (get-buffer-create "*helpful callees*"))
@@ -599,27 +614,25 @@ overrides that to include previously opened buffers."
           (if (stringp raw-source)
               (read raw-source)
             raw-source))
-         (syms (helpful--callees source)))
-    (setq syms
-          (--sort
-           (string< (symbol-name it) (symbol-name other))
-           syms))
+         (syms (helpful--callees source))
+         (primitives (-filter (lambda (sym) (helpful--primitive-p sym t)) syms))
+         (compounds (-remove (lambda (sym) (helpful--primitive-p sym t)) syms)))
 
     (pop-to-buffer buf)
     (let ((inhibit-read-only t))
       (erase-buffer)
-      (insert
+
        ;; TODO: Macros used, special forms used, global vars used.
-       (format "Functions called by %s:\n\n" sym))
-      (dolist (sym syms)
-        (insert "  "
-                (helpful--button
-                 (symbol-name sym)
-                 'helpful-describe-exactly-button
-                 'symbol sym
-                 'callable-p t)
-                "\n"))
+      (insert (format "Functions called by %s:\n\n" sym))
+      (helpful--display-callee-group compounds)
+
+      (insert "\n")
+
+      (insert (format "Primitives called by %s:\n\n" sym))
+      (helpful--display-callee-group primitives)
+
       (goto-char (point-min))
+
       ;; TODO: define our own mode, so we can move between links
       ;; conveniently.
       (special-mode))))
