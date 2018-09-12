@@ -1,5 +1,9 @@
 # v0.14 (unreleased)
 
+Fixed an issue where source code of primitive variables included the
+whole surrounding function. This was less useful and significantly
+slower.
+
 Fixed an issue with Remacs compatibility.
 
 # v0.13

@@ -1092,7 +1092,19 @@ If the source code cannot be found, return the sexp used."
           (save-excursion
             (save-restriction
               (goto-char pos)
-              (narrow-to-defun t)
+
+              (if (and (helpful--primitive-p sym callable-p)
+                       (not callable-p))
+                  ;; For variables defined in .c files, only show the
+                  ;; DEFVAR expression rather than the huge containing
+                  ;; function.
+                  (progn
+                    (setq pos (line-beginning-position))
+                    (forward-list)
+                    (forward-char)
+                    (narrow-to-region pos (point)))
+                ;; Narrow to the top-level definition.
+                (narrow-to-defun t))
 
               ;; If there was a preceding comment, POS will be
               ;; after that comment. Move the position to include that comment.
