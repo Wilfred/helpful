@@ -1856,9 +1856,9 @@ state of the current symbol."
                      'helpful-buffer-button
                      'buffer helpful--associated-buffer
                      'position pos)))
-           ;; Buffer-local variable but default value.
+           ;; Buffer-local variable but default/global value.
            ((local-variable-if-set-p sym)
-            "Default Value")
+            "Global Value")
            ;; This variable is not buffer-local.
            (t "Value")))
          (cond
@@ -1891,7 +1891,7 @@ state of the current symbol."
             'prompt-p t)
            " "
            (helpful--button
-            "Default value"
+            "Global value"
             'helpful-associated-buffer-button
             'symbol sym
             'prompt-p nil)
