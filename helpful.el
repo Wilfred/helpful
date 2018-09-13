@@ -346,6 +346,13 @@ source code to primitives."
   'symbol nil
   'help-echo "Toggle edebug (re-evaluates definition)")
 
+(defun helpful--kbd-macro-p (sym)
+  "Is SYM a keyboard macro?"
+  (and (symbolp sym)
+       (let ((func (symbol-function sym)))
+         (or (stringp func)
+             (vectorp func)))))
+
 (defun helpful--edebug-p (sym)
   "Does function SYM have its definition patched by edebug?"
   (let ((fn-def (indirect-function sym)))
@@ -1630,6 +1637,11 @@ OBJ may be a symbol or a compiled function object."
             "special form"
             'helpful-info-button
             'info-node "(elisp)Special Forms"))
+	  (keyboard-macro-button
+	   (helpful--button
+	    "keyboard macro"
+	    'helpful-info-button
+	    'info-node "(elisp)Keyboard Macros"))
           (interactive-button
            (helpful--button
             "interactive"
@@ -1655,6 +1667,7 @@ OBJ may be a symbol or a compiled function object."
                      alias-button))
             ((and callable-p (commandp sym) autoloaded-p)
              (format "an %s, %s" interactive-button autoload-button))
+            ((helpful--kbd-macro-p sym) "a")
             ((and callable-p (commandp sym))
              (format "an %s" interactive-button))
             ((and callable-p autoloaded-p)
@@ -1677,6 +1690,7 @@ OBJ may be a symbol or a compiled function object."
                       'callable-p callable-p)))
             ((not callable-p) "variable")
             ((macrop sym) "macro")
+	    ((helpful--kbd-macro-p sym) keyboard-macro-button)
             (t "function")))
           (defined
             (cond
@@ -1691,6 +1705,7 @@ OBJ may be a symbol or a compiled function object."
                           (helpful--buffer-button buf pos)))))
              (primitive-p
               "defined in C source code")
+             ((helpful--kbd-macro-p sym) "")
              (t
               "without a source file"))))
 
@@ -1827,7 +1842,8 @@ state of the current symbol."
 
     (insert (helpful--summary helpful--sym helpful--callable-p buf pos))
 
-    (when helpful--callable-p
+    (when (and helpful--callable-p
+	       (not (helpful--kbd-macro-p helpful--sym)))
       (helpful--insert-section-break)
       (insert
        (helpful--heading "Signature")

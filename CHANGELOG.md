@@ -1,5 +1,7 @@
 # v0.14 (unreleased)
 
+Named keyboard macros are now supported.
+
 Function callees are now sorted.
 
 Fixed an issue where source code of primitive variables included the

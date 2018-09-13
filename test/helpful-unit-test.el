@@ -137,7 +137,12 @@ symbol (not a form)."
   ;; We should not crash when looking at macros.
   (helpful-callable 'when)
   ;; Special forms should work too.
-  (helpful-callable 'if))
+  (helpful-callable 'if)
+  ;; Named keyboard macros (strings and vectors).
+  (fset 'aaa "aaa")
+  (helpful-callable 'aaa)
+  (fset 'backspace-return [backspace return])
+  (helpful-callable 'backspace-return))
 
 (ert-deftest helpful-callable--with-C-source ()
   "Smoke test for special forms when we have the Emacs C source loaded."
