@@ -1,5 +1,7 @@
 # v0.14 (unreleased)
 
+Function callees are now sorted.
+
 Fixed an issue where source code of primitive variables included the
 whole surrounding function. This was less useful and significantly
 slower.
