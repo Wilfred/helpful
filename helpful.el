@@ -544,7 +544,10 @@ overrides that to include previously opened buffers."
             (read-from-minibuffer
              "Eval: "
              (format
-              (if (or (symbolp sym-value) (consp sym-value))
+              (if (or (consp sym-value)
+                      (and (symbolp sym-value)
+                           (not (null sym-value))
+                           (not (keywordp sym-value))))
                   "(setq %s '%S)"
                 "(setq %s %S)")
               sym sym-value)
