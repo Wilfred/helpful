@@ -9,6 +9,9 @@ Fixed an issue with Remacs compatibility.
 Fixed an issue with the prompt when setting variables whose current
 value was nil or a keyword.
 
+Fixed an issue with going to definitions when the source buffer was
+narrowed.
+
 # v0.13
 
 Buffer-local variables are now highlighted, and it's possible to see
