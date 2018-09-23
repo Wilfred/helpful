@@ -2360,7 +2360,8 @@ See also `helpful-max-buffers'."
     (define-key map (kbd "<backtab>") #'backward-button)
 
     (define-key map (kbd "n") #'forward-button)
-    (define-key map (kbd "p") #'backward-button))
+    (define-key map (kbd "p") #'backward-button)
+    map)
   "Keymap for `helpful-mode'.")
 
 (define-derived-mode helpful-mode special-mode "Helpful"
