@@ -1487,7 +1487,9 @@ POSITION-HEADS takes the form ((123 (defun foo)) (456 (defun bar)))."
     (let ((filename (find-lisp-object-file-name sym 'defvar)))
       (or (eq filename 'C-source)
           (and (stringp filename)
-               (equal (file-name-extension filename) "c")))))))
+               (let ((ext (file-name-extension filename)))
+                 (or (equal ext "c")
+                     (equal ext "rs")))))))))
 
 (defun helpful--sym-value (sym buf)
   "Return the value of SYM in BUF."
