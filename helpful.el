@@ -640,7 +640,7 @@ overrides that to include previously opened buffers."
     (let ((inhibit-read-only t))
       (erase-buffer)
 
-       ;; TODO: Macros used, special forms used, global vars used.
+      ;; TODO: Macros used, special forms used, global vars used.
       (insert (format "Functions called by %s:\n\n" sym))
       (helpful--display-callee-group compounds)
 
@@ -651,9 +651,7 @@ overrides that to include previously opened buffers."
 
       (goto-char (point-min))
 
-      ;; TODO: define our own mode, so we can move between links
-      ;; conveniently.
-      (special-mode))))
+      (helpful-mode))))
 
 (define-button-type 'helpful-manual-button
   'action #'helpful--manual
