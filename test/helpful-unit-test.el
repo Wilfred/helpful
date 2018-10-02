@@ -416,6 +416,9 @@ and that buffer has been killed, handle it gracefully."
    (eq (helpful--canonical-symbol 'not t)
        'null))
   (should
+   (eq (helpful--canonical-symbol 'search-forward-regexp t)
+       're-search-forward))
+  (should
    (eq (helpful--canonical-symbol 'emacs-bzr-version nil)
        'emacs-repository-version)))
 

@@ -18,6 +18,9 @@ narrowed.
 
 Navigation keybindings now work in callee list buffers.
 
+Fixed an issue where we didn't show function aliases as aliases when
+they pointed to a primitive function.
+
 # v0.13
 
 Buffer-local variables are now highlighted, and it's possible to see

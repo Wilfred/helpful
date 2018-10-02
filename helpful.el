@@ -200,10 +200,17 @@ press \\[keyboard-quit] to gracefully stop the printing."
 Return SYM otherwise."
   (let ((depth 0))
     (if (and (symbolp sym) callable-p)
-        (while (and (symbolp (symbol-function sym))
-                    (< depth 10))
-          (setq sym (symbol-function sym))
-          (setq depth (1+ depth)))
+        (progn
+          ;; Follow the chain of symbols until we find a symbol that
+          ;; isn't pointing to a symbol.
+          (while (and (symbolp (symbol-function sym))
+                      (< depth 10))
+            (setq sym (symbol-function sym))
+            (setq depth (1+ depth)))
+          ;; If this is an alias to a primitive, return the
+          ;; primitive's symbol.
+          (when (subrp (symbol-function sym))
+            (setq sym (intern (subr-name (symbol-function sym))))))
       (setq sym (indirect-variable sym))))
   sym)
 
