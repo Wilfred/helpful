@@ -1847,14 +1847,7 @@ state of the current symbol."
           ((buf pos opened)
            (if look-for-src
                (helpful--definition helpful--sym helpful--callable-p)
-             '(nil nil nil)))
-          (source (when look-for-src
-                    (helpful--source helpful--sym helpful--callable-p buf pos)))
-          (source-path (when buf
-                         (buffer-file-name buf)))
-          (references (helpful--calculate-references
-                       helpful--sym helpful--callable-p
-                       source-path)))
+             '(nil nil nil))))
 
     (erase-buffer)
 
@@ -1944,6 +1937,25 @@ state of the current symbol."
       (when (helpful--in-manual-p helpful--sym)
         (insert "\n\n")
         (insert (helpful--make-manual-button helpful--sym))))
+
+    ;; Update the rest of the buffer in a thread, since finding references and
+    ;; keybindings can take some time.
+    (if (fboundp 'make-thread)
+        (make-thread
+         (lambda ()
+           (helpful--update-rest start-line start-column primitive-p look-for-src buf pos opened)))
+      (helpful--update-rest start-line start-column primitive-p look-for-src buf pos opened))))
+
+(defun helpful--update-rest (start-line start-column primitive-p look-for-src buf pos opened)
+  "Update the rest of the current *Helpful* buffer."
+  (let* ((inhibit-read-only t)
+         (source (when look-for-src
+                   (helpful--source helpful--sym helpful--callable-p buf pos)))
+         (source-path (when buf
+                        (buffer-file-name buf)))
+         (references (helpful--calculate-references
+                      helpful--sym helpful--callable-p
+                      source-path)))
 
     ;; Show keybindings.
     ;; TODO: allow users to conveniently add and remove keybindings.
@@ -2093,10 +2105,10 @@ state of the current symbol."
 
     (goto-char (point-min))
     (forward-line (1- start-line))
-    (forward-char start-column)
+    (forward-char start-column))
 
-    (when opened
-      (kill-buffer buf))))
+  (when opened
+    (kill-buffer buf)))
 
 ;; TODO: this isn't sufficient for `edebug-eval-defun'.
 (defun helpful--skip-advice (docstring)

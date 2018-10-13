@@ -347,6 +347,8 @@ variables defined without `defvar'."
 (ert-deftest helpful-visit-reference ()
   "Smoke test for `helpful-visit-reference'."
   (helpful-function 'replace-regexp-in-string)
+  ;; Wait for the helpful buffer to be populated asynchronously
+  (sleep-for 0.1)
   (goto-char (point-min))
   ;; Move forward to the first reference.
   (while (not (get-text-property (point) 'helpful-pos))
@@ -375,6 +377,8 @@ buffers lying around."
     (setq expected-buffers
           (cons results-buffer
                 initial-buffers))
+    ;; Wait for the helpful buffer to be populated asynchronously
+    (sleep-for 0.1)
     (should
      (null
       (-difference (buffer-list) expected-buffers)))))
