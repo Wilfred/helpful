@@ -1,4 +1,8 @@
-# v0.14 (unreleased)
+# v0.15 (unreleased)
+
+No changes yet.
+
+# v0.14
 
 Named keyboard macros are now supported.
 
