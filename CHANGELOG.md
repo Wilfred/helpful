@@ -1,4 +1,8 @@
-# v0.15 (unreleased)
+# v0.16 (unreleased)
+
+No changes yet.
+
+# v0.15
 
 Fixed a crash on formatting values.
 
