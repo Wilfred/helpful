@@ -62,7 +62,7 @@
 (defvar-local helpful--associated-buffer nil
   "We store a reference to the buffer we were called from, so we can
 show the value of buffer-local variables.")
-(defvar-local helpful--view-literal t
+(defvar-local helpful--view-literal nil
   "Whether to show a value as a literal, or a pretty interactive
 view.")
 
