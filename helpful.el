@@ -1910,8 +1910,7 @@ state of the current symbol."
                 (consp val))
            (helpful--format-hook val))
           (t
-           (error "don't know how to format value of type %s"
-                  (type-of val))))
+           (helpful--pretty-print val)))
          "\n\n")
         (when multiple-views-p
           (insert (helpful--make-toggle-literal-button) " "))
