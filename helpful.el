@@ -1842,6 +1842,7 @@ state of the current symbol."
           (start-line (line-number-at-pos))
           (start-column (current-column))
           (primitive-p (helpful--primitive-p helpful--sym helpful--callable-p))
+          (canonical-sym (helpful--canonical-symbol helpful--sym helpful--callable-p))
           (look-for-src (or (not primitive-p)
                             find-function-C-source-directory))
           ((buf pos opened)
@@ -2045,7 +2046,10 @@ state of the current symbol."
     (helpful--insert-section-break)
 
     (insert
-     (helpful--heading "Source Code")
+     (helpful--heading
+      (if (eq helpful--sym canonical-sym)
+          "Source Code"
+        "Alias Source Code"))
      (cond
       (source-path
        (concat
@@ -2080,7 +2084,9 @@ state of the current symbol."
         (t
          (helpful--syntax-highlight
           (concat
-           ";; Source file is unknown, showing raw function object.\n"
+           (if (eq helpful--sym canonical-sym)
+               ";; Could not find source code, showing raw function object.\n"
+             ";; Could not find alias source code, showing raw function object.\n")
            (helpful--pretty-print source)))))))
 
     (helpful--insert-section-break)
