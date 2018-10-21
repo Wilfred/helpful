@@ -152,7 +152,7 @@ symbol (not a form)."
 (ert-deftest helpful--no-symbol-properties ()
   "Helpful should handle functions without any symbol properties."
   ;; Interactively evaluating this file will set edebug properties on
-  ;; test-foo, so remove all properties.
+  ;; test-foo-no-properties, so remove all properties.
   (setplist #'test-foo-no-properties nil)
 
   ;; This shouldn't throw any errors.
