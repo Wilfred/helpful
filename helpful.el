@@ -1862,7 +1862,7 @@ state of the current symbol."
     (insert (helpful--summary helpful--sym helpful--callable-p buf pos))
 
     (when (and helpful--callable-p
-	       (not (helpful--kbd-macro-p helpful--sym)))
+	           (not (helpful--kbd-macro-p helpful--sym)))
       (helpful--insert-section-break)
       (insert
        (helpful--heading "Signature")
