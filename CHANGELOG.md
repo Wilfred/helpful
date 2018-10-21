@@ -1,6 +1,6 @@
 # v0.16 (unreleased)
 
-No changes yet.
+Improved wording when looking at aliases.
 
 # v0.15
 
