@@ -1411,9 +1411,10 @@ along with its position.
 Moves point in BUF."
   (with-current-buffer buf
     (goto-char pos)
-    (let* ((ppss (syntax-ppss)))
-      (unless (zerop (syntax-ppss-depth ppss))
-        (beginning-of-defun)))
+    (let* ((ppss (syntax-ppss))
+           (outer-sexp-posns (nth 9 ppss)))
+      (when outer-sexp-posns
+        (goto-char (car outer-sexp-posns))))
     (list (point) (-take 2 (read buf)))))
 
 (defun helpful--count-values (items)

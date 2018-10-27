@@ -134,6 +134,8 @@ symbol (not a form)."
   (should (helpful--primitive-p 'rename-buffer t)))
 
 (ert-deftest helpful-callable ()
+  ;; Functions. Also a regression test for #170.
+  (helpful-callable 'face-attribute)
   ;; We should not crash when looking at macros.
   (helpful-callable 'when)
   ;; Special forms should work too.
