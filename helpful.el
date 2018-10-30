@@ -2076,7 +2076,11 @@ state of the current symbol."
       (insert
        (cond
         ((stringp source)
-         (helpful--syntax-highlight source (if primitive-p 'c-mode)))
+         (let ((mode (when primitive-p
+                       (pcase (file-name-extension source-path)
+                         ("c" 'c-mode)
+                         ("rs" (when (fboundp 'rust-mode) 'rust-mode))))))
+           (helpful--syntax-highlight source mode)))
         ((and (consp source) (eq (car source) 'closure))
          (helpful--syntax-highlight
           (concat ";; Closure converted to defun by helpful.\n"
