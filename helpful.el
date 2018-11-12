@@ -2337,7 +2337,7 @@ imenu."
   "Temporarily highlight region from START to END."
   (let ((overlay (make-overlay start end)))
     (overlay-put overlay 'face 'highlight)
-    (run-with-timer 1.0 nil 'delete-overlay overlay)))
+    (run-with-timer 1.5 nil 'delete-overlay overlay)))
 
 (defun helpful-visit-reference ()
   "Go to the reference at point."
