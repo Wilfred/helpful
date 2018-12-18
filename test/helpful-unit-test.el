@@ -457,6 +457,21 @@ associated a lambda with a keybinding."
     (with-current-buffer buf
       (helpful-update))))
 
+(ert-deftest helpful--obsolete-variable ()
+  "Test display of obsolete variable."
+  (let* ((var 'bookmark-read-annotation-text-func)
+         (info (helpful--format-obsolete-info var nil)))
+    (should
+     (equal info "This variable is obsolete since 23.1;
+use bookmark-edit-annotation-text-func instead."))))
+
+(ert-deftest helpful--obsolete-function ()
+  "Test display of obsolete function."
+  (let* ((fun 'ffap-submit-bug)
+         (info (helpful--format-obsolete-info fun t)))
+    (should
+     (equal info "This command is obsolete since 23.1; use report-emacs-bug instead."))))
+
 (ert-deftest helpful--keymap-keys--sparse ()
   (let* ((parent-keymap (make-sparse-keymap))
          (keymap (make-sparse-keymap)))

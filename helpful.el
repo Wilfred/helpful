@@ -152,6 +152,10 @@ can make Helpful very slow.")
   "Propertize TEXT as a heading."
   (format "%s\n" (propertize text 'face 'helpful-heading)))
 
+(defun helpful--warning (text)
+  "Propertize TEXT as a warning."
+  (format "%s\n" (propertize text 'face 'warning)))
+
 (defun helpful--format-closure (sym form)
   "Given a closure, return an equivalent defun form."
   (-let (((_keyword _env args . body) form)
@@ -233,10 +237,12 @@ Return SYM otherwise."
          (push s aliases))))
     (helpful--sort-symbols aliases)))
 
+(defun helpful--obsolete-info (sym callable-p)
+  (when (symbolp sym)
+    (get sym (if callable-p 'byte-obsolete-info 'byte-obsolete-variable))))
+
 (defun helpful--format-alias (sym callable-p)
-  (let ((obsolete-info (if callable-p
-                           (get sym 'byte-obsolete-info)
-                         (get sym 'byte-obsolete-variable)))
+  (let ((obsolete-info (helpful--obsolete-info sym callable-p))
         (sym-button (helpful--button
                      (symbol-name sym)
                      'helpful-describe-exactly-button
@@ -1862,6 +1868,11 @@ state of the current symbol."
 
     (insert (helpful--summary helpful--sym helpful--callable-p buf pos))
 
+    (when (helpful--obsolete-info helpful--sym helpful--callable-p)
+      (insert
+       "\n\n"
+       (helpful--format-obsolete-info helpful--sym helpful--callable-p)))
+
     (when (and helpful--callable-p
 	           (not (helpful--kbd-macro-p helpful--sym)))
       (helpful--insert-section-break)
@@ -2173,6 +2184,19 @@ For example, \"(some-func FOO &optional BAR)\"."
      (t
       ;; Otherwise, just use the signature from the source code.
       source-sig))))
+
+(defun helpful--format-obsolete-info (sym callable-p)
+  (-let [(use _ date) (helpful--obsolete-info sym callable-p)]
+    (helpful--propertize-quoted
+     (s-word-wrap
+      70
+      (format "This %s is obsolete%s%s"
+	      (helpful--kind-name sym callable-p)
+	      (if date (format " since %s" date)
+	        "")
+	      (cond ((stringp use) (concat "; " use))
+    		    (use (format "; use `%s' instead." use))
+    		    (t ".")))))))
 
 (defun helpful--docstring (sym callable-p)
   "Get the docstring for SYM.
