@@ -6,7 +6,7 @@
 ;; URL: https://github.com/Wilfred/helpful
 ;; Keywords: help, lisp
 ;; Version: 0.16
-;; Package-Requires: ((emacs "25.1") (dash "2.12.0") (dash-functional "1.2.0") (s "1.11.0") (f "0.20.0") (elisp-refs "1.2") (shut-up "0.3"))
+;; Package-Requires: ((emacs "25.1") (dash "2.12.0") (dash-functional "1.2.0") (s "1.11.0") (f "0.20.0") (elisp-refs "1.2"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -49,7 +49,6 @@
 (require 'dash-functional)
 (require 's)
 (require 'f)
-(require 'shut-up)
 (require 'find-func)
 (require 'nadvice)
 (require 'info-look)
@@ -1184,7 +1183,8 @@ If the source code cannot be found, return the sexp used."
 (defun helpful--in-manual-p (sym)
   "Return non-nil if SYM is in an Info manual."
   (let ((completions
-         (shut-up
+         (cl-letf (((symbol-function #'message)
+                    (lambda (_format-string &rest _args))))
            (info-lookup->completions 'symbol 'emacs-lisp-mode))))
     (-when-let (buf (get-buffer " temp-info-look"))
       (kill-buffer buf))
