@@ -140,7 +140,8 @@ bar")))
     (with-temp-buffer
       (insert "(defun test-foo-edebug () 44)")
       (goto-char (point-min))
-      (shut-up
+      (cl-letf (((symbol-function #'message)
+                 (lambda (_format-string &rest _args))))
         (eval (eval-sexp-add-defvars (edebug-read-top-level-form)) t))))
   (helpful-function #'test-foo-edebug))
 
@@ -397,7 +398,8 @@ variables defined without `defvar'."
       (with-temp-buffer
         (insert "(defun test-foo-edebug-defn () 44)")
         (goto-char (point-min))
-        (shut-up
+	(cl-letf (((symbol-function #'message)
+		   (lambda (_format-string &rest _args))))
           (eval (eval-sexp-add-defvars (edebug-read-top-level-form)) t))
 
         (-let [(buf pos opened) (helpful--definition 'test-foo-edebug-defn t)]
