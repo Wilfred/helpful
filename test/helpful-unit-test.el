@@ -13,6 +13,14 @@
 
   (setq jka-compr-verbose nil))
 
+(defvar helpful-test-var nil)
+(define-obsolete-variable-alias 'helpful-test-var-obsolete
+  'helpful-test-var "23.1")
+
+(defun helpful-test-fun-obsolete ()
+  (declare (obsolete helpful "1.2.3"))
+  nil)
+
 (defun test-foo ()
   "Docstring here."
   nil)
@@ -459,18 +467,17 @@ associated a lambda with a keybinding."
 
 (ert-deftest helpful--obsolete-variable ()
   "Test display of obsolete variable."
-  (let* ((var 'bookmark-read-annotation-text-func)
+  (let* ((var 'helpful-test-var-obsolete)
          (info (helpful--format-obsolete-info var nil)))
     (should
-     (equal info "This variable is obsolete since 23.1;
-use bookmark-edit-annotation-text-func instead."))))
+     (equal info "This variable is obsolete since 23.1; use helpful-test-var instead."))))
 
 (ert-deftest helpful--obsolete-function ()
   "Test display of obsolete function."
-  (let* ((fun 'ffap-submit-bug)
+  (let* ((fun 'helpful-test-fun-obsolete)
          (info (helpful--format-obsolete-info fun t)))
     (should
-     (equal info "This command is obsolete since 23.1; use report-emacs-bug instead."))))
+     (equal info "This function is obsolete since 1.2.3; use helpful instead."))))
 
 (ert-deftest helpful--keymap-keys--sparse ()
   (let* ((parent-keymap (make-sparse-keymap))
