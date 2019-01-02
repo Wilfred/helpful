@@ -612,7 +612,7 @@ in."
   (global-set-key (kbd "C-c M-S-d") #'helpful--dummy-command-alias)
 
   (unwind-protect
-      (let* ((keymaps (helpful--keymaps-containing-aliases #'helpful--dummy-command))
+      (let* ((keymaps (helpful--keymaps-containing-aliases #'helpful--dummy-command (helpful--aliases 'helpful--dummy-command t)))
              (global-keybindings (cdr (assoc "global-map" keymaps))))
         (should
          (equal global-keybindings (list "C-c M-S-c" "C-c M-S-d"))))
