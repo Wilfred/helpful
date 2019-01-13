@@ -371,6 +371,12 @@ variables defined without `defvar'."
    (equal (helpful--signature 'some-unused-function)
           "(some-unused-function [Arg list not available until function definition is loaded.])")))
 
+(ert-deftest helpful--signature-space ()
+  "Ensure that symbols with spaces are handled correctly."
+  (should
+   (equal (helpful--signature 'helpful-test-fn-with\ space)
+          "(helpful-test-fn-with\\ space)")))
+
 (ert-deftest helpful--signature--advertised ()
   "Ensure that we respect functions that declare `advertised-calling-convention'."
   (should
@@ -704,6 +710,17 @@ find the source code."
     (set-text-properties 0 (1- (length summary)) nil summary)
     (should
      (s-starts-with-p "if is a special form defined in" summary))))
+
+(defun helpful-test-fn-with\ space ()
+  42)
+
+(ert-deftest helpful--summary--symbol-with-space ()
+  "Ensure we correctly format symbols containing spaces."
+  (let* ((summary (helpful--summary 'helpful-test-fn-with\ space t nil nil)))
+    ;; Strip properties to make assertion messages more readable.
+    (set-text-properties 0 (1- (length summary)) nil summary)
+    (should
+     (s-starts-with-p "helpful-test-fn-with\\ space is a function" summary))))
 
 (ert-deftest helpful--bound-p ()
   ;; Functions.

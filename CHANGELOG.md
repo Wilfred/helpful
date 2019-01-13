@@ -2,6 +2,8 @@
 
 Improved wording when looking at aliases.
 
+Fixed several issues for symbols that contain spaces.
+
 # v0.15
 
 Fixed a crash on formatting values.

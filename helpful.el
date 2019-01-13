@@ -1736,7 +1736,9 @@ OBJ may be a symbol or a compiled function object."
     (s-word-wrap
      70
      (format "%s is %s %s %s."
-             (if (symbolp sym) sym "This lambda")
+             (if (symbolp sym)
+                 (format "%S" sym)
+               "This lambda")
              description kind defined))))
 
 (defun helpful--callees (form)
@@ -2162,11 +2164,11 @@ For example, \"(some-func FOO &optional BAR)\"."
                       (s-join " " formatted-args)))
              ;; If it has multiple arguments, join them with spaces.
              (formatted-args
-              (format "(%s %s)" sym
+              (format "(%S %s)" sym
                       (s-join " " formatted-args)))
              ;; Otherwise, this function takes no arguments when called.
              (t
-              (format "(%s)" sym)))))
+              (format "(%S)" sym)))))
 
     ;; If the docstring ends with (fn FOO BAR), extract that.
     (-when-let (docstring (documentation sym))
@@ -2230,9 +2232,9 @@ escapes that are used by `substitute-command-keys'."
              (rx ": " eos)
              (format " (default: %s): " default-val)
              prompt)))
-    (read (completing-read prompt obarray
-                           predicate t nil nil
-                           default-val))))
+    (intern (completing-read prompt obarray
+                             predicate t nil nil
+                             default-val))))
 
 ;;;###autoload
 (defun helpful-function (symbol)
