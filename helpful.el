@@ -1874,7 +1874,7 @@ state of the current symbol."
        (helpful--format-obsolete-info helpful--sym helpful--callable-p)))
 
     (when (and helpful--callable-p
-	           (not (helpful--kbd-macro-p helpful--sym)))
+	       (not (helpful--kbd-macro-p helpful--sym)))
       (helpful--insert-section-break)
       (insert
        (helpful--heading "Signature")
