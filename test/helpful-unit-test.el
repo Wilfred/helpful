@@ -330,6 +330,8 @@ variables defined without `defvar'."
   (require 'python)
   ;; This test will fail if you already have python.el.gz open in your
   ;; Emacs instance.
+  (skip-unless (null (get-buffer "python.el.gz")))
+
   (-let [(buf pos opened) (helpful--definition 'python-indent-offset nil)]
     (should (bufferp buf))
     (should opened)))
