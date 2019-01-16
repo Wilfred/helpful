@@ -1172,7 +1172,8 @@ LIBRARY-NAME takes the form \"foo.el\" , \"foo.el\" or
 \"src/foo.c\".
 
 If .elc files exist without the corresponding .el, return nil."
-  (when (member (f-ext library-name) '("c" "rs"))
+  (when (and find-function-C-source-directory
+             (member (f-ext library-name) '("c" "rs")))
     (setq library-name
           (f-expand library-name
                     (f-parent find-function-C-source-directory))))
