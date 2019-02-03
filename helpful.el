@@ -657,10 +657,10 @@ overrides that to include previously opened buffers."
       (insert (format "Functions called by %s:\n\n" sym))
       (helpful--display-callee-group compounds)
 
-      (insert "\n")
-
-      (insert (format "Primitives called by %s:\n\n" sym))
-      (helpful--display-callee-group primitives)
+      (when primitives
+        (insert "\n")
+        (insert (format "Primitives called by %s:\n\n" sym))
+        (helpful--display-callee-group primitives))
 
       (goto-char (point-min))
 
