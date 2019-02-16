@@ -14,6 +14,8 @@ macros.
 
 Fixed issues with functions that had more than one advice active.
 
+Added looking up C-style Lisp names.
+
 # v0.15
 
 Fixed a crash on formatting values.

@@ -866,3 +866,17 @@ find the source code."
   (helpful-variable 'inhibit-read-only)
   (should
    (s-contains-p "Value\nnil" (buffer-string))))
+
+(ert-deftest helpful--convert-c-name ()
+  (should
+   (equal
+    'make-string
+    (helpful--convert-c-name 'Fmake_string nil)))
+  (should
+   (equal
+    'gc-cons-percentage
+    (helpful--convert-c-name 'Vgc_cons_percentage t)))
+  (should-not
+   (helpful--convert-c-name 'Fmake_string t))
+  (should-not
+   (helpful--convert-c-name 'Vgc_cons_percentage nil)))
