@@ -9,6 +9,8 @@ Fixed an issue when viewing `inhibit-read-only`.
 Improved the buffer prompt to be more relevant when inspecting
 buffer-local values.
 
+Added looking up C-style Lisp names.
+
 # v0.15
 
 Fixed a crash on formatting values.

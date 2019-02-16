@@ -2334,6 +2334,20 @@ or :foo."
   (or (fboundp symbol)
       (helpful--variable-p symbol)))
 
+(defun helpful--convert-c-name (symbol var)
+  "Convert SYMBOL from a C name to an Elisp name.
+E.g. convert `Fmake_string' to `make-string' or
+`Vgc_cons_percentage' to `gc-cons-percentage'. Interpret
+SYMBOL as variable name if VAR, else a function name. Return
+nil if SYMBOL doesn't begin with \"F\" or \"V\"."
+  (let ((string (symbol-name symbol))
+        (prefix (if var "V" "F")))
+    (when (string-prefix-p prefix string)
+      (intern
+       (string-remove-prefix
+        prefix
+        (replace-regexp-in-string "_" "-" string))))))
+
 ;;;###autoload
 (defun helpful-symbol (symbol)
   "Show help for SYMBOL, a variable, function or macro.
@@ -2352,6 +2366,14 @@ See also `helpful-callable' and `helpful-variable'."
     (helpful-callable symbol))
    ((boundp symbol)
     (helpful-variable symbol))
+   ((let ((fsym (helpful--convert-c-name symbol nil)))
+      (when (fboundp fsym)
+        (helpful-callable fsym)
+        fsym)))
+   ((let ((vsym (helpful--convert-c-name symbol t)))
+      (when (boundp vsym)
+        (helpful-variable vsym)
+        vsym)))
    (t
     (user-error "Not bound: %S" symbol))))
 
