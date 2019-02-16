@@ -6,6 +6,9 @@ Fixed several issues for symbols that contain spaces.
 
 Fixed an issue when viewing `inhibit-read-only`.
 
+Improved the buffer prompt to be more relevant when inspecting
+buffer-local values.
+
 # v0.15
 
 Fixed a crash on formatting values.

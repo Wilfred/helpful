@@ -60,8 +60,10 @@
 (defvar-local helpful--sym nil)
 (defvar-local helpful--callable-p nil)
 (defvar-local helpful--associated-buffer nil
-  "We store a reference to the buffer we were called from, so we can
-show the value of buffer-local variables.")
+  "The buffer being used when showing inspecting
+buffer-local variables.")
+(defvar-local helpful--start-buffer nil
+  "The buffer we were originally called from.")
 (defvar-local helpful--view-literal nil
   "Whether to show a value as a literal, or a pretty interactive
 view.")
@@ -141,6 +143,7 @@ can make Helpful very slow.")
       (helpful-mode)
       (setq helpful--sym symbol)
       (setq helpful--callable-p callable-p)
+      (setq helpful--start-buffer current-buffer)
       (setq helpful--associated-buffer current-buffer))
     buf))
 
@@ -509,12 +512,35 @@ If narrowing is in effect, widen if POS isn't in the narrowed area."
 
 This is largely equivalent to `read-buffer', but counsel.el
 overrides that to include previously opened buffers."
-  (get-buffer
-   (completing-read
-    prompt
-    (-map #'buffer-name (buffer-list))
-    predicate
-    t)))
+  (let* ((names (-map #'buffer-name (buffer-list)))
+         (default
+           (cond
+            ;; If we're already looking at a buffer-local value, start
+            ;; the prompt from the relevant buffer.
+            ((and helpful--associated-buffer
+                  (buffer-live-p helpful--associated-buffer))
+             (buffer-name helpful--associated-buffer))
+            ;; If we're looking at the global value, offer the initial
+            ;; buffer.
+            ((and helpful--start-buffer
+                  (buffer-live-p helpful--start-buffer))
+             (buffer-name helpful--start-buffer))
+            ;; If we're looking at the global value and have no initial
+            ;; buffer, choose the first normal buffer.
+            (t
+             (--first (and (not (s-starts-with-p " " it))
+                           (not (s-starts-with-p "*" it)))
+                      names))
+            )))
+    (get-buffer
+     (completing-read
+      prompt
+      names
+      predicate
+      t
+      nil
+      nil
+      default))))
 
 (defun helpful--associated-buffer (button)
   "Change the associated buffer, so we can see buffer-local values."
