@@ -842,3 +842,8 @@ find the source code."
     (should (helpful--autoloaded-p 'rx-to-string buf))
     (when opened
       (kill-buffer buf))))
+
+(ert-deftest helpful--inhibit-read-only ()
+  (helpful-variable 'inhibit-read-only)
+  (should
+   (s-contains-p "Value\nnil" (buffer-string))))

@@ -1846,7 +1846,12 @@ state of the current symbol."
   (cl-assert (not (null helpful--sym)))
   (unless (buffer-live-p helpful--associated-buffer)
     (setq helpful--associated-buffer nil))
-  (-let* ((inhibit-read-only t)
+  (-let* ((val
+           ;; Look at the value before setting `inhibit-read-only', so
+           ;; users can see the correct value of that variable.
+           (unless helpful--callable-p
+             (helpful--sym-value helpful--sym helpful--associated-buffer)))
+          (inhibit-read-only t)
           (start-line (line-number-at-pos))
           (start-column (current-column))
           (primitive-p (helpful--primitive-p helpful--sym helpful--callable-p))
@@ -1885,7 +1890,6 @@ state of the current symbol."
     (when (not helpful--callable-p)
       (helpful--insert-section-break)
       (let* ((sym helpful--sym)
-             (val (helpful--sym-value sym helpful--associated-buffer))
              (multiple-views-p
               (or (stringp val)
                   (keymapp val)

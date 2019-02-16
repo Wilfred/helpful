@@ -4,6 +4,8 @@ Improved wording when looking at aliases.
 
 Fixed several issues for symbols that contain spaces.
 
+Fixed an issue when viewing `inhibit-read-only`.
+
 # v0.15
 
 Fixed a crash on formatting values.
