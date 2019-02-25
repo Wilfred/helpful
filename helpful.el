@@ -1518,7 +1518,7 @@ E.g. (x x y z y) -> ((x . 2) (y . 2) (z . 1))"
 (defun helpful--without-advice (sym)
   "Given advised function SYM, return the function object
 without the advice."
-  (advice--cdr
+  (advice--cd*r
    (advice--symbol-function sym)))
 
 (defun helpful--advised-p (sym)

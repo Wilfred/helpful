@@ -12,6 +12,8 @@ buffer-local values.
 Better source detection for functions defined by `defstruct` or other
 macros.
 
+Fixed issues with functions that had more than one advice active.
+
 # v0.15
 
 Fixed a crash on formatting values.

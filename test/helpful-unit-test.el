@@ -141,6 +141,18 @@ symbol (not a form)."
   ;; `rename-buffer' is primitive, but it's advised by uniquify.
   (should (helpful--primitive-p 'rename-buffer t)))
 
+(ert-deftest helpful--without-advice ()
+  "Ensure we remove advice to get the underlying function."
+  ;; Removing the advice on an unadvised function should give us the
+  ;; same function.
+  (should
+   (eq (helpful--without-advice #'test-foo)
+       (indirect-function #'test-foo)))
+  ;; Removing the advice should give us an unadvised function.
+  (should
+   (not (helpful--advised-p
+         (helpful--without-advice #'test-foo-advised)))))
+
 (ert-deftest helpful-callable ()
   ;; Functions. Also a regression test for #170.
   (helpful-callable 'face-attribute)
