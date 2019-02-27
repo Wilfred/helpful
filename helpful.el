@@ -1206,6 +1206,59 @@ If .elc files exist without the corresponding .el, return nil."
       (find-library-name library-name)
     (error nil)))
 
+(defun helpful--macroexpand-try (form)
+  "Try to fully macroexpand FORM.
+If it fails, attempt to partially macroexpand FORM."
+  (catch 'result
+    (ignore-errors
+      ;; Happy path: we can fully expand the form.
+      (throw 'result (macroexpand-all form)))
+    (ignore-errors
+      ;; Attempt one level of macroexpansion.
+      (throw 'result (macroexpand-1 form)))
+    ;; Fallback: just return the original form.
+    form))
+
+(defun helpful--tree-any-p (pred tree)
+  "Walk TREE, applying PRED to every subtree.
+Return t if PRED ever returns t."
+  (cond
+   ((null tree) nil)
+   ((funcall pred tree) t)
+   ((not (consp tree)) nil)
+   (t (or
+       (helpful--tree-any-p pred (car tree))
+       (helpful--tree-any-p pred (cdr tree))))))
+
+(defun helpful--find-by-macroexpanding (buf sym callable-p)
+  "Search BUF for the definition of SYM by macroexpanding
+interesting forms in BUF."
+  (catch 'found
+    (with-current-buffer buf
+      (save-excursion
+        (goto-char (point-min))
+        (condition-case nil
+            (while t
+              (let ((form (read (current-buffer)))
+                    (var-def-p
+                     (lambda (sexp)
+                       (and (eq (car-safe sexp) 'defvar)
+                            (eq (car-safe (cdr sexp)) sym))))
+                    (fn-def-p
+                     (lambda (sexp)
+                       ;; `defun' ultimately expands to `defalias'.
+                       (and (eq (car-safe sexp) 'defalias)
+                            (equal (car-safe (cdr sexp)) `(quote ,sym))))))
+                (setq form (helpful--macroexpand-try form))
+
+                (when (helpful--tree-any-p
+                       (if callable-p fn-def-p var-def-p)
+                       form)
+                  ;; `read' puts point at the end of the form, so go
+                  ;; back to the start.
+                  (throw 'found (scan-sexps (point) -1)))))
+          (end-of-file nil))))))
+
 (defun helpful--definition (sym callable-p)
   "Return a list (BUF POS OPENED) where SYM is defined.
 
@@ -1271,7 +1324,12 @@ buffer."
             (save-restriction
               (widen)
               (setq pos
-                    (cdr (find-function-search-for-symbol sym nil library-name))))))))
+                    (cdr (find-function-search-for-symbol sym nil library-name))))))
+        ;; If we found the containing buffer, but not the symbol, attempt
+        ;; to find it by macroexpanding interesting forms.
+        (when (and buf (not pos))
+          (setq pos (helpful--find-by-macroexpanding buf sym t)))))
+     ;; A function, but no file found.
      (callable-p
       ;; Functions defined interactively may have an edebug property
       ;; that contains the location of the definition.

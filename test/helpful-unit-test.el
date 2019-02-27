@@ -352,6 +352,13 @@ variables defined without `defvar'."
         (-let [(buf pos opened) (helpful--definition 'test-foo-edebug-defn t)]
           (should buf))))))
 
+(ert-deftest helpful--definition-defstruct ()
+  "Ensure we find the position of struct functions."
+  (-let [(buf pos _)
+         (helpful--definition #'make-ert-test t)]
+    (should buf)
+    (should pos)))
+
 (ert-deftest helpful-variable ()
   "Smoke test for `helpful-variable'."
   (helpful-variable 'tab-width))
