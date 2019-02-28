@@ -1745,11 +1745,11 @@ OBJ may be a symbol or a compiled function object."
             "special form"
             'helpful-info-button
             'info-node "(elisp)Special Forms"))
-	  (keyboard-macro-button
-	   (helpful--button
-	    "keyboard macro"
-	    'helpful-info-button
-	    'info-node "(elisp)Keyboard Macros"))
+          (keyboard-macro-button
+           (helpful--button
+            "keyboard macro"
+            'helpful-info-button
+            'info-node "(elisp)Keyboard Macros"))
           (interactive-button
            (helpful--button
             "interactive"
@@ -1798,7 +1798,7 @@ OBJ may be a symbol or a compiled function object."
                       'callable-p callable-p)))
             ((not callable-p) "variable")
             ((macrop sym) "macro")
-	    ((helpful--kbd-macro-p sym) keyboard-macro-button)
+            ((helpful--kbd-macro-p sym) keyboard-macro-button)
             (t "function")))
           (defined
             (cond
@@ -1965,7 +1965,7 @@ state of the current symbol."
        (helpful--format-obsolete-info helpful--sym helpful--callable-p)))
 
     (when (and helpful--callable-p
-	       (not (helpful--kbd-macro-p helpful--sym)))
+               (not (helpful--kbd-macro-p helpful--sym)))
       (helpful--insert-section-break)
       (insert
        (helpful--heading "Signature")
@@ -2280,12 +2280,12 @@ For example, \"(some-func FOO &optional BAR)\"."
      (s-word-wrap
       70
       (format "This %s is obsolete%s%s"
-	      (helpful--kind-name sym callable-p)
-	      (if date (format " since %s" date)
-	        "")
-	      (cond ((stringp use) (concat "; " use))
-    		    (use (format "; use `%s' instead." use))
-    		    (t ".")))))))
+              (helpful--kind-name sym callable-p)
+              (if date (format " since %s" date)
+                "")
+              (cond ((stringp use) (concat "; " use))
+                    (use (format "; use `%s' instead." use))
+                    (t ".")))))))
 
 (defun helpful--docstring (sym callable-p)
   "Get the docstring for SYM.
