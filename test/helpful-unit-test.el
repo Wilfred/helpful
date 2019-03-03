@@ -880,3 +880,14 @@ find the source code."
    (helpful--convert-c-name 'Fmake_string t))
   (should-not
    (helpful--convert-c-name 'Vgc_cons_percentage nil)))
+
+(ert-deftest helpful--loads-autoload-symbol ()
+  "When asked to describe an autoloaded symbol, just load it."
+  ;; This test assumes that you haven't loaded tetris.el.gz in your
+  ;; current instance.
+  (skip-unless (autoloadp (symbol-function 'tetris)))
+  ;; This is a regression test: `tetris' has `tetris-mode-map' in its
+  ;; docstring, so we can't display the mode map unless tetris.el.gz is
+  ;; loaded.
+  ;;
+  (helpful-function #'tetris))

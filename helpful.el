@@ -1926,6 +1926,14 @@ may contain duplicates."
      (-flatten
       (-map #'helpful--callees-1 (cdr form)))))))
 
+(defun helpful--ensure-loaded ()
+  "Ensure the symbol associated with the current buffer has been loaded."
+  (when (and helpful--callable-p
+             (symbolp helpful--sym))
+    (let ((fn-obj (helpful--without-advice helpful--sym)))
+      (when (autoloadp fn-obj)
+        (autoload-do-load fn-obj)))))
+
 (defun helpful-update ()
   "Update the current *Helpful* buffer to the latest
 state of the current symbol."
@@ -1933,6 +1941,7 @@ state of the current symbol."
   (cl-assert (not (null helpful--sym)))
   (unless (buffer-live-p helpful--associated-buffer)
     (setq helpful--associated-buffer nil))
+  (helpful--ensure-loaded)
   (-let* ((val
            ;; Look at the value before setting `inhibit-read-only', so
            ;; users can see the correct value of that variable.
