@@ -144,7 +144,10 @@ can make Helpful very slow.")
       (setq helpful--sym symbol)
       (setq helpful--callable-p callable-p)
       (setq helpful--start-buffer current-buffer)
-      (setq helpful--associated-buffer current-buffer))
+      (setq helpful--associated-buffer current-buffer)
+      (if (helpful--primitive-p symbol callable-p)
+          (setq-local comment-start "//")
+        (setq-local comment-start ";")))
     buf))
 
 (defface helpful-heading

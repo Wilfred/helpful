@@ -16,6 +16,9 @@ Fixed issues with functions that had more than one advice active.
 
 Added looking up C-style Lisp names.
 
+Set `comment-start` inside helpful buffers, to fix external packages
+relying on that variable.
+
 # v0.15
 
 Fixed a crash on formatting values.
