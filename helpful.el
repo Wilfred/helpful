@@ -972,7 +972,8 @@ unescaping too."
           (forward-char 1))
          ((looking-at
            ;; Text of the form \\<foo-keymap>
-           (rx "\\<" (group (+ (not (in ">")))) ">"))
+           (rx "\\<" (group (+ (not (in ">")))) ">"
+               (? "\n")))
           (let* ((symbol-with-parens (match-string 0))
                  (symbol-name (match-string 1)))
             ;; Remove the original string.

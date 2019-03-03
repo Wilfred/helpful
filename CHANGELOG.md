@@ -1,6 +1,7 @@
 # v0.17 (unreleased)
 
-No changes yet.
+Fixed a minor docstring formatting issue when keymap references were
+on their own line.
 
 # v0.16
 

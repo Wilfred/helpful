@@ -75,6 +75,17 @@
     (should
      (string-equal formatted-docstring "M-n"))))
 
+(ert-deftest helpful--docstring-keymap-newline ()
+  "If a keymap reference is on its own line, remove the entire line."
+  (should
+   (string-equal
+    (helpful--format-docstring "Foo.
+\\<minibuffer-local-map>
+bar")
+    "Foo.
+
+bar")))
+
 (ert-deftest helpful--docstring-advice ()
   "Get the docstring on advised functions."
   (should
