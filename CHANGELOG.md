@@ -1,4 +1,8 @@
-# v0.16 (unreleased)
+# v0.17 (unreleased)
+
+No changes yet.
+
+# v0.16
 
 Improved wording when looking at aliases.
 
