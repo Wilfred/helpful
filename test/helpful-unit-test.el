@@ -892,6 +892,13 @@ find the source code."
   (should-not
    (helpful--convert-c-name 'Vgc_cons_percentage nil)))
 
+(ert-deftest helpful-symbol-unbound ()
+  "Ensure we inform the user if we're given an unbound symbol."
+  (should
+   (condition-case _
+       (helpful-symbol 'notboundtoanything)
+     ('user-error t))))
+
 (ert-deftest helpful--loads-autoload-symbol ()
   "When asked to describe an autoloaded symbol, just load it."
   ;; This test assumes that you haven't loaded tetris.el.gz in your

@@ -2426,27 +2426,25 @@ nil if SYMBOL doesn't begin with \"F\" or \"V\"."
 See also `helpful-callable' and `helpful-variable'."
   (interactive
    (list (helpful--read-symbol "Symbol: " #'helpful--bound-p)))
-  (cond
-   ((and (boundp symbol) (fboundp symbol))
-    (if (y-or-n-p
-         (format "%s is a both a variable and a callable, show variable?"
-                 symbol))
-        (helpful-variable symbol)
-      (helpful-callable symbol)))
-   ((fboundp symbol)
-    (helpful-callable symbol))
-   ((boundp symbol)
-    (helpful-variable symbol))
-   ((let ((fsym (helpful--convert-c-name symbol nil)))
-      (when (fboundp fsym)
-        (helpful-callable fsym)
-        fsym)))
-   ((let ((vsym (helpful--convert-c-name symbol t)))
-      (when (boundp vsym)
-        (helpful-variable vsym)
-        vsym)))
-   (t
-    (user-error "Not bound: %S" symbol))))
+  (let ((c-var-sym (helpful--convert-c-name symbol nil))
+        (c-fn-sym (helpful--convert-c-name symbol t)))
+    (cond
+     ((and (boundp symbol) (fboundp symbol))
+      (if (y-or-n-p
+           (format "%s is a both a variable and a callable, show variable?"
+                   symbol))
+          (helpful-variable symbol)
+        (helpful-callable symbol)))
+     ((fboundp symbol)
+      (helpful-callable symbol))
+     ((boundp symbol)
+      (helpful-variable symbol))
+     ((and c-fn-sym (fboundp c-fn-sym))
+      (helpful-callable c-fn-sym))
+     ((and c-var-sym (boundp c-var-sym))
+      (helpful-variable c-var-sym))
+     (t
+      (user-error "Not bound: %S" symbol)))))
 
 ;;;###autoload
 (defun helpful-variable (symbol)
