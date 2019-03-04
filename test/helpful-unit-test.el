@@ -890,7 +890,13 @@ find the source code."
   (should-not
    (helpful--convert-c-name 'Fmake_string t))
   (should-not
-   (helpful--convert-c-name 'Vgc_cons_percentage nil)))
+   (helpful--convert-c-name 'Vgc_cons_percentage nil))
+  ;; Adding helpful--convert-c-name caused a bug in
+  ;; helpful-symbol, so make sure that's fixed.
+  (should
+   (condition-case _
+       (helpful-symbol 'notboundtoanything)
+     ('user-error t))))
 
 (ert-deftest helpful--loads-autoload-symbol ()
   "When asked to describe an autoloaded symbol, just load it."
