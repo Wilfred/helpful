@@ -46,6 +46,17 @@
     (helpful--docstring #'test-foo t)
     "Docstring here.")))
 
+(ert-deftest helpful--advice-info ()
+  "Advice docstring."
+  (should
+   (equal
+    (helpful--advise-info #'test-foo-advised)
+    ":around advice: ‘ad-Advice-test-foo-advised’\n"))
+  (should
+   (equal
+    (helpful--advise-info #'test-foo)
+    nil)))
+
 (ert-deftest helpful--docstring-symbol ()
   "Correctly handle quotes around symbols."
   ;; We should replace quoted symbols with links, so the punctuation
