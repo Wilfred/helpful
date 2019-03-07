@@ -1935,6 +1935,15 @@ may contain duplicates."
       (when (autoloadp fn-obj)
         (autoload-do-load fn-obj)))))
 
+;; backward-compatible with emacs 25
+(unless (fboundp 'advice--where)
+  (defun advice--where (f)
+    (let ((bytecode (aref f 1))
+          (where nil))
+      (dolist (elem advice--where-alist)
+        (if (eq bytecode (cadr elem)) (setq where (car elem))))
+      where)))
+
 (defun helpful--advise-info (function)
   (let* ((flist (indirect-function function))
          (docfun nil)
