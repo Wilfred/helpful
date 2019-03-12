@@ -1935,6 +1935,48 @@ may contain duplicates."
       (when (autoloadp fn-obj)
         (autoload-do-load fn-obj)))))
 
+;; backward-compatible with emacs 25
+(unless (fboundp 'advice--where)
+  (defun advice--where (f)
+    (let ((bytecode (aref f 1))
+          (where nil))
+      (dolist (elem advice--where-alist)
+        (if (eq bytecode (cadr elem)) (setq where (car elem))))
+      where)))
+
+(defun helpful--advise-info (function)
+  (let* ((flist (indirect-function function))
+         (docfun nil)
+         (docstring nil))
+    (if (eq 'macro (car-safe flist)) (setq flist (cdr flist)))
+    (while (advice--p flist)
+      (let ((doc (aref flist 4))
+            (where (advice--where flist)))
+        ;; Hack attack!  For advices installed before calling
+        ;; Snarf-documentation, the integer offset into the DOC file will not
+        ;; be installed in the "core unadvised function" but in the advice
+        ;; object instead!  So here we try to undo the damage.
+        (if (integerp doc) (setq docfun flist))
+        (setq docstring
+              (concat
+               docstring
+               (propertize (format "%s advice: " where)
+                           'face 'warning)
+               (let ((fun (advice--car flist)))
+                 (if (symbolp fun) (format-message "`%S'" fun)
+                   (let* ((name (cdr (assq 'name (advice--props flist))))
+                          (doc (documentation fun t))
+                          (usage (help-split-fundoc doc function)))
+                     (if usage (setq doc (cdr usage)))
+                     (if name
+                         (if doc
+                             (format "%s\n%s" name doc)
+                           (format "%s" name))
+                       (or doc "No documentation")))))
+               "\n")))
+      (setq flist (advice--cdr flist)))
+    docstring))
+
 (defun helpful-update ()
   "Update the current *Helpful* buffer to the latest
 state of the current symbol."
@@ -2108,8 +2150,10 @@ state of the current symbol."
       (helpful--insert-section-break)
       (insert
        (helpful--heading "Advice")
-       (format "This %s is advised."
-               (if (macrop helpful--sym) "macro" "function"))))
+       (format "This %s is advised.\n"
+               (if (macrop helpful--sym) "macro" "function"))
+       (helpful--advise-info helpful--sym)
+       ))
 
     (let ((can-edebug
            (helpful--can-edebug-p helpful--sym helpful--callable-p buf pos))
