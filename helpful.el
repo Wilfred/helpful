@@ -1764,6 +1764,11 @@ OBJ may be a symbol or a compiled function object."
             "autoloaded"
             'helpful-info-button
             'info-node "(elisp)Autoload"))
+          (compiled-button
+           (helpful--button
+            "compiled"
+            'helpful-info-button
+            'info-node "(elisp)Byte Compilation"))
           (buffer-local-button
            (helpful--button
             "buffer-local"
@@ -1771,24 +1776,31 @@ OBJ may be a symbol or a compiled function object."
             'info-node "(elisp)Buffer-Local Variables"))
           (autoloaded-p
            (and callable-p buf (helpful--autoloaded-p sym buf)))
+          (compiled-p (and callable-p (byte-code-function-p (symbol-function sym))))
           (description
-           (cond
-            (alias-p
-             (format "%s %s"
-                     (if callable-p "a" "an")
-                     alias-button))
-            ((and callable-p (commandp sym) autoloaded-p)
-             (format "an %s, %s" interactive-button autoload-button))
-            ((helpful--kbd-macro-p sym) "a")
-            ((and callable-p (commandp sym))
-             (format "an %s" interactive-button))
-            ((and callable-p autoloaded-p)
-             (format "an %s" autoload-button))
-            ((and (not callable-p)
-                  (local-variable-if-set-p sym))
-             (format "a %s" buffer-local-button))
-            (t
-             "a")))
+           (concat
+            (cond
+             (alias-p
+              (format "%s %s"
+                      (if callable-p "a" "an")
+                      alias-button))
+             ((and callable-p (commandp sym) autoloaded-p)
+              (format "an %s, %s" interactive-button autoload-button))
+             ((helpful--kbd-macro-p sym) "a")
+             ((and callable-p (commandp sym))
+              (format "an %s" interactive-button))
+             ((and callable-p autoloaded-p)
+              (format "an %s" autoload-button))
+             ((and (not callable-p)
+                   (local-variable-if-set-p sym))
+              (format "a %s" buffer-local-button))
+             (t
+              "a"))
+            (if compiled-p
+                (format "%s %s"
+                        (if (or (commandp sym) autoloaded-p) "," "")
+                        compiled-button))
+            ""))
           (kind
            (cond
             ((special-form-p sym)
