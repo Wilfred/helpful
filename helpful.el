@@ -1935,6 +1935,16 @@ may contain duplicates."
       (when (autoloadp fn-obj)
         (autoload-do-load fn-obj)))))
 
+(defun helpful--hook-p (symbol value)
+  "Does SYMBOL look like a hook?"
+  (and
+   (or
+    (s-ends-with-p "-hook" (symbol-name symbol))
+    ;; E.g. `after-change-functions', which can be used with
+    ;; `add-hook'.
+    (s-ends-with-p "-functions" (symbol-name symbol)))
+   (consp value)))
+
 (defun helpful-update ()
   "Update the current *Helpful* buffer to the latest
 state of the current symbol."
@@ -1990,8 +2000,7 @@ state of the current symbol."
              (multiple-views-p
               (or (stringp val)
                   (keymapp val)
-                  (and (s-ends-with-p "-hook" (symbol-name sym))
-                       (consp val)))))
+                  (helpful--hook-p sym val))))
         (insert
          (helpful--heading
           (cond
@@ -2022,8 +2031,7 @@ state of the current symbol."
           ;; links to the commands bound.
           ((keymapp val)
            (helpful--format-keymap val))
-          ((and (s-ends-with-p "-hook" (symbol-name sym))
-                (consp val))
+          ((helpful--hook-p sym val)
            (helpful--format-hook val))
           (t
            (helpful--pretty-print val)))

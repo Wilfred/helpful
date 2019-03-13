@@ -3,6 +3,9 @@
 Fixed a minor docstring formatting issue when keymap references were
 on their own line.
 
+Symbols of the form `foo-functions` (e.g. `after-change-functions`)
+are now rendered as hooks.
+
 # v0.16
 
 Improved wording when looking at aliases.
