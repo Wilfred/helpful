@@ -964,6 +964,16 @@ unescaping too."
       (while (not (eobp))
         (cond
          ((looking-at
+           (rx "\""))
+          (looking-at
+           ;; Text of the form "foo"
+           (rx "\""))
+          ;; Don't do anything with literal strings.
+          ;; Step over opening doublequote.
+          (forward-char 1)
+          ;; Move past closing doublequote.
+          (search-forward "\""))
+         ((looking-at
            ;; Text of the form \=X
            (rx "\\="))
           ;; Remove the escaping, then step over the escaped char.

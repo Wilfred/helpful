@@ -65,6 +65,16 @@
     (should
      (not (s-contains-p "\\=" formatted-docstring)))))
 
+(ert-deftest helpful--docstring-strings ()
+  "Double-quoted strings should be treated literally."
+  (let* ((formatted-docstring
+          (helpful--format-docstring
+           "hello \"\\[foo]\" world")))
+    ;; This test will fail in a local Emacs instance that has modified
+    ;; minibuffer keybindings.
+    (should
+     (string-equal formatted-docstring "hello \"\\[foo]\" world"))))
+
 (ert-deftest helpful--docstring-keymap ()
   "Handle keymap references in docstrings."
   (let* ((formatted-docstring
