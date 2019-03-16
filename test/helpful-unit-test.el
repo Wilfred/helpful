@@ -56,7 +56,11 @@
   ;; We should handle stray backquotes.
   (let* ((formatted-docstring (helpful--format-docstring "`foo `message'")))
     (should
-     (equal formatted-docstring "`foo message"))))
+     (equal formatted-docstring "`foo message")))
+  ;; Handle a missing closing '.
+  (let* ((formatted-docstring (helpful--format-docstring "`foo")))
+    (should
+     (equal formatted-docstring "`foo"))))
 
 (ert-deftest helpful--docstring-unescape ()
   "Discard \\=\\= in docstrings."
@@ -266,13 +270,15 @@ symbol (not a form)."
     (should
      (eq
       (get-text-property 0 'face formatted)
-      'button)))
-  ;; Propertize mode maps.
-  (-let [formatted (helpful--format-docstring "`\\{python-mode-map}'")]
+      'button))))
+
+(ert-deftest helpful--format-docstring-mode-maps ()
+  "Ensure we propertize references to keymaps."
+  (-let [formatted (helpful--format-docstring "\\{python-mode-map}")]
     (should
      (s-contains-p "run-python" formatted)))
   ;; Handle non-existent mode maps gracefully.
-  (-let [formatted (helpful--format-docstring "`\\{no-such-mode-map}'")]
+  (-let [formatted (helpful--format-docstring "\\{no-such-mode-map}")]
     (should
      (s-contains-p "not currently defined" formatted))))
 

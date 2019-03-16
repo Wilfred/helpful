@@ -757,51 +757,34 @@ blank line afterwards."
                 (-cons* first-line "" (cdr lines)))
       docstring)))
 
-(defun helpful--propertize-keywords (docstring)
-  "Propertize quoted keywords in docstrings."
-  (replace-regexp-in-string
-   ;; Replace all text of the form `foo'.
-   (rx "`"
-       (group ":"
-              symbol-start
-              (+? (or (syntax word) (syntax symbol)))
-              symbol-end)
-       "'")
-   (lambda (it)
-     (propertize (match-string 1 it)
-                 'face 'font-lock-builtin-face))
-   docstring
-   t t))
-
-(defun helpful--propertize-quoted (docstring)
-  "Convert `foo' in docstrings to buttons (if bound) or else highlight."
-  (replace-regexp-in-string
-   ;; Replace all text of the form `foo'.
-   (rx (? "\\=") "`" (+? (not (any "`" "'"))) "'")
-   (lambda (it)
-     (let* ((sym-name
-             (s-chop-prefix "`" (s-chop-suffix "'" it)))
-            (sym (intern sym-name)))
-       (cond
-        ;; If the quote is escaped, don't modify it.
-        ((s-starts-with-p "\\=" it)
-         it)
-        ;; Only create a link if this is a symbol that is bound as a
-        ;; variable or callable.
-        ((or (boundp sym) (fboundp sym))
-         (helpful--button
-          sym-name
-          'helpful-describe-button
-          'symbol sym))
-        ;; If this is already a button, don't modify it.
-        ((get-text-property 0 'button sym-name)
-         sym-name)
-        ;; Highlight the quoted string.
-        (t
-         (propertize sym-name
-                     'face 'font-lock-constant-face)))))
-   docstring
-   t t))
+(defun helpful--propertize-sym-ref (sym-name)
+  "Given a symbol name from a docstring, convert to a button (if
+bound) or else highlight."
+  (let* ((sym (intern sym-name)))
+    (cond
+     ;; Highlight keywords.
+     ((s-matches-p
+       (rx ":"
+           symbol-start
+           (+? (or (syntax word) (syntax symbol)))
+           symbol-end)
+       sym-name)
+      (propertize sym-name
+                  'face 'font-lock-builtin-face))
+     ;; Only create a link if this is a symbol that is bound as a
+     ;; variable or callable.
+     ((or (boundp sym) (fboundp sym))
+      (helpful--button
+       sym-name
+       'helpful-describe-button
+       'symbol sym))
+     ;; If this is already a button, don't modify it.
+     ((get-text-property 0 'button sym-name)
+      sym-name)
+     ;; Highlight the quoted string.
+     (t
+      (propertize sym-name
+                  'face 'font-lock-constant-face)))))
 
 (defun helpful--propertize-info (docstring)
   "Convert info references in docstrings to buttons."
@@ -949,13 +932,35 @@ vector suitable for `key-description', and COMMAND is a smbol."
     ;; inherited bindings last. Sort so that we group by prefix.
     (s-join "\n" (-sort #'string< lines))))
 
+(defun helpful--format-commands (str keymap)
+  "Replace all the \\[ references in STR with buttons."
+  (replace-regexp-in-string
+   ;; Text of the form \\[foo-command]
+   (rx "\\[" (group (+ (not (in "]")))) "]")
+   (lambda (it)
+     (let* ((symbol-name (match-string 1 it))
+            (symbol (intern symbol-name))
+            (key (where-is-internal symbol keymap t))
+            (key-description
+             (if key
+                 (key-description key)
+               (format "M-x %s" symbol-name))))
+       (helpful--button
+        key-description
+        'helpful-describe-exactly-button
+        'symbol symbol
+        'callable-p t)))
+   str
+   t
+   t))
+
 (defun helpful--format-command-keys (docstring)
   "Convert command key references and keymap references
 in DOCSTRING to buttons.
 
 Emacs uses \\= to escape \\[ references, so replace that
 unescaping too."
-  ;; Based on `substitute-command-keys', but converts command
+  ;; Loosely based on `substitute-command-keys', but converts
   ;; references to buttons.
   (let ((keymap nil))
     (with-temp-buffer
@@ -980,6 +985,29 @@ unescaping too."
           ;; Step over the escaped character.
           (delete-region (point) (+ (point) 2))
           (forward-char 1))
+         ((looking-at
+           ;; Text of the form `foo'
+           (rx "`"))
+          (let* ((start-pos (point))
+                 (end-pos (search-forward "'" nil t))
+                 (contents
+                  (when end-pos
+                    (buffer-substring (1+ start-pos) (1- end-pos)))))
+            (cond
+             ((null contents)
+              ;; If there's no closing ' to match the opening `, just
+              ;; leave it.
+              (goto-char (1+ start-pos)))
+             ((s-contains-p "`" contents)
+              ;; If we have repeated backticks `foo `bar', leave the
+              ;; first one.
+              (goto-char (1+ start-pos)))
+             ((s-contains-p "\\[" contents)
+              (delete-region start-pos end-pos)
+              (insert (helpful--format-commands contents keymap)))
+             (t
+              (delete-region start-pos end-pos)
+              (insert (helpful--propertize-sym-ref contents))))))
          ((looking-at
            ;; Text of the form \\<foo-keymap>
            (rx "\\<" (group (+ (not (in ">")))) ">"
@@ -1016,18 +1044,7 @@ unescaping too."
             (delete-region (point)
                            (+ (point) (length symbol-with-parens)))
             ;; Add a button.
-            (let* ((symbol (intern symbol-name))
-                   (key (where-is-internal symbol keymap t))
-                   (key-description
-                    (if key
-                        (key-description key)
-                      (format "M-x %s" symbol-name))))
-              (insert
-               (helpful--button
-                key-description
-                'helpful-describe-exactly-button
-                'symbol symbol
-                'callable-p t)))))
+            (insert (helpful--format-commands symbol-with-parens keymap))))
          ;; Don't modify other characters.
          (t
           (forward-char 1))))
@@ -1042,10 +1059,6 @@ unescaping too."
       (helpful--propertize-info)
       (helpful--propertize-links)
       (helpful--propertize-bare-links)
-      (helpful--propertize-keywords)
-      (helpful--propertize-quoted)
-      ;; This needs to happen after we've replaced quoted chars, so we
-      ;; don't confuse \\=` with `.
       (helpful--format-command-keys)
       (s-trim)))
 
@@ -2307,7 +2320,7 @@ For example, \"(some-func FOO &optional BAR)\"."
 
 (defun helpful--format-obsolete-info (sym callable-p)
   (-let [(use _ date) (helpful--obsolete-info sym callable-p)]
-    (helpful--propertize-quoted
+    (helpful--format-docstring
      (s-word-wrap
       70
       (format "This %s is obsolete%s%s"
