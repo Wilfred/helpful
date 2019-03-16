@@ -1038,8 +1038,7 @@ unescaping too."
          ((looking-at
            ;; Text of the form \\[foo-command]
            (rx "\\[" (group (+ (not (in "]")))) "]"))
-          (let* ((symbol-with-parens (match-string 0))
-                 (symbol-name (match-string 1)))
+          (let* ((symbol-with-parens (match-string 0)))
             ;; Remove the original string.
             (delete-region (point)
                            (+ (point) (length symbol-with-parens)))
