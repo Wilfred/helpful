@@ -969,15 +969,19 @@ unescaping too."
       (while (not (eobp))
         (cond
          ((looking-at
-           (rx "\""))
-          (looking-at
            ;; Text of the form "foo"
            (rx "\""))
-          ;; Don't do anything with literal strings.
-          ;; Step over opening doublequote.
-          (forward-char 1)
-          ;; Move past closing doublequote.
-          (search-forward "\""))
+          ;; For literal strings, escape backslashes so our output
+          ;; shows copy-pasteable literals.
+          (let* ((start-pos (point))
+                 (end-pos (progn (forward-char) (search-forward "\"" nil t)))
+                 contents)
+            (if end-pos
+                (progn
+                  (setq contents (buffer-substring start-pos end-pos))
+                  (delete-region start-pos end-pos)
+                  (insert (s-replace "\\" "\\\\" contents)))
+              (forward-char 1))))
          ((looking-at
            ;; Text of the form \=X
            (rx "\\="))

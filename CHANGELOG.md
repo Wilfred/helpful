@@ -6,6 +6,9 @@ on their own line.
 Symbols of the form `foo-functions` (e.g. `after-change-functions`)
 are now rendered as hooks.
 
+String literals are now rendered correctly in docstrings. Previously
+command substitution applied inside literals.
+
 # v0.16
 
 Improved wording when looking at aliases.

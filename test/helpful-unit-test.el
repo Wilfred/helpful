@@ -71,13 +71,25 @@
 
 (ert-deftest helpful--docstring-strings ()
   "Double-quoted strings should be treated literally."
+  ;; Ensure backslashes are shown escaped, so the output is a valid string literal.
+  (let* ((formatted-docstring
+          (helpful--format-docstring
+           "hello \"x\\y\" world")))
+    ;; This test will fail in a local Emacs instance that has modified
+    ;; minibuffer keybindings.
+    (should
+     (string-equal formatted-docstring "hello \"x\\\\y\" world")))
+  ;; Don't crash on unbalanced doublequotes.
+  (helpful--format-docstring "hello \" world")
+  ;; Command sequences \\[foo] should be ignored inside doublequotes.
   (let* ((formatted-docstring
           (helpful--format-docstring
            "hello \"\\[foo]\" world")))
     ;; This test will fail in a local Emacs instance that has modified
     ;; minibuffer keybindings.
     (should
-     (string-equal formatted-docstring "hello \"\\[foo]\" world"))))
+     (string-equal formatted-docstring
+                   "hello \"\\\\[foo]\" world"))))
 
 (ert-deftest helpful--docstring-keymap ()
   "Handle keymap references in docstrings."
