@@ -11,6 +11,8 @@ command substitution applied inside literals.
 
 Fixed a crash on keyboard macros in keymaps.
 
+String values are now shown as literals by default.
+
 # v0.16
 
 Improved wording when looking at aliases.

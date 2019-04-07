@@ -67,6 +67,12 @@ buffer-local variables.")
 (defvar-local helpful--view-literal nil
   "Whether to show a value as a literal, or a pretty interactive
 view.")
+(defvar-local helpful--first-display t
+  "Whether this is the first time this results buffer has been
+displayed.
+
+Nil means that we're refreshing, so we don't want to clobber any
+settings changed by the user.")
 
 (defgroup helpful nil
   "A rich help system with contextual information."
@@ -1978,6 +1984,24 @@ may contain duplicates."
     (s-ends-with-p "-functions" (symbol-name symbol)))
    (consp value)))
 
+(defun helpful--format-value (sym value)
+  "Format VALUE as a string."
+  (cond
+   (helpful--view-literal
+    (helpful--syntax-highlight (helpful--pretty-print value)))
+   ;; Allow strings to be viewed with properties rendered in
+   ;; Emacs, rather than as a literal.
+   ((stringp value)
+    value)
+   ;; Allow keymaps to be viewed with keybindings shown and
+   ;; links to the commands bound.
+   ((keymapp value)
+    (helpful--format-keymap value))
+   ((helpful--hook-p sym value)
+    (helpful--format-hook value))
+   (t
+    (helpful--pretty-print value))))
+
 (defun helpful-update ()
   "Update the current *Helpful* buffer to the latest
 state of the current symbol."
@@ -2034,6 +2058,13 @@ state of the current symbol."
               (or (stringp val)
                   (keymapp val)
                   (helpful--hook-p sym val))))
+        (when helpful--first-display
+          (if (stringp val)
+              ;; For strings, it's more intuitive to display them as
+              ;; literals, so "1" and 1 are distinct.
+              (setq helpful--view-literal t)
+            ;; For everything else, prefer the pretty view if available.
+            (setq helpful--view-literal nil)))
         (insert
          (helpful--heading
           (cond
@@ -2053,21 +2084,7 @@ state of the current symbol."
             "Global Value")
            ;; This variable is not buffer-local.
            (t "Value")))
-         (cond
-          (helpful--view-literal
-           (helpful--syntax-highlight (helpful--pretty-print val)))
-          ;; Allow strings to be viewed with properties rendered in
-          ;; Emacs, rather than as a literal.
-          ((stringp val)
-           val)
-          ;; Allow keymaps to be viewed with keybindings shown and
-          ;; links to the commands bound.
-          ((keymapp val)
-           (helpful--format-keymap val))
-          ((helpful--hook-p sym val)
-           (helpful--format-hook val))
-          (t
-           (helpful--pretty-print val)))
+         (helpful--format-value sym val)
          "\n\n")
         (when multiple-views-p
           (insert (helpful--make-toggle-literal-button) " "))
@@ -2257,6 +2274,7 @@ state of the current symbol."
     (goto-char (point-min))
     (forward-line (1- start-line))
     (forward-char start-column)
+    (setq helpful--first-display nil)
 
     (when opened
       (kill-buffer buf))))
