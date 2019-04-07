@@ -840,7 +840,10 @@ vector suitable for `key-description', and COMMAND is a smbol."
    ;; so this is a command we can call.
    ((or
      (symbolp keymap)
-     (functionp keymap))
+     (functionp keymap)
+     ;; Strings or vectors mean a keyboard macro.
+     (stringp keymap)
+     (vectorp keymap))
     `(([] ,keymap)))
    ((stringp (car keymap))
     (helpful--keymap-keys (cdr keymap)))
@@ -917,12 +920,16 @@ vector suitable for `key-description', and COMMAND is a smbol."
                          keys-and-commands))
          (formatted-commands
           (--map
-           (if (symbolp it)
-               (helpful--button
-                (symbol-name it)
-                'helpful-describe-button
-                'symbol it)
-             "#<anonymous-function>")
+           (cond
+            ((symbolp it)
+             (helpful--button
+              (symbol-name it)
+              'helpful-describe-button
+              'symbol it))
+            ((or (stringp it) (vectorp it))
+             "Keyboard Macro")
+            (t
+             "#<anonymous-function>"))
            commands))
          ;; Build lines for display.
          (lines

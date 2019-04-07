@@ -9,6 +9,8 @@ are now rendered as hooks.
 String literals are now rendered correctly in docstrings. Previously
 command substitution applied inside literals.
 
+Fixed a crash on keyboard macros in keymaps.
+
 # v0.16
 
 Improved wording when looking at aliases.

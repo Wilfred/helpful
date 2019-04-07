@@ -620,6 +620,17 @@ associated a lambda with a keybinding."
     ;; Don't crash on anonymous functions in a keymap.
     (helpful--keymap-keys keymap)))
 
+(ert-deftest helpful--format-keymap--keyboard-macros ()
+  (let* ((keymap (make-keymap)))
+    ;; A keyboard macro can be a string or a vector.
+    (define-key keymap "a" "ABC")
+    (define-key keymap "b" [TAB])
+
+    (should
+     (equal
+      (helpful--format-keymap keymap)
+      "a  Keyboard Macro\nb  Keyboard Macro"))))
+
 (defun helpful--dummy-command ()
   (interactive))
 
