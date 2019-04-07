@@ -2200,32 +2200,31 @@ state of the current symbol."
 
     (helpful--insert-section-break)
 
-    (insert
-     (helpful--heading
-      (if (eq helpful--sym canonical-sym)
-          "Source Code"
-        "Alias Source Code"))
-     (cond
-      (source-path
-       (concat
-        (propertize (format "%s Defined in " (if primitive-p "//" ";;"))
-                    'face 'font-lock-comment-face)
-        (helpful--navigate-button
-         (f-abbrev source-path)
-         source-path
-         pos)
-        "\n"))
-      (primitive-p
-       (concat
-        (propertize
-         "C code is not yet loaded."
-         'face 'font-lock-comment-face)
-        "\n\n"
-        (helpful--button
-         "Set C source directory"
-         'helpful-c-source-directory)))
-      (t
-       "")))
+    (when (or source-path primitive-p)
+      (insert
+       (helpful--heading
+        (if (eq helpful--sym canonical-sym)
+            "Source Code"
+          "Alias Source Code"))
+       (cond
+        (source-path
+         (concat
+          (propertize (format "%s Defined in " (if primitive-p "//" ";;"))
+                      'face 'font-lock-comment-face)
+          (helpful--navigate-button
+           (f-abbrev source-path)
+           source-path
+           pos)
+          "\n"))
+        (primitive-p
+         (concat
+          (propertize
+           "C code is not yet loaded."
+           'face 'font-lock-comment-face)
+          "\n\n"
+          (helpful--button
+           "Set C source directory"
+           'helpful-c-source-directory))))))
     (when source
       (insert
        (cond
