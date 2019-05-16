@@ -13,6 +13,9 @@ Fixed a crash on keyboard macros in keymaps.
 
 String values are now shown as literals by default.
 
+Fixed an issue with modes that override after-change-major-mode-hook,
+such as `global-hi-lock-mode`.
+
 # v0.16
 
 Improved wording when looking at aliases.
