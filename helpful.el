@@ -2021,6 +2021,25 @@ may contain duplicates."
    (t
     (helpful--pretty-print value))))
 
+(defun helpful--original-value (sym)
+  "Return the original value for SYM, if any.
+
+If SYM has an original value, return it in a list. Return nil
+otherwise."
+  (let* ((orig-val-expr (get sym 'standard-value)))
+    (when (consp orig-val-expr)
+      (ignore-errors
+        (list
+         (eval (car orig-val-expr)))))))
+
+(defun helpful--original-value-differs-p (sym)
+  "Return t if SYM has an original value, and its current
+value is different."
+  (let ((orig-val-list (helpful--original-value sym)))
+    (and (consp orig-val-list)
+         (not (eq (car orig-val-list)
+                  (symbol-value sym))))))
+
 (defun helpful-update ()
   "Update the current *Helpful* buffer to the latest
 state of the current symbol."
@@ -2105,6 +2124,13 @@ state of the current symbol."
            (t "Value")))
          (helpful--format-value sym val)
          "\n\n")
+        (when (helpful--original-value-differs-p sym)
+          (insert
+           (helpful--heading "Original Value")
+           (helpful--format-value
+            sym
+            (car (helpful--original-value sym)))
+           "\n\n"))
         (when multiple-views-p
           (insert (helpful--make-toggle-literal-button) " "))
 

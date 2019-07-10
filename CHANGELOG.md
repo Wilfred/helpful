@@ -1,5 +1,7 @@
 # v0.18 (unreleased)
 
+Show the original value for custom variables whose value has changed.
+
 # v0.17
 
 Fixed a minor docstring formatting issue when keymap references were

@@ -950,3 +950,17 @@ find the source code."
   ;; loaded.
   ;;
   (helpful-function #'tetris))
+
+(defcustom helpful-test-custom-var 123
+  "I am an example custom variable."
+  :type 'number
+  :group 'helpful)
+
+;; Ensure the current value differs from the original value.
+(setq helpful-test-custom-var 456)
+
+(ert-deftest helpful--original-value ()
+  "Show the original value for defcustom variables."
+  (helpful-variable 'helpful-test-custom-var)
+  (should
+   (s-contains-p "Original Value\n123" (buffer-string))))
