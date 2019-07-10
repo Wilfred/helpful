@@ -1,4 +1,6 @@
-# v0.17 (unreleased)
+# v0.18 (unreleased)
+
+# v0.17
 
 Fixed a minor docstring formatting issue when keymap references were
 on their own line.
