@@ -52,6 +52,14 @@ helpful:
 (global-set-key (kbd "C-h C") #'helpful-command)
 ```
 
+[Ivy](https://github.com/abo-abo/swiper) users can use Helpful with
+counsel commands:
+
+``` emacs-lisp
+(setq counsel-describe-function-function #'helpful-callable)
+(setq counsel-describe-variable-function #'helpful-variable)
+```
+
 ## Features
 
 ### Source code
