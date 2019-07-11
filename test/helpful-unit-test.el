@@ -933,6 +933,10 @@ find the source code."
   (should-not
    (helpful--convert-c-name 'Vgc_cons_percentage nil)))
 
+(ert-deftest helpful-symbol-c-style ()
+  (helpful-symbol 'Fget_char_property)
+  (helpful-symbol 'Vinhibit_field_text_motion))
+
 (ert-deftest helpful-symbol-unbound ()
   "Ensure we inform the user if we're given an unbound symbol."
   (should

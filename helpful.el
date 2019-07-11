@@ -2558,8 +2558,8 @@ nil if SYMBOL doesn't begin with \"F\" or \"V\"."
 See also `helpful-callable' and `helpful-variable'."
   (interactive
    (list (helpful--read-symbol "Symbol: " #'helpful--bound-p)))
-  (let ((c-var-sym (helpful--convert-c-name symbol nil))
-        (c-fn-sym (helpful--convert-c-name symbol t)))
+  (let ((c-var-sym (helpful--convert-c-name symbol t))
+        (c-fn-sym (helpful--convert-c-name symbol nil)))
     (cond
      ((and (boundp symbol) (fboundp symbol))
       (if (y-or-n-p
