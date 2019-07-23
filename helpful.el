@@ -816,17 +816,6 @@ bound) or else highlight."
    docstring
    t t))
 
-(defun helpful--char-table-keys (char-table)
-  "Convert CHAR-TABLE to list of pairs (KEYCODES COMMAND)."
-  ;; Kludge: use `describe-vector' to convert a char-table to a sparse
-  ;; keymap.
-  (let (result)
-    (map-char-table
-     (lambda (key value)
-       (push (list (vector key) value) result))
-     char-table)
-    result))
-
 (defun helpful--keymap-keys (keymap)
   "Return all the keys and commands in KEYMAP.
 Flattens nested keymaps and follows remapped commands.
