@@ -954,7 +954,8 @@ find the source code."
 (defcustom helpful-test-custom-var 123
   "I am an example custom variable."
   :type 'number
-  :group 'helpful)
+  :group 'helpful
+  :package-version '(helpful . "1.2.3"))
 
 ;; Ensure the current value differs from the original value.
 (setq helpful-test-custom-var 456)
@@ -964,3 +965,13 @@ find the source code."
   (helpful-variable 'helpful-test-custom-var)
   (should
    (s-contains-p "Original Value\n123" (buffer-string))))
+
+(ert-deftest helpful--package-version ()
+  "Report when a variable was added"
+  (helpful-variable 'helpful-test-custom-var)
+  (should
+   (s-contains-p
+    (s-word-wrap
+     70
+     "This variable was added, or its default value changed, in helpful version 1.2.3.")
+    (buffer-string))))
