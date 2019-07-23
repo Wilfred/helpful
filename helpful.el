@@ -163,10 +163,6 @@ can make Helpful very slow.")
   "Propertize TEXT as a heading."
   (format "%s\n" (propertize text 'face 'helpful-heading)))
 
-(defun helpful--warning (text)
-  "Propertize TEXT as a warning."
-  (format "%s\n" (propertize text 'face 'warning)))
-
 (defun helpful--format-closure (sym form)
   "Given a closure, return an equivalent defun form."
   (-let (((_keyword _env args . body) form)
