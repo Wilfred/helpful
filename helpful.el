@@ -94,6 +94,15 @@ To disable cleanup entirely, set this variable to nil. See also
   :type 'function
   :group 'helpful)
 
+(defcustom helpful-hide-docstring-in-source nil
+  "If t, hide the the docstring source code header.
+
+This is useful because the formated documentation is already
+displayed in it's own header, and you may not want to display it
+twice."
+  :type 'boolean
+  :group 'helpful)
+
 ;; TODO: explore whether more basic highlighting is fast enough to
 ;; handle larger functions. See `c-font-lock-init' and its use of
 ;; font-lock-keywords-1.
@@ -1118,6 +1127,14 @@ hooks.")
 (defun helpful--syntax-highlight (source &optional mode)
   "Return a propertized version of SOURCE in MODE."
   (unless mode
+    (when helpful-hide-docstring-in-source
+      (let ((doc-string (nth 3 (ignore-errors
+                                 (read source)))))
+        (when (stringp doc-string)
+          (setq source
+                (replace-regexp-in-string
+                 (regexp-quote (prin1-to-string doc-string))
+                 "\"...DOCSTRING...\"" source t t)))))
     (setq mode #'emacs-lisp-mode))
   (if (or
        (< (length source) helpful-max-highlight)
