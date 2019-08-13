@@ -1885,7 +1885,7 @@ OBJ may be a symbol or a compiled function object."
      70
      (format "%s is %s %s %s %s."
              (if (symbolp sym)
-                 (format "%S" sym)
+                 (helpful--format-symbol sym)
                "This lambda")
              (if (string-match-p
                   (rx bos (or "a" "e" "i" "o" "u"))
@@ -2354,6 +2354,14 @@ state of the current symbol."
         arg-str
       (s-upcase arg-str))))
 
+(defun helpful--format-symbol (sym)
+  "Format symbol as a string, escaping as necessary."
+  ;; Arguably this is an Emacs bug. We should be able to use
+  ;; (format "%S" sym)
+  ;; but that converts foo? to "foo\\?". You can see this in other
+  ;; parts of the Emacs UI, such as ERT.
+  (s-replace " " "\\ " (format "%s" sym)))
+
 (defun helpful--signature (sym)
   "Get the signature for function SYM, as a string.
 For example, \"(some-func FOO &optional BAR)\"."
@@ -2383,11 +2391,12 @@ For example, \"(some-func FOO &optional BAR)\"."
                       (s-join " " formatted-args)))
              ;; If it has multiple arguments, join them with spaces.
              (formatted-args
-              (format "(%S %s)" sym
+              (format "(%s %s)"
+                      (helpful--format-symbol sym)
                       (s-join " " formatted-args)))
              ;; Otherwise, this function takes no arguments when called.
              (t
-              (format "(%S)" sym)))))
+              (format "(%s)" (helpful--format-symbol sym))))))
 
     ;; If the docstring ends with (fn FOO BAR), extract that.
     (-when-let (docstring (documentation sym))

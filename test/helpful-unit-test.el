@@ -793,6 +793,23 @@ find the source code."
     (should
      (s-starts-with-p "helpful-test-fn-interactive is an interactive function" summary))))
 
+(defun helpful-test-fn? ()
+  (interactive))
+
+(ert-deftest helpful--summary--fn-with-? ()
+  "Ensure we use don't needlessly escape ? in function names."
+  (let* ((summary (helpful--summary 'helpful-test-fn? t nil nil)))
+    ;; Strip properties to make assertion messages more readable.
+    (set-text-properties 0 (1- (length summary)) nil summary)
+    (should
+     (s-starts-with-p "helpful-test-fn? is" summary))))
+
+(ert-deftest helpful--signature-fn-with? ()
+  "Ensure that symbols with question marks are handled correctly."
+  (should
+   (equal (helpful--signature 'helpful-test-fn?)
+          "(helpful-test-fn?)")))
+
 (defun helpful-test-fn-with\ space ()
   42)
 
