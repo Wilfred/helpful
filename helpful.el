@@ -1128,8 +1128,8 @@ hooks.")
   "Return a propertized version of SOURCE in MODE."
   (unless mode
     (when helpful-hide-docstring-in-source
-      (let ((doc-string (nth 3 (ignore-errors
-                                 (read source)))))
+      (let ((doc-string (ignore-errors
+                          (nth 3 (read source)))))
         (when (stringp doc-string)
           (setq source
                 (replace-regexp-in-string
