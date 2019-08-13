@@ -1775,6 +1775,18 @@ OBJ may be a symbol or a compiled function object."
   (and (symbolp sym)
        (byte-code-function-p (symbol-function sym))))
 
+(defun helpful--join-and (items)
+  "Join a list of strings with commas and \"and\"."
+  (cond
+   ((= (length items) 0)
+    "")
+   ((= (length items) 1)
+    (car items))
+   (t
+    (format "%s and %s"
+            (s-join ", " (-drop-last 1 items))
+            (-last-item items)))))
+
 (defun helpful--summary (sym callable-p buf pos)
   "Return a one sentence summary for SYM."
   (-let* ((primitive-p (helpful--primitive-p sym callable-p))
@@ -1827,30 +1839,16 @@ OBJ may be a symbol or a compiled function object."
            (and callable-p buf (helpful--autoloaded-p sym buf)))
           (compiled-p
            (and callable-p (helpful--compiled-p sym)))
+          (buttons
+           (list
+            (if alias-p alias-button)
+            (if (and callable-p autoloaded-p) autoload-button)
+            (if (and callable-p (commandp sym)) interactive-button)
+            (if compiled-p compiled-button)
+            (if (and (not callable-p) (local-variable-if-set-p sym))
+                buffer-local-button)))
           (description
-           (concat
-            (cond
-             (alias-p
-              (format "%s %s"
-                      (if callable-p "a" "an")
-                      alias-button))
-             ((and callable-p (commandp sym) autoloaded-p)
-              (format "an %s, %s" interactive-button autoload-button))
-             ((helpful--kbd-macro-p sym) "a")
-             ((and callable-p (commandp sym))
-              (format "an %s" interactive-button))
-             ((and callable-p autoloaded-p)
-              (format "an %s" autoload-button))
-             ((and (not callable-p)
-                   (local-variable-if-set-p sym))
-              (format "a %s" buffer-local-button))
-             (t
-              "a"))
-            (if compiled-p
-                (format "%s %s"
-                        (if (or (commandp sym) autoloaded-p) "," "")
-                        compiled-button))
-            ""))
+           (helpful--join-and (-non-nil buttons)))
           (kind
            (cond
             ((special-form-p sym)
@@ -1885,11 +1883,18 @@ OBJ may be a symbol or a compiled function object."
 
     (s-word-wrap
      70
-     (format "%s is %s %s %s."
+     (format "%s is %s %s %s %s."
              (if (symbolp sym)
                  (format "%S" sym)
                "This lambda")
-             description kind defined))))
+             (if (string-match-p
+                  (rx bos (or "a" "e" "i" "o" "u"))
+                  description)
+                 "an"
+               "a")
+             description
+             kind
+             defined))))
 
 (defun helpful--callees (form)
   "Given source code FORM, return a list of all the functions called."

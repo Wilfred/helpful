@@ -782,6 +782,17 @@ find the source code."
     (should
      (s-starts-with-p "if is a special form defined in" summary))))
 
+(defun helpful-test-fn-interactive ()
+  (interactive))
+
+(ert-deftest helpful--summary--interactive-fn ()
+  "Ensure we use \"an\" for interactive functions."
+  (let* ((summary (helpful--summary 'helpful-test-fn-interactive t nil nil)))
+    ;; Strip properties to make assertion messages more readable.
+    (set-text-properties 0 (1- (length summary)) nil summary)
+    (should
+     (s-starts-with-p "helpful-test-fn-interactive is an interactive function" summary))))
+
 (defun helpful-test-fn-with\ space ()
   42)
 
