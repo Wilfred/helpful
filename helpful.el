@@ -2362,6 +2362,7 @@ state of the current symbol."
   ;; parts of the Emacs UI, such as ERT.
   (s-replace " " "\\ " (format "%s" sym)))
 
+;; TODO: this is broken for -any?.
 (defun helpful--signature (sym)
   "Get the signature for function SYM, as a string.
 For example, \"(some-func FOO &optional BAR)\"."
