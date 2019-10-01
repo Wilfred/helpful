@@ -2373,9 +2373,14 @@ For example, \"(some-func FOO &optional BAR)\"."
            (gethash (symbol-function sym) advertised-signature-table))))
     ;; Get the usage from the function definition.
     (let* ((function-args
-            (if (symbolp sym)
-                (help-function-arglist sym)
-              (cadr sym)))
+            (cond
+             ((symbolp sym)
+              (help-function-arglist sym))
+             ((byte-code-function-p sym)
+              (aref sym 0))
+             (t
+              ;; Interpreted function (lambda ...)
+              (cadr sym))))
            (formatted-args
             (cond
              (advertised-args

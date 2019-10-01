@@ -533,6 +533,20 @@ associated a lambda with a keybinding."
     (with-current-buffer buf
       (helpful-update))))
 
+(ert-deftest helpful--unnamed-compiled-func ()
+  "Ensure we handle unnamed byte-compiled functions.
+
+This is important for `helpful-key', where a user may have
+associated a lambda with a keybinding."
+  (let* ((fun (byte-compile (lambda (x) x)))
+         (buf (helpful--buffer fun t)))
+    ;; There's no name, so just show lambda in the buffer name.
+    (should
+     (equal (buffer-name buf) "*helpful lambda*"))
+    ;; Don't crash when we show the buffer.
+    (with-current-buffer buf
+      (helpful-update))))
+
 (ert-deftest helpful--obsolete-variable ()
   "Test display of obsolete variable."
   (let* ((var 'helpful-test-var-obsolete)
