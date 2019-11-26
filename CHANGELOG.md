@@ -48,7 +48,7 @@ Set `comment-start` inside helpful buffers, to fix external packages
 relying on that variable.
 
 Helpful now always autoloads callables if they aren't already
-loaded. This is consistent with help.el (unless you've overriden
+loaded. This is consistent with help.el (unless you've overridden
 `help-enable-auto-load`), produces more useful results, and fixes
 crashes rendering some docstrings.
 
