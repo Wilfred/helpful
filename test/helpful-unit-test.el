@@ -228,7 +228,7 @@ symbol (not a form)."
   ;; If the second line is already empty, do nothing.
   (should
    (equal (helpful--split-first-line "foo.\n\nbar") "foo.\n\nbar"))
-  ;; But if we have a single sentence and no empy line, insert one.
+  ;; But if we have a single sentence and no empty line, insert one.
   (should
    (equal (helpful--split-first-line "foo.\nbar") "foo.\n\nbar")))
 
