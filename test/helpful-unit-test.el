@@ -1042,3 +1042,10 @@ find the source code."
      70
      "This variable was added, or its default value changed, in helpful version 1.2.3.")
     (buffer-string))))
+
+(ert-deftest helpful--display-implementations ()
+  (require 'xref)
+  (helpful-function 'xref-location-marker)
+  (should (s-contains-p "Implementations" (buffer-string)))
+  (should (s-contains-p "((l xref-file-location))" (buffer-string)))
+  (should (s-contains-p "((l xref-buffer-location))" (buffer-string))))

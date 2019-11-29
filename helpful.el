@@ -1662,6 +1662,21 @@ POSITION-HEADS takes the form ((123 (defun foo)) (456 (defun bar)))."
   "Insert section break into helpful buffer."
   (insert "\n\n"))
 
+(defun helpful--insert-implementations ()
+  "When `helpful--sym' is a generic method, insert its implementations."
+  (let ((func helpful--sym)
+        (content))
+    (when (fboundp #'cl--generic-describe)
+      (with-temp-buffer
+        (declare-function cl--generic-describe "cl-generic" (function))
+        (cl--generic-describe func)
+        (setf (point) (point-min))
+        (when (re-search-forward "^Implementations:$" nil t)
+          (setq content (buffer-substring (point) (point-max)))))
+      (when content
+        (helpful--insert-section-break)
+        (insert (helpful--heading "Implementations") (s-trim content))))))
+
 (defun helpful--calculate-references (sym callable-p source-path)
   "Calculate references for SYM in SOURCE-PATH."
   (when source-path
@@ -2287,6 +2302,9 @@ state of the current symbol."
        (helpful--heading "Aliases")
        (s-join "\n" (--map (helpful--format-alias it helpful--callable-p)
                            aliases))))
+
+    (when helpful--callable-p
+      (helpful--insert-implementations))
 
     (helpful--insert-section-break)
 
