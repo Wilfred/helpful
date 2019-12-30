@@ -317,6 +317,27 @@ symbol (not a form)."
     (should
      (string-equal formatted "Info node (elisp)foo \nbar"))
     (should
+     (get-text-property paren-position 'button formatted)))
+  ;; Some docstrings use "info" (lowercase).
+  (let* ((formatted (helpful--format-docstring "info node `(elisp)foo'"))
+         (paren-position (s-index-of "(" formatted)))
+    (should
+     (string-equal formatted "info node (elisp)foo"))
+    (should
+     (get-text-property paren-position 'button formatted)))
+  ;; Some docstrings use angular quotation marks.
+  (let* ((formatted (helpful--format-docstring "Info node ‘(elisp)foo’"))
+         (paren-position (s-index-of "(" formatted)))
+    (should
+     (string-equal formatted "Info node (elisp)foo"))
+    (should
+     (get-text-property paren-position 'button formatted)))
+  ;; If there's no manual information, assume it is part of the Emacs manual.
+  (let* ((formatted (helpful--format-docstring "Info node ‘foo’"))
+         (paren-position (s-index-of "(" formatted)))
+    (should
+     (string-equal formatted "Info node (emacs)foo"))
+    (should
      (get-text-property paren-position 'button formatted))))
 
 (ert-deftest helpful--format-docstring--url ()
