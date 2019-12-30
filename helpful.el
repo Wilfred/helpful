@@ -788,22 +788,35 @@ bound) or else highlight."
                   'face 'font-lock-constant-face)))))
 
 (defun helpful--propertize-info (docstring)
-  "Convert info references in docstrings to buttons."
+  "Convert info references in DOCSTRING to buttons."
   (replace-regexp-in-string
-   ;; Replace all text of the form `foo'.
-   (rx "Info "
-       (group
-        (or "anchor" "node")
-        (+ whitespace))
-       "`"
-       (group (+ (not (in "'"))))
-       "'")
+   ;; Replace all text that looks like a link to an Info page.
+   (rx (seq (group
+             bow
+             (any "Ii")
+             "nfo"
+             (one-or-more whitespace))
+            (group
+             (or "node" "anchor")
+             (one-or-more whitespace))
+            (any "'`‘")
+            (group
+             (one-or-more
+              (not (any "'’"))))
+            (any "'’")))
    (lambda (it)
+     ;; info-name matches "[Ii]nfo ".
+     ;; space matches "node " or "anchor ".
      ;; info-node has the form "(cl)Loop Facility".
-     (let ((space (match-string 1 it))
-           (info-node (match-string 2 it)))
+     (let ((info-name (match-string 1 it))
+           (space (match-string 2 it))
+           (info-node (match-string 3 it)))
+       ;; If the docstring doesn't specify a manual, assume the Emacs manual.
+       (save-match-data
+         (unless (string-match "^([^)]+)" info-node)
+           (setq info-node (concat "(emacs)" info-node))))
        (concat
-        "Info "
+        info-name
         space
         (helpful--button
          info-node
