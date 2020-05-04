@@ -1633,7 +1633,9 @@ POSITION-HEADS takes the form ((123 (defun foo)) (456 (defun bar)))."
    ((and callable-p (helpful--advised-p sym))
     (subrp (helpful--without-advice sym)))
    (callable-p
-    (subrp (indirect-function sym)))
+    (and (not (and (fboundp 'subr-native-elisp-p)
+                   (subr-native-elisp-p (indirect-function sym))))
+         (subrp (indirect-function sym))))
    (t
     (let ((filename (find-lisp-object-file-name sym 'defvar)))
       (or (eq filename 'C-source)
