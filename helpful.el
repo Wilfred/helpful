@@ -1633,7 +1633,9 @@ POSITION-HEADS takes the form ((123 (defun foo)) (456 (defun bar)))."
    ((and callable-p (helpful--advised-p sym))
     (subrp (helpful--without-advice sym)))
    (callable-p
-    (subrp (indirect-function sym)))
+    (and (not (and (fboundp 'subr-native-elisp-p)
+                   (subr-native-elisp-p (indirect-function sym))))
+         (subrp (indirect-function sym))))
    (t
     (let ((filename (find-lisp-object-file-name sym 'defvar)))
       (or (eq filename 'C-source)
@@ -1803,6 +1805,12 @@ OBJ may be a symbol or a compiled function object."
   (and (symbolp sym)
        (byte-code-function-p (symbol-function sym))))
 
+(defun helpful--native-compiled-p (sym)
+  "Return non-nil if function SYM is native-compiled"
+  (and (symbolp sym)
+       (fboundp 'subr-native-elisp-p)
+       (subr-native-elisp-p (symbol-function sym))))
+
 (defun helpful--join-and (items)
   "Join a list of strings with commas and \"and\"."
   (cond
@@ -1858,6 +1866,11 @@ OBJ may be a symbol or a compiled function object."
             "compiled"
             'helpful-info-button
             'info-node "(elisp)Byte Compilation"))
+          (native-compiled-button
+           (helpful--button
+            "natively compiled"
+            'helpful-describe-button
+            'symbol 'native-compile))
           (buffer-local-button
            (helpful--button
             "buffer-local"
@@ -1867,12 +1880,15 @@ OBJ may be a symbol or a compiled function object."
            (and callable-p buf (helpful--autoloaded-p sym buf)))
           (compiled-p
            (and callable-p (helpful--compiled-p sym)))
+          (native-compiled-p
+           (and callable-p (helpful--native-compiled-p sym)))
           (buttons
            (list
             (if alias-p alias-button)
             (if (and callable-p autoloaded-p) autoload-button)
             (if (and callable-p (commandp sym)) interactive-button)
             (if compiled-p compiled-button)
+            (if native-compiled-p native-compiled-button)
             (if (and (not callable-p) (local-variable-if-set-p sym))
                 buffer-local-button)))
           (description
