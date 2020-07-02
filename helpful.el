@@ -2657,7 +2657,9 @@ See also `helpful-callable' and `helpful-variable'."
 (defun helpful-at-point ()
   "Show help for the symbol at point."
   (interactive)
-  (-if-let (symbol (symbol-at-point))
+  (-if-let (symbol (or (unless (numberp (variable-at-point)) (variable-at-point))
+  		       (if (symbolp (symbol-at-point)) (symbol-at-point))
+  		       (function-called-at-point)))
       (helpful-symbol symbol)
     (user-error "There is no symbol at point.")))
 
