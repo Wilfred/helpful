@@ -1,39 +1,69 @@
-# Use Trusty as Emacs 26.x is failing on Xenial
-# https://github.com/rejeep/evm/issues/125
-dist: trusty
-
-language: generic
-sudo: false
+# https://github.com/purcell/nix-emacs-ci
+language: nix
 
 cache:
   directories:
-    - emacs-25.3
+  - $HOME/nix.store
+
+jobs:
+  include:
+    - os: linux
+      dist: bionic
+      env: EMACS_CI=emacs-25-1
+    - os: linux
+      dist: bionic
+      env: EMACS_CI=emacs-25-2
+    - os: linux
+      dist: bionic
+      env: EMACS_CI=emacs-25-3
+    - os: linux
+      dist: bionic
+      env: EMACS_CI=emacs-26-1
+    - os: linux
+      dist: bionic
+      env: EMACS_CI=emacs-26-2
+    - os: linux
+      dist: bionic
+      env: EMACS_CI=emacs-26-3
+    - os: linux
+      dist: bionic
+      env: EMACS_CI=emacs-27-1
+    - os: linux
+      dist: bionic
+      env: EMACS_CI=emacs-snapshot
 
 before_install:
-  - ./download_emacs_src.sh
+  - sudo mkdir -p /etc/nix
+  - echo "substituters = https://cache.nixos.org/ file://$HOME/nix.store" | sudo tee -a /etc/nix/nix.conf > /dev/null
+  - echo 'require-sigs = false' | sudo tee -a /etc/nix/nix.conf > /dev/null
 
-  - curl -fsSkL https://gist.github.com/rejeep/ebcd57c3af83b049833b/raw > x.sh && source ./x.sh
-  - evm install $EVM_EMACS --use --skip
-  - cask
-env:
-  - EVM_EMACS=emacs-25.1-travis
-  - EVM_EMACS=emacs-25.2-travis
-  - EVM_EMACS=emacs-25.3-travis
-  - EVM_EMACS=emacs-26.1-travis
-  - EVM_EMACS=emacs-26.2-travis
-  # - EVM_EMACS=emacs-git-snapshot-travis
+before_cache:
+  - mkdir -p $HOME/nix.store
+  - nix copy --to file://$HOME/nix.store -f default.nix buildInputs
+
+install:
+  # The default "emacs" executable on the $PATH will now be the version named by $EMACS_CI
+  - bash <(curl https://raw.githubusercontent.com/purcell/nix-emacs-ci/master/travis-install)
+  - travis_retry eval $"curl -fsSL https://raw.githubusercontent.com/cask/cask/master/go | python ; sleep 10"
+  - export PATH=$HOME/.cask/bin:$PATH
+  - travis_retry eval $"cask install ; sleep 10"
+
 script:
+  - export PATH=$HOME/.cask/bin:$PATH
   - emacs --version
-  # Test interpreted code.
+  # Test interpreted code
   - cask exec ert-runner
   # Test compiled code.
   - cask build
   - cask exec ert-runner
 
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+
 notifications:
   email: false
 
-matrix:
-  fast_finish: true
-  allow_failures:
-    - env: EVM_EMACS=emacs-git-snapshot-travis
+allow_failures:
+  - os: linux
+    dist: bionic
+    env: EMACS_CI=emacs-snapshot
