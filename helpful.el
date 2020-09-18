@@ -2391,7 +2391,10 @@ state of the current symbol."
   "Remove mentions of advice from DOCSTRING."
   (let* ((lines (s-lines docstring))
          (relevant-lines
-          (--drop-while (s-starts-with-p ":around advice:" it) lines)))
+          (--drop-while
+           (or (s-starts-with-p ":around advice:" it)
+               (s-starts-with-p "This function has :around advice:" it))
+           lines)))
     (s-trim (s-join "\n" relevant-lines))))
 
 (defun helpful--format-argument (arg)

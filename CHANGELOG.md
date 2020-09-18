@@ -6,6 +6,8 @@ Report the package version when custom variables were added.
 
 Fixed a crash on assigning byte-compiled objects to keybindings.
 
+Fixed an issue with advice being shown in docstrings on Emacs 27+.
+
 # v0.17
 
 Fixed a minor docstring formatting issue when keymap references were
