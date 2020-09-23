@@ -8,7 +8,28 @@ Fixed a crash on assigning byte-compiled objects to keybindings.
 
 Fixed an issue with advice being shown in docstrings on Emacs 27+.
 
-Symbol links in docstrings are now smarter in cases like "function `foo'".
+Symbol links in docstrings are now smarter in cases like "function
+`foo'".
+
+## Improvements to the default symbol offered
+
+Functions:
+
+* If the symbol at point is a bound function, offer that.
+* If point is at a function call, offer that.
+
+Variables:
+
+* If the symbol at point is a bound variable, offer that.
+* If point is at a `defvar` or `defcustom` call, offer that variable.
+
+Symbols:
+
+* If the symbol at point is a bound function, offer that.
+* Try the function, then the variable heuristics described above.
+
+This should also make transitioning from help.el easier, and should
+improve helpful in literate org-mode files.
 
 # v0.17
 
