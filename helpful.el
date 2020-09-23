@@ -758,7 +758,7 @@ blank line afterwards."
                 (-cons* first-line "" (cdr lines)))
       docstring)))
 
-(defun helpful--propertize-sym-ref (sym-name)
+(defun helpful--propertize-sym-ref (sym-name before-txt after-txt)
   "Given a symbol name from a docstring, convert to a button (if
 bound) or else highlight."
   (let* ((sym (intern sym-name)))
@@ -772,6 +772,20 @@ bound) or else highlight."
        sym-name)
       (propertize sym-name
                   'face 'font-lock-builtin-face))
+     ((and (boundp sym) (s-ends-with-p "variable " before-txt))
+      (helpful--button
+       sym-name
+       'helpful-describe-exactly-button
+       'symbol sym
+       'callable-p nil))
+     ((and (fboundp sym) (or
+                          (s-starts-with-p " command" after-txt)
+                          (s-ends-with-p "function " before-txt)))
+      (helpful--button
+       sym-name
+       'helpful-describe-exactly-button
+       'symbol sym
+       'callable-p t))
      ;; Only create a link if this is a symbol that is bound as a
      ;; variable or callable.
      ((or (boundp sym) (fboundp sym))
@@ -964,6 +978,20 @@ vector suitable for `key-description', and COMMAND is a smbol."
    t
    t))
 
+(defun helpful--chars-before (pos n)
+  "Return up to N chars before POS in the current buffer.
+The string may be shorter than N or empty if out-of-range."
+  (buffer-substring
+   (max (point-min) (- pos n))
+   pos))
+
+(defun helpful--chars-after (pos n)
+  "Return up to N chars after POS in the current buffer.
+The string may be shorter than N or empty if out-of-range."
+  (buffer-substring
+   pos
+   (min (point-max) (+ pos n))))
+
 (defun helpful--format-command-keys (docstring)
   "Convert command key references and keymap references
 in DOCSTRING to buttons.
@@ -1019,9 +1047,13 @@ unescaping too."
              ((s-contains-p "\\[" contents)
               (delete-region start-pos end-pos)
               (insert (helpful--format-commands contents keymap)))
+             ;; Highlight a normal `foo', extracting the surrounding
+             ;; text so we can detect e.g. "function `foo'".
              (t
-              (delete-region start-pos end-pos)
-              (insert (helpful--propertize-sym-ref contents))))))
+              (let ((before (helpful--chars-before start-pos 10))
+                    (after (helpful--chars-after end-pos 10)))
+                (delete-region start-pos end-pos)
+                (insert (helpful--propertize-sym-ref contents before after)))))))
          ((looking-at
            ;; Text of the form \\<foo-keymap>
            (rx "\\<" (group (+ (not (in ">")))) ">"
