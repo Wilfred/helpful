@@ -2688,11 +2688,36 @@ See also `helpful-callable' and `helpful-variable'."
   (funcall helpful-switch-buffer-function (helpful--buffer symbol nil))
   (helpful-update))
 
+(defun helpful--variable-at-point ()
+  (let ((var (variable-at-point)))
+    (when (helpful--variable-p var)
+      var)))
+
+(defun helpful--function-at-point ()
+  (let ((sym (symbol-at-point))
+        (enclosing-sym (function-called-at-point)))
+    (if (fboundp sym)
+        sym
+      enclosing-sym)))
+
+(defun helpful--symbol-at-point ()
+  "Find the most relevant symbol at or around point.
+Returns nil if nothing found."
+  (let ((var (variable-at-point))
+        (sym (symbol-at-point))
+        (fun-sym (function-called-at-point)))
+    (when (zerop var)
+      (setq var nil))
+    (cond
+     ((helpful--bound-p var) var)
+     ((helpful--bound-p sym) sym)
+     ((helpful--bound-p fun-sym) fun-sym))))
+
 ;;;###autoload
 (defun helpful-at-point ()
   "Show help for the symbol at point."
   (interactive)
-  (-if-let (symbol (symbol-at-point))
+  (-if-let (symbol (helpful--symbol-at-point))
       (helpful-symbol symbol)
     (user-error "There is no symbol at point.")))
 
