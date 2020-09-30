@@ -1,4 +1,8 @@
-# v0.18 (unreleased)
+# v0.19 (unreleased)
+
+No changes yet.
+
+# v0.18
 
 Show the original value for custom variables whose value has changed.
 
