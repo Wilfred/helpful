@@ -2554,7 +2554,9 @@ escapes that are used by `substitute-command-keys'."
 
 ;;;###autoload
 (defun helpful-function (symbol)
-  "Show help for function named SYMBOL."
+  "Show help for function named SYMBOL.
+
+See also `helpful-macro', `helpful-command' and `helpful-callable'."
   (interactive
    (list (helpful--read-symbol "Function: " #'functionp)))
   (funcall helpful-switch-buffer-function (helpful--buffer symbol t))
@@ -2562,7 +2564,9 @@ escapes that are used by `substitute-command-keys'."
 
 ;;;###autoload
 (defun helpful-command (symbol)
-  "Show help for interactive function named SYMBOL."
+  "Show help for interactive function named SYMBOL.
+
+See also `helpful-function'."
   (interactive
    (list (helpful--read-symbol "Command: " #'commandp)))
   (funcall helpful-switch-buffer-function (helpful--buffer symbol t))
@@ -2598,7 +2602,7 @@ escapes that are used by `substitute-command-keys'."
 (defun helpful-callable (symbol)
   "Show help for function, macro or special form named SYMBOL.
 
-See also `helpful-macro' and `helpful-function'."
+See also `helpful-macro', `helpful-function' and `helpful-command'."
   (interactive
    (list (helpful--read-symbol "Callable: " #'fboundp)))
   (funcall helpful-switch-buffer-function (helpful--buffer symbol t))
