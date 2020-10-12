@@ -1615,7 +1615,7 @@ without the advice."
    (advice--symbol-function sym)))
 
 (defun helpful--advised-p (sym)
-  "A list of advice associated with SYM."
+  "Does SYM have advice associated with it?"
   (and (symbolp sym)
        (advice--p (advice--symbol-function sym))))
 
