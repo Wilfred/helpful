@@ -1610,7 +1610,7 @@ E.g. (x x y z y) -> ((x . 2) (y . 2) (z . 1))"
 
 (defun helpful--without-advice (sym)
   "Given advised function SYM, return the function object
-without the advice."
+without the advice. Assumes function has been loaded."
   (advice--cd*r
    (advice--symbol-function sym)))
 
@@ -2074,7 +2074,7 @@ may contain duplicates."
   "Ensure the symbol associated with the current buffer has been loaded."
   (when (and helpful--callable-p
              (symbolp helpful--sym))
-    (let ((fn-obj (helpful--without-advice helpful--sym)))
+    (let ((fn-obj (symbol-function helpful--sym)))
       (when (autoloadp fn-obj)
         (autoload-do-load fn-obj)))))
 

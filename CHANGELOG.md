@@ -1,6 +1,7 @@
 # v0.19 (unreleased)
 
-No changes yet.
+Fixed a hang when looking at functions that had advice but hadn't yet
+been loaded by the autoloader (#179, #191).
 
 # v0.18
 

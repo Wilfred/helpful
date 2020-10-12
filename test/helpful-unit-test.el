@@ -1050,3 +1050,13 @@ find the source code."
   (should (s-contains-p "Implementations" (buffer-string)))
   (should (s-contains-p "((l xref-file-location))" (buffer-string)))
   (should (s-contains-p "((l xref-buffer-location))" (buffer-string))))
+
+(defun helpful--boring-advice (orig-fn &rest args)
+  (apply orig-fn args))
+
+(advice-add 'ruby-mode :around #'helpful--boring-advice)
+
+(ert-deftest helpful--autoload-functions-with-advice ()
+  "Ensure that we can describe an autoloaded function
+that has advice attached before it is loadedl."
+  (helpful-function 'ruby-mode))
