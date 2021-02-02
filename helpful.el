@@ -2738,7 +2738,9 @@ See also `helpful-callable' and `helpful-variable'."
              sexp)
         (when sexp-start
           (goto-char sexp-start)
-          (setq sexp (read (current-buffer)))
+          (setq sexp (condition-case nil
+                         (read (current-buffer))
+                       (error nil)))
           (when (memq (car-safe sexp)
                       (list 'defvar 'defvar-local 'defcustom 'defconst))
             (nth 1 sexp)))))))

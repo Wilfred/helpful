@@ -133,6 +133,18 @@ bar")))
     (helpful-function #'test-foo-defined-interactively)
     (should (equal (buffer-name) "*helpful function: test-foo-defined-interactively*"))))
 
+(ert-deftest helpful--variable-defined-at-point ()
+  ;; The happy case with valid code.
+  (with-temp-buffer
+    (insert "(defvar foo nil)")
+    (goto-char (1+ (point-min)))
+    (should (eq (helpful--variable-defined-at-point) 'foo)))
+  ;; Ensure we don't crash if the source code isn't valid.
+  (with-temp-buffer
+    (insert "(defvar foo nil")
+    (goto-char (1+ (point-min)))
+    (helpful--variable-defined-at-point)))
+
 (ert-deftest helpful--edebug-fn ()
   "We should not crash on a function with edebug enabled."
   (let ((edebug-all-forms t)

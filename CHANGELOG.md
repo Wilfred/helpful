@@ -5,6 +5,9 @@ been loaded by the autoloader (#179, #191).
 
 Fixed issue with displaying circular data structures.
 
+Fixed a crash in `helpful-variable` in files that weren't
+syntactically valid lisp.
+
 # v0.18
 
 Show the original value for custom variables whose value has changed.
