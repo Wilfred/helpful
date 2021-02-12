@@ -181,11 +181,15 @@ can make Helpful very slow.")
 (defun helpful--pretty-print (value)
   "Pretty-print VALUE.
 
-If VALUE is self-referential, or just very big, the user may
-press \\[keyboard-quit] to gracefully stop the printing."
+If VALUE is very big, the user may press \\[keyboard-quit] to
+gracefully stop the printing. If VALUE is self-referential, the
+error will be caught and displayed."
   ;; Inspired by `ielm-eval-input'.
-  (condition-case nil
+  (condition-case err
       (s-trim-right (pp-to-string value))
+    (error
+     (propertize (format "(Display error: %s)" (cadr err))
+                 'face 'font-lock-comment-face))
     (quit
      (propertize "(User quit during pretty-printing.)"
                  'face 'font-lock-comment-face))))

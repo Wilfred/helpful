@@ -3,6 +3,8 @@
 Fixed a hang when looking at functions that had advice but hadn't yet
 been loaded by the autoloader (#179, #191).
 
+Fixed issue with displaying circular data structures.
+
 # v0.18
 
 Show the original value for custom variables whose value has changed.
