@@ -6,7 +6,7 @@
 ;; URL: https://github.com/Wilfred/helpful
 ;; Keywords: help, lisp
 ;; Version: 0.19
-;; Package-Requires: ((emacs "25") (dash "2.12.0") (dash-functional "1.2.0") (s "1.11.0") (f "0.20.0") (elisp-refs "1.2"))
+;; Package-Requires: ((emacs "25") (dash "2.18.0") (s "1.11.0") (f "0.20.0") (elisp-refs "1.2"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -46,7 +46,6 @@
 (require 'help)
 (require 'help-fns)
 (require 'dash)
-(require 'dash-functional)
 (require 's)
 (require 'f)
 (require 'find-func)
