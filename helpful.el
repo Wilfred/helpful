@@ -1,4 +1,4 @@
-;;; helpful.el --- a better *help* buffer            -*- lexical-binding: t; -*-
+;;; helpful.el --- A better *help* buffer            -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2017-2020  Wilfred Hughes
 
