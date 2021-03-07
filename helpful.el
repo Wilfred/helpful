@@ -1819,7 +1819,7 @@ OBJ may be a symbol or a compiled function object."
 
 (defun helpful--make-callees-button (sym source)
   (helpful--button
-   "Find callees"
+   (format "Functions used by %s" sym)
    'helpful-callees-button
    'symbol sym
    'source source))
