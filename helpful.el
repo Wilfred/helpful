@@ -434,12 +434,16 @@ or disable if already enabled."
   'symbol nil
   'help-echo "Toggle function tracing")
 
+(defun helpful--toggle-tracing (sym)
+  "Toggle `trace-function' for SYM."
+  (if (trace-is-traced sym)
+      (untrace-function sym)
+    (trace-function sym)))
+
 (defun helpful--trace (button)
   "Toggle tracing for the current symbol."
   (let ((sym (button-get button 'symbol)))
-    (if (trace-is-traced sym)
-        (untrace-function sym)
-      (trace-function sym)))
+    (helpful--toggle-tracing sym))
   (helpful-update))
 
 (define-button-type 'helpful-navigate-button
@@ -1114,6 +1118,46 @@ unescaping too."
   'action #'helpful--follow-link
   'follow-link t
   'help-echo "Follow this link")
+
+(defun helpful--ensure ()
+  "Ensure that the `helpful--sym' is available."
+  (unless helpful--sym
+    (user-error "Not in a *helpful* buffer")))
+
+(defun helpful-view-in-manual ()
+  "Open the manual for the current symbol."
+  (interactive)
+  (helpful--ensure)
+  (info-lookup 'symbol helpful--sym #'emacs-lisp-mode))
+
+(defun helpful-goto-source ()
+  "View the source code of the current symbol.
+If the source file is no longer available, display it in a new
+buffer."
+  (interactive)
+  (helpful--ensure)
+  (-let [(buf pos opened) (helpful--definition helpful--sym helpful--callable-p)]
+    (unless buf
+      (user-error "Could not locate source"))
+    (when pos
+      (with-current-buffer buf
+        (goto-char pos)))
+    (pop-to-buffer buf)))
+
+(defun helpful-toggle-edebug ()
+  "Toggle edebug for the current symbol."
+  (interactive)
+  (helpful--ensure)
+  (unless helpful--callable-p
+    (user-error "Cannot `edebug' a variable"))
+  (helpful--toggle-edebug helpful--sym))
+
+(defun helpful-toggle-tracing ()
+  (interactive)
+  (helpful--ensure)
+  (unless helpful--callable-p
+    (user-error "Cannot trace a variable"))
+  (helpful--toggle-tracing helpful--sym))
 
 (defun helpful--propertize-links (docstring)
   "Convert URL links in docstrings to buttons."
