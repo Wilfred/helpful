@@ -2132,7 +2132,6 @@ value is different."
   "Update the current *Helpful* buffer to the latest
 state of the current symbol."
   (interactive)
-  (cl-assert (not (null helpful--sym)))
   (unless (buffer-live-p helpful--associated-buffer)
     (setq helpful--associated-buffer nil))
   (helpful--ensure-loaded)
