@@ -2894,21 +2894,20 @@ See also `helpful-max-buffers'."
       (kill-buffer buffer))))
 
 (defvar helpful-mode-map
-  (let* ((map (make-sparse-keymap)))
-    (define-key map (kbd "g") #'helpful-update)
-    (define-key map (kbd "RET") #'helpful-visit-reference)
+  (-doto (make-sparse-keymap)
+    (define-key (kbd "g") #'helpful-update)
+    (define-key (kbd "RET") #'helpful-visit-reference)
 
-    (define-key map (kbd "TAB") #'forward-button)
-    (define-key map (kbd "<backtab>") #'backward-button)
+    (define-key (kbd "TAB") #'forward-button)
+    (define-key (kbd "<backtab>") #'backward-button)
 
-    (define-key map (kbd "n") #'forward-button)
-    (define-key map (kbd "p") #'backward-button)
+    (define-key (kbd "n") #'forward-button)
+    (define-key (kbd "p") #'backward-button)
 
-    (define-key map (kbd "C-c m") #'helpful-view-in-manual)
-    (define-key map (kbd "C-c s") #'helpful-goto-source)
-    (define-key map (kbd "C-c e") #'helpful-toggle-edebug)
-    (define-key map (kbd "C-c t") #'helpful-toggle-tracing)
-    map)
+    (define-key (kbd "C-c m") #'helpful-view-in-manual)
+    (define-key (kbd "C-c s") #'helpful-goto-source)
+    (define-key (kbd "C-c e") #'helpful-toggle-edebug)
+    (define-key (kbd "C-c t") #'helpful-toggle-tracing))
   "Keymap for `helpful-mode'.")
 
 (declare-function bookmark-prop-get "bookmark" (bookmark prop))
