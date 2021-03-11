@@ -1120,8 +1120,8 @@ unescaping too."
   'help-echo "Follow this link")
 
 (defun helpful--ensure ()
-  "Ensure that the `helpful--sym' is available."
-  (unless helpful--sym
+  "Ensure that we are in a *helpful* buffer."
+  (unless (derived-mode-p 'helpful-mode)
     (user-error "Not in a *helpful* buffer")))
 
 (defun helpful-view-in-manual ()
