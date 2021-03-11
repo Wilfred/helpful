@@ -2903,6 +2903,11 @@ See also `helpful-max-buffers'."
 
     (define-key map (kbd "n") #'forward-button)
     (define-key map (kbd "p") #'backward-button)
+
+    (define-key map (kbd "C-c m") #'helpful-view-in-manual)
+    (define-key map (kbd "C-c s") #'helpful-goto-source)
+    (define-key map (kbd "C-c e") #'helpful-toggle-edebug)
+    (define-key map (kbd "C-c t") #'helpful-toggle-tracing)
     map)
   "Keymap for `helpful-mode'.")
 
