@@ -1146,6 +1146,12 @@ buffer."
         (goto-char pos)))
     (pop-to-buffer buf)))
 
+(defun helpful-disassemble ()
+  "Disassemble the current symbol."
+  (interactive)
+  (helpful--ensure)
+  (disassemble helpful--sym))
+
 (defun helpful-toggle-edebug ()
   "Toggle edebug for the current symbol."
   (interactive)
@@ -2926,7 +2932,8 @@ See also `helpful-max-buffers'."
     (define-key (kbd "C-c e") #'helpful-toggle-edebug)
     (define-key (kbd "C-c t") #'helpful-toggle-tracing)
     (define-key (kbd "C-c =") #'helpful-set-value)
-    (define-key (kbd "C-c c") #'helpful-customize))
+    (define-key (kbd "C-c c") #'helpful-customize)
+    (define-key (kbd "C-c d") #'helpful-disassemble))
   "Keymap for `helpful-mode'.")
 
 (declare-function bookmark-prop-get "bookmark" (bookmark prop))
