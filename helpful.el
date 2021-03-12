@@ -2529,10 +2529,9 @@ escapes that are used by `substitute-command-keys'."
           (setq docstring (documentation sym t))
           (-when-let (docstring-with-usage (help-split-fundoc docstring sym))
             (setq docstring (cdr docstring-with-usage))
-            (when docstring
+            (when (and docstring (helpful--advised-p sym))
               ;; Advice mutates the docstring, see
               ;; `advice--make-docstring'. Undo that.
-              ;; TODO: Only do this if the function is advised.
               (setq docstring (helpful--skip-advice docstring)))))
       (setq docstring
             (documentation-property sym 'variable-documentation t)))
