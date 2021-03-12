@@ -592,11 +592,9 @@ overrides that to include previously opened buffers."
   'follow-link t
   'help-echo "Set the value of this symbol")
 
-(defun helpful--set (button)
-  "Set the value of this symbol."
-  (let* ((sym (button-get button 'symbol))
-         (buf (button-get button 'buffer))
-         (sym-value (helpful--sym-value sym buf))
+(defun helpful--set-1 (sym &optional buf)
+  "Set the value of SYM in BUF, or globally if it is nil."
+  (let* ((sym-value (helpful--sym-value sym buf))
          ;; Inspired by `counsel-read-setq-expression'.
          (expr
           (minibuffer-with-setup-hook
@@ -625,6 +623,10 @@ overrides that to include previously opened buffers."
         (set-buffer buf))
       (eval-expression expr))
     (helpful-update)))
+
+(defun helpful--set (button)
+  "Set the value of this symbol."
+  (helpful--set-1 (button-get button 'symbol) (button-get button 'buffer)))
 
 (define-button-type 'helpful-view-literal-button
   'action #'helpful--view-literal
@@ -1158,6 +1160,20 @@ buffer."
   (unless helpful--callable-p
     (user-error "Cannot trace a variable"))
   (helpful--toggle-tracing helpful--sym))
+
+(defun helpful-set-value ()
+  (interactive)
+  (helpful--ensure)
+  (when helpful--callable-p
+    (user-error "Cannot set function"))
+  (helpful--set-1 helpful--sym helpful--associated-buffer))
+
+(defun helpful-customize ()
+  (interactive)
+  (helpful--ensure)
+  (when helpful--callable-p
+    (user-error "Cannot customize functions"))
+  (customize-variable helpful--sym))
 
 (defun helpful--propertize-links (docstring)
   "Convert URL links in docstrings to buttons."
@@ -2907,7 +2923,9 @@ See also `helpful-max-buffers'."
     (define-key (kbd "C-c m") #'helpful-view-in-manual)
     (define-key (kbd "C-c s") #'helpful-goto-source)
     (define-key (kbd "C-c e") #'helpful-toggle-edebug)
-    (define-key (kbd "C-c t") #'helpful-toggle-tracing))
+    (define-key (kbd "C-c t") #'helpful-toggle-tracing)
+    (define-key (kbd "C-c =") #'helpful-set-value)
+    (define-key (kbd "C-c c") #'helpful-customize))
   "Keymap for `helpful-mode'.")
 
 (declare-function bookmark-prop-get "bookmark" (bookmark prop))
