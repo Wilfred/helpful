@@ -1154,7 +1154,8 @@ If the source file is no longer available, display it in a new
 buffer."
   (interactive)
   (helpful--ensure)
-  (-let [(buf pos opened) (helpful--definition helpful--sym helpful--callable-p)]
+  (-let [(buf pos _opened)
+         (helpful--definition helpful--sym helpful--callable-p)]
     (unless buf
       (user-error "Could not locate source"))
     (when pos
