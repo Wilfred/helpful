@@ -1159,7 +1159,8 @@ buffer."
   (helpful--ensure)
   (unless helpful--callable-p
     (user-error "Cannot trace a variable"))
-  (helpful--toggle-tracing helpful--sym))
+  (helpful--toggle-tracing helpful--sym)
+  (helpful-update))
 
 (defun helpful-set-value ()
   (interactive)
