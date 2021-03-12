@@ -57,6 +57,8 @@
 
 (defvar-local helpful--sym nil)
 (defvar-local helpful--callable-p nil)
+(defvar-local helpful--source-sexp nil
+  "Source-code sexp for the current symbol.")
 (defvar-local helpful--associated-buffer nil
   "The buffer being used when showing inspecting
 buffer-local variables.")
@@ -312,18 +314,23 @@ Return SYM otherwise."
   'follow-link t
   'help-echo "Unbind this function")
 
-;; TODO: it would be nice to optionally delete the source code too.
-(defun helpful--forget (button)
-  "Unbind the current symbol."
-  (let* ((sym (button-get button 'symbol))
-         (callable-p (button-get button 'callable-p))
-         (kind (helpful--kind-name sym callable-p)))
+(defun helpful--forget-1 (sym callable-p)
+  "Forge SYM interactively.
+If CALLABLE-P is given, SYM is assumed to be a function."
+  (let ((kind (helpful--kind-name sym callable-p)))
     (when (yes-or-no-p (format "Forget %s %s?" kind sym))
       (if callable-p
           (fmakunbound sym)
         (makunbound sym))
       (message "Forgot %s %s." kind sym)
       (kill-buffer (current-buffer)))))
+
+;; TODO: it would be nice to optionally delete the source code too.
+(defun helpful--forget (button)
+  "Unbind the current symbol."
+  (let* ((sym (button-get button 'symbol))
+         (callable-p (button-get button 'callable-p)))
+    (helpful--forget-1 sym callable-p)))
 
 (define-button-type 'helpful-c-source-directory
   'action #'helpful--c-source-directory
@@ -645,17 +652,22 @@ overrides that to include previously opened buffers."
   'follow-link t
   'help-echo "Find all references to this symbol")
 
+(defun helpful--all-references-1 (sym callable-p)
+  "Find all references of SYM.
+If CALLABLE-P, SYM is a function or macro."
+  (cond
+   ((not callable-p)
+    (elisp-refs-variable sym))
+   ((functionp sym)
+    (elisp-refs-function sym))
+   ((macrop sym)
+    (elisp-refs-macro sym))))
+
 (defun helpful--all-references (button)
   "Find all the references to the symbol that this BUTTON represents."
   (let ((sym (button-get button 'symbol))
         (callable-p (button-get button 'callable-p)))
-    (cond
-     ((not callable-p)
-      (elisp-refs-variable sym))
-     ((functionp sym)
-      (elisp-refs-function sym))
-     ((macrop sym)
-      (elisp-refs-macro sym)))))
+    (helpful--all-references-1 sym callable-p)))
 
 (define-button-type 'helpful-callees-button
   'action #'helpful--show-callees
@@ -675,11 +687,10 @@ overrides that to include previously opened buffers."
              'callable-p t)
             "\n")))
 
-(defun helpful--show-callees (button)
-  "Find all the references to the symbol that this BUTTON represents."
+(defun helpful--show-callees-1 (sym raw-source)
+  "Show all callees of SYM with RAW-SOURCE.
+See `helpful--source-sexp' for RAW-SOURCE."
   (let* ((buf (get-buffer-create "*helpful callees*"))
-         (sym (button-get button 'symbol))
-         (raw-source (button-get button 'source))
          (source
           (if (stringp raw-source)
               (read raw-source)
@@ -704,6 +715,11 @@ overrides that to include previously opened buffers."
       (goto-char (point-min))
 
       (helpful-mode))))
+
+(defun helpful--show-callees (button)
+  "Find all the references to the symbol that this BUTTON represents."
+  (helpful--show-callees-1 (button-get button 'symbol)
+                           (button-get button 'source)))
 
 (define-button-type 'helpful-manual-button
   'action #'helpful--manual
@@ -1146,6 +1162,10 @@ buffer."
         (goto-char pos)))
     (pop-to-buffer buf)))
 
+(defun helpful-forget ()
+  "Forget the current helpful symbol."
+  (helpful--forget-1 helpful--sym helpful--callable-p))
+
 (defun helpful-disassemble ()
   "Disassemble the current symbol."
   (interactive)
@@ -1167,6 +1187,19 @@ buffer."
     (user-error "Cannot trace a variable"))
   (helpful--toggle-tracing helpful--sym)
   (helpful-update))
+
+(defun helpful-callees ()
+  (interactive)
+  (helpful--ensure)
+  (unless (and helpful--callable-p
+               (not (helpful--primitive-p helpful--sym helpful--callable-p)))
+    (user-error "Must be a non-primtive function"))
+  (helpful--show-callees-1 helpful--sym helpful--source-sexp))
+
+(defun helpful-all-references ()
+  (interactive)
+  (helpful--ensure)
+  (helpful--all-references-1 helpful--sym helpful--callable-p))
 
 (defun helpful-set-value ()
   (interactive)
@@ -2220,7 +2253,8 @@ state of the current symbol."
                (helpful--definition helpful--sym helpful--callable-p)
              '(nil nil nil)))
           (source (when look-for-src
-                    (helpful--source helpful--sym helpful--callable-p buf pos)))
+                    (->> (helpful--source helpful--sym helpful--callable-p buf pos)
+                      (setq-local helpful--source-sexp))))
           (source-path (when buf
                          (buffer-file-name buf)))
           (references (helpful--calculate-references
