@@ -2257,6 +2257,22 @@ state of the current symbol."
           (insert "\n\n")
           (insert (helpful--make-manual-button helpful--sym)))))
 
+    (when (helpful--advised-p helpful--sym)
+      (helpful--insert-section-break)
+      (insert (helpful--heading "Advice"))
+      (dolist (x (helpful--get-advice helpful--sym))
+        (cl-destructuring-bind (combinator . advice) x
+          (insert (propertize (symbol-name combinator) 'face 'font-lock-builtin-face)
+                  " "
+                  (helpful--button
+                   (symbol-name advice) 'helpful-describe-button
+                   'symbol advice
+                   'callable-p t)
+                  "\n")))
+      ;; We've inserted one newline too many, since the next section will insert
+      ;; a section break.
+      (delete-char -1))
+
     ;; Show keybindings.
     ;; TODO: allow users to conveniently add and remove keybindings.
     (when (commandp helpful--sym)
@@ -2300,22 +2316,6 @@ state of the current symbol."
       (insert
        " "
        (helpful--make-callees-button helpful--sym source)))
-
-    (when (helpful--advised-p helpful--sym)
-      (helpful--insert-section-break)
-      (insert (helpful--heading "Advice"))
-      (dolist (x (helpful--get-advice helpful--sym))
-        (cl-destructuring-bind (combinator . advice) x
-          (insert (propertize (symbol-name combinator) 'face 'font-lock-builtin-face)
-                  " "
-                  (helpful--button
-                   (symbol-name advice) 'helpful-describe-button
-                   'symbol advice
-                   'callable-p t)
-                  "\n")))
-      ;; We've inserted one newline too many, since the next section will insert
-      ;; a section break.
-      (delete-char -1))
 
     (let ((can-edebug
            (helpful--can-edebug-p helpful--sym helpful--callable-p buf pos))
