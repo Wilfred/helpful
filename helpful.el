@@ -2459,12 +2459,15 @@ The resulting DOCSTRING might start with a blank newline."
     (buffer-substring-no-properties (point-min) (point-max))))
 
 (defun helpful--extract-advice (docstring)
-  (save-match-data
-    (cl-loop with lines = (s-lines docstring) for line = (car lines)
-             while (and lines (string-match helpful--advice-regexp line))
-             collect (cons (intern (match-string-no-properties 1 line))
-                           (intern (match-string-no-properties 2 line)))
-             do (pop lines))))
+  (let ((lines (s-lines docstring))
+        line result)
+    (save-match-data
+      (while (and lines (string-match helpful--advice-regexp
+                                      (setq line (pop lines))))
+        (push (cons (intern (match-string-no-properties 1 line))
+                    (intern (match-string-no-properties 2 line)))
+              result))
+      result)))
 
 (defun helpful--get-advice (sym)
   (helpful--extract-advice (let ((text-quoting-style 'grave)) (documentation sym t))))
