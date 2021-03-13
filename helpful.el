@@ -2459,6 +2459,7 @@ The resulting DOCSTRING might start with a blank newline."
     (buffer-substring-no-properties (point-min) (point-max))))
 
 (defun helpful--extract-advice (docstring)
+  "Extract `advice' from DOCSTRING."
   (let ((lines (s-lines docstring))
         line result)
     (save-match-data
@@ -2470,6 +2471,7 @@ The resulting DOCSTRING might start with a blank newline."
       result)))
 
 (defun helpful--get-advice (sym)
+  "Extract `advice' from SYM."
   (helpful--extract-advice (let ((text-quoting-style 'grave)) (documentation sym t))))
 
 (defun helpful--format-argument (arg)
