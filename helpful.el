@@ -2303,10 +2303,19 @@ state of the current symbol."
 
     (when (helpful--advised-p helpful--sym)
       (helpful--insert-section-break)
-      (insert
-       (helpful--heading "Advice")
-       (format "This %s is advised."
-               (if (macrop helpful--sym) "macro" "function"))))
+      (insert (helpful--heading "Advice"))
+      (dolist (x (helpful--get-advice helpful--sym))
+        (cl-destructuring-bind (combinator . advice) x
+          (insert (propertize (symbol-name combinator) 'face 'font-lock-builtin-face)
+                  " "
+                  (helpful--button
+                   (symbol-name advice) 'helpful-describe-button
+                   'symbol advice
+                   'callable-p t)
+                  "\n")))
+      ;; We've inserted one newline too many, since the next section will insert
+      ;; a section break.
+      (delete-char -1))
 
     (let ((can-edebug
            (helpful--can-edebug-p helpful--sym helpful--callable-p buf pos))
@@ -2421,16 +2430,29 @@ state of the current symbol."
     (when opened
       (kill-buffer buf))))
 
+(defconst helpful--advice-regexp "^\\(?:This function has \\)?\\(:[-a-z]+\\) advice: `\\(.*\\)'\\.$")
+
 ;; TODO: this isn't sufficient for `edebug-eval-defun'.
 (defun helpful--skip-advice (docstring)
   "Remove mentions of advice from DOCSTRING."
-  (let* ((lines (s-lines docstring))
-         (relevant-lines
-          (--drop-while
-           (or (s-starts-with-p ":around advice:" it)
-               (s-starts-with-p "This function has :around advice:" it))
-           lines)))
-    (s-trim (s-join "\n" relevant-lines))))
+  (with-temp-buffer
+    (insert docstring)
+    (goto-char (point-min))
+    (save-match-data
+      (while (looking-at helpful--advice-regexp)
+        (delete-region (match-beginning 0) (1+ (match-end 0)))))
+    (buffer-substring-no-properties (point-min) (point-max))))
+
+(defun helpful--extract-advice (docstring)
+  (save-match-data
+    (cl-loop with lines = (s-lines docstring) for line = (car lines)
+             while (and lines (string-match helpful--advice-regexp line))
+             collect (cons (intern (match-string-no-properties 1 line))
+                           (intern (match-string-no-properties 2 line)))
+             do (pop lines))))
+
+(defun helpful--get-advice (sym)
+  (helpful--extract-advice (let ((text-quoting-style 'grave)) (documentation sym t))))
 
 (defun helpful--format-argument (arg)
   "Format ARG (a symbol) according to Emacs help conventions."
