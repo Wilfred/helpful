@@ -1125,6 +1125,30 @@ unescaping too."
   'action #'helpful--remove-advice
   'help-echo "Remove advice")
 
+(defun helpful--remove-all-advice-1 (sym)
+  "Remove all advice from SYM."
+  (advice-mapc (lambda (advice x) (advice-remove sym advice)) sym)
+  (helpful-update))
+
+(defun helpful--remove-all-advice (button)
+  "Remove all advice for BUTTON."
+  (helpful--remove-all-advice-1 (button-get button 'symbol)))
+
+(define-button-type 'helpful-remove-all-advice-button
+  'action #'helpful--remove-all-advice
+  'help-echo "Remove all advice")
+
+(defun helpful-remove-all-advice ()
+  "Remove all advice for the current helpful symbol."
+  (interactive)
+  (unless (derived-mode-p #'helpful-mode)
+    (user-error "Must be in a *helpful* buffer"))
+  (unless helpful--callable-p
+    (user-error "Cannot unadvise a variable"))
+  (unless (helpful--advised-p helpful--sym)
+    (user-error "Function not advised"))
+  (helpful--remove-all-advice-1 helpful--sym))
+
 (defun helpful--propertize-links (docstring)
   "Convert URL links in docstrings to buttons."
   (replace-regexp-in-string
@@ -2169,7 +2193,8 @@ state of the current symbol."
           (references (helpful--calculate-references
                        helpful--sym helpful--callable-p
                        source-path))
-          (aliases (helpful--aliases helpful--sym helpful--callable-p)))
+          (aliases (helpful--aliases helpful--sym helpful--callable-p))
+          (advised? (helpful--advised-p helpful--sym)))
 
     (erase-buffer)
 
@@ -2267,7 +2292,7 @@ state of the current symbol."
           (insert "\n\n")
           (insert (helpful--make-manual-button helpful--sym)))))
 
-    (when (helpful--advised-p helpful--sym)
+    (when advised?
       (helpful--insert-section-break)
       (insert (helpful--heading "Advice"))
       (dolist (x (helpful--get-advice helpful--sym))
@@ -2368,7 +2393,11 @@ state of the current symbol."
       (when can-forget
         (when can-disassemble
           (insert " "))
-        (insert (helpful--make-forget-button helpful--sym helpful--callable-p))))
+        (insert (helpful--make-forget-button helpful--sym helpful--callable-p)))
+      (when advised?
+        (when can-forget (insert " "))
+        (insert (helpful--button "Remove all advice" 'helpful-remove-all-advice-button
+                                 'symbol helpful--sym))))
 
     (when aliases
       (helpful--insert-section-break)
