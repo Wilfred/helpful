@@ -1115,6 +1115,16 @@ unescaping too."
   'follow-link t
   'help-echo "Follow this link")
 
+(defun helpful--remove-advice (button)
+  "Remove advice for BUTTON."
+  (advice-remove (button-get button 'symbol)
+                 (button-get button 'advice))
+  (helpful-update))
+
+(define-button-type 'helpful-remove-advice-button
+  'action #'helpful--remove-advice
+  'help-echo "Remove advice")
+
 (defun helpful--propertize-links (docstring)
   "Convert URL links in docstrings to buttons."
   (replace-regexp-in-string
@@ -2262,7 +2272,11 @@ state of the current symbol."
       (insert (helpful--heading "Advice"))
       (dolist (x (helpful--get-advice helpful--sym))
         (cl-destructuring-bind (combinator . advice) x
-          (insert (propertize (symbol-name combinator) 'face 'font-lock-builtin-face)
+          (insert (helpful--button "X" 'helpful-remove-advice-button
+                                   'symbol helpful--sym
+                                   'advice advice)
+                  " "
+                  (propertize (symbol-name combinator) 'face 'font-lock-builtin-face)
                   " "
                   (helpful--button
                    (symbol-name advice) 'helpful-describe-button
@@ -2434,7 +2448,8 @@ state of the current symbol."
 
 ;; TODO: this isn't sufficient for `edebug-eval-defun'.
 (defun helpful--skip-advice (docstring)
-  "Remove mentions of advice from DOCSTRING."
+  "Remove mentions of advice from DOCSTRING.
+The resulting DOCSTRING might start with a blank newline."
   (with-temp-buffer
     (insert docstring)
     (goto-char (point-min))
