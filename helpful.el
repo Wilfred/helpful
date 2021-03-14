@@ -639,11 +639,16 @@ overrides that to include previously opened buffers."
   'action #'helpful--view-literal
   'help-echo "Toggle viewing as a literal")
 
-(defun helpful--view-literal (_button)
-  "Set the value of this symbol."
+(defun helpful-view-literal ()
+  "Toggle literal/pretty view."
+  (interactive)
   (setq helpful--view-literal
         (not helpful--view-literal))
   (helpful-update))
+
+(defun helpful--view-literal (_button)
+  "Toggle literal/pretty view."
+  (helpful-view-literal))
 
 (define-button-type 'helpful-all-references-button
   'action #'helpful--all-references
