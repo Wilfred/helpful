@@ -2473,18 +2473,23 @@ state of the current symbol."
     (when opened
       (kill-buffer buf))))
 
-(defconst helpful--advice-regexp "^\\(?:This function has \\)?\\(:[-a-z]+\\) advice: `\\(.*\\)'\\.$")
+(defconst helpful--advice-regexp
+  "^\\(?:This function has \\)?\\(:[-a-z]+\\) advice: `\\(.*\\)'\\.?$"
+  "Regexp matching advice lines.
+Match group 1 is the combinator, with colon, and match group 2 is
+the advice.")
 
 ;; TODO: this isn't sufficient for `edebug-eval-defun'.
 (defun helpful--skip-advice (docstring)
-  "Remove mentions of advice from DOCSTRING.
-The resulting DOCSTRING might start with a blank newline."
+  "Remove mentions of advice from DOCSTRING."
   (with-temp-buffer
     (insert docstring)
     (goto-char (point-min))
     (save-match-data
       (while (looking-at helpful--advice-regexp)
         (delete-region (match-beginning 0) (1+ (match-end 0)))))
+    (when (eq (char-after) ?\n)
+      (delete-char 1))
     (buffer-substring-no-properties (point-min) (point-max))))
 
 (defun helpful--extract-advice (docstring)
@@ -2600,10 +2605,7 @@ escapes that are used by `substitute-command-keys'."
           (setq docstring (documentation sym t))
           (-when-let (docstring-with-usage (help-split-fundoc docstring sym))
             (setq docstring (cdr docstring-with-usage))
-            (when docstring
-              ;; Advice mutates the docstring, see
-              ;; `advice--make-docstring'. Undo that.
-              ;; TODO: Only do this if the function is advised.
+            (when (helpful--advised-p sym)
               (setq docstring (helpful--skip-advice docstring)))))
       (setq docstring
             (documentation-property sym 'variable-documentation t)))
