@@ -2384,7 +2384,7 @@ state of the current symbol."
 
       (when (and
              (or can-edebug can-trace)
-             (or can-disassemble can-forget))
+             (or can-disassemble can-forget advised?))
         (insert "\n"))
 
       (when can-disassemble
@@ -2395,7 +2395,8 @@ state of the current symbol."
           (insert " "))
         (insert (helpful--make-forget-button helpful--sym helpful--callable-p)))
       (when advised?
-        (when can-forget (insert " "))
+        (when (or can-forget can-disassemble)
+          (insert " "))
         (insert (helpful--button "Remove all advice" 'helpful-remove-all-advice-button
                                  'symbol helpful--sym))))
 
