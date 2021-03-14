@@ -2507,7 +2507,8 @@ the advice.")
 
 (defun helpful--get-advice (sym)
   "Extract `advice' from SYM."
-  (helpful--extract-advice (let ((text-quoting-style 'grave)) (documentation sym t))))
+  (helpful--extract-advice (let ((text-quoting-style 'grave))
+                             (documentation sym t))))
 
 (defun helpful--format-argument (arg)
   "Format ARG (a symbol) according to Emacs help conventions."
