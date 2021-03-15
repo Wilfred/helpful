@@ -2475,7 +2475,7 @@ state of the current symbol."
       (kill-buffer buf))))
 
 (defconst helpful--advice-regexp
-  "^\\(?:This function has \\)?\\(:[-a-z]+\\) advice: `\\(.*\\)'\\.?$"
+  "^\\(?:This function has \\)?\\(:[-a-z]+\\) advice: `\\(.*\\)'\\.?\n\n?"
   "Regexp matching advice lines.
 Match group 1 is the combinator, with colon, and match group 2 is
 the advice.")
@@ -2488,22 +2488,22 @@ the advice.")
     (goto-char (point-min))
     (save-match-data
       (while (looking-at helpful--advice-regexp)
-        (delete-region (match-beginning 0) (1+ (match-end 0)))))
-    (when (eq (char-after) ?\n)
-      (delete-char 1))
+        (delete-region (match-beginning 0) (match-end 0))))
     (buffer-substring-no-properties (point-min) (point-max))))
 
 (defun helpful--extract-advice (docstring)
   "Extract `advice' from DOCSTRING."
-  (let ((lines (s-lines docstring))
-        line result)
+  (with-temp-buffer
+    (insert docstring)
+    (goto-char (point-min))
     (save-match-data
-      (while (and lines (string-match helpful--advice-regexp
-                                      (setq line (pop lines))))
-        (push (cons (intern (match-string-no-properties 1 line))
-                    (intern (match-string-no-properties 2 line)))
-              result))
-      result)))
+      (let (result)
+        (while (looking-at helpful--advice-regexp)
+          (push (cons (intern (match-string-no-properties 1))
+                      (intern (match-string-no-properties 2)))
+                result)
+          (goto-char (match-end 0)))
+        result))))
 
 (defun helpful--get-advice (sym)
   "Extract `advice' from SYM."
