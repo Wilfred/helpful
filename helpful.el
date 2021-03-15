@@ -2304,7 +2304,7 @@ state of the current symbol."
                   (propertize (symbol-name combinator) 'face 'font-lock-builtin-face)
                   " "
                   (helpful--button
-                   (symbol-name advice) 'helpful-describe-button
+                   (helpful--format-symbol advice) 'helpful-describe-button
                    'symbol advice
                    'callable-p t)
                   "\n")))
@@ -2500,7 +2500,7 @@ the advice.")
       (let (result)
         (while (looking-at helpful--advice-regexp)
           (push (cons (intern (match-string-no-properties 1))
-                      (intern (match-string-no-properties 2)))
+                      (read (match-string-no-properties 2)))
                 result)
           (goto-char (match-end 0)))
         result))))
