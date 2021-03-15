@@ -2500,7 +2500,8 @@ For example, \"(some-func FOO &optional BAR)\"."
       source-sig)
      ;; If that's not set, use the usage specification in the
      ;; docstring, if present.
-     (docstring-sig)
+     (docstring-sig
+      (replace-regexp-in-string "\\\\=\\(['\\`‘’]\\)" "\\1" docstring-sig t))
      (t
       ;; Otherwise, just use the signature from the source code.
       source-sig))))
