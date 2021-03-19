@@ -1956,13 +1956,13 @@ OBJ may be a symbol or a compiled function object."
                           (helpful--buffer-button buf pos)))))
              (primitive-p
               "defined in C source code")
-             ((helpful--kbd-macro-p sym) "")
+             ((helpful--kbd-macro-p sym) nil)
              (t
               "without a source file"))))
 
     (s-word-wrap
      70
-     (format "%s is %s %s %s %s."
+     (format "%s is %s %s %s%s."
              (if (symbolp sym)
                  (helpful--format-symbol sym)
                "This lambda")
@@ -1973,7 +1973,7 @@ OBJ may be a symbol or a compiled function object."
                "a")
              description
              kind
-             defined))))
+             (if defined (concat " " defined) "")))))
 
 (defun helpful--callees (form)
   "Given source code FORM, return a list of all the functions called."
