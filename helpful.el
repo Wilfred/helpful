@@ -149,6 +149,8 @@ can make Helpful very slow.")
       (setq helpful--callable-p callable-p)
       (setq helpful--start-buffer current-buffer)
       (setq helpful--associated-buffer current-buffer)
+      (setq list-buffers-directory
+        (if (symbolp symbol) (format "%s: %s" (helpful--kind-name symbol callable-p) symbol) "lambda"))
       (if (helpful--primitive-p symbol callable-p)
           (setq-local comment-start "//")
         (setq-local comment-start ";")))
