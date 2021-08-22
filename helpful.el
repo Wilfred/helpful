@@ -1898,7 +1898,7 @@ OBJ may be a symbol or a compiled function object."
             'info-node "(elisp)Autoload"))
           (compiled-button
            (helpful--button
-            "compiled"
+            "byte-compiled"
             'helpful-info-button
             'info-node "(elisp)Byte Compilation"))
           (native-compiled-button
