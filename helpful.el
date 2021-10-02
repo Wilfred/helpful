@@ -2559,6 +2559,13 @@ Returns the symbol."
                            predicate t nil nil
                            default-val)))
 
+(defun helpful--update-and-switch-buffer (symbol callable-p)
+  "Update and switch to help buffer for SYMBOL."
+  (let ((buf (helpful--buffer symbol callable-p)))
+    (with-current-buffer buf
+      (helpful-update))
+    (funcall helpful-switch-buffer-function buf)))
+
 ;;;###autoload
 (defun helpful-function (symbol)
   "Show help for function named SYMBOL.
@@ -2569,8 +2576,7 @@ See also `helpful-macro', `helpful-command' and `helpful-callable'."
           "Function: "
           (helpful--callable-at-point)
           #'functionp)))
-  (funcall helpful-switch-buffer-function (helpful--buffer symbol t))
-  (helpful-update))
+  (helpful--update-and-switch-buffer symbol t))
 
 ;;;###autoload
 (defun helpful-command (symbol)
@@ -2582,8 +2588,7 @@ See also `helpful-function'."
           "Command: "
           (helpful--callable-at-point)
           #'commandp)))
-  (funcall helpful-switch-buffer-function (helpful--buffer symbol t))
-  (helpful-update))
+  (helpful--update-and-switch-buffer symbol t))
 
 ;;;###autoload
 (defun helpful-key (key-sequence)
@@ -2596,8 +2601,7 @@ See also `helpful-function'."
       (user-error "No command is bound to %s"
                   (key-description key-sequence)))
      ((commandp sym)
-      (funcall helpful-switch-buffer-function (helpful--buffer sym t))
-      (helpful-update))
+      (helpful--update-and-switch-buffer sym t))
      (t
       (user-error "%s is bound to %s which is not a command"
                   (key-description key-sequence)
@@ -2611,8 +2615,7 @@ See also `helpful-function'."
           "Macro: "
           (helpful--callable-at-point)
           #'macrop)))
-  (funcall helpful-switch-buffer-function (helpful--buffer symbol t))
-  (helpful-update))
+  (helpful--update-and-switch-buffer symbol t))
 
 ;;;###autoload
 (defun helpful-callable (symbol)
@@ -2624,8 +2627,7 @@ See also `helpful-macro', `helpful-function' and `helpful-command'."
           "Callable: "
           (helpful--callable-at-point)
           #'fboundp)))
-  (funcall helpful-switch-buffer-function (helpful--buffer symbol t))
-  (helpful-update))
+  (helpful--update-and-switch-buffer symbol t))
 
 (defun helpful--variable-p (symbol)
   "Return non-nil if SYMBOL is a variable."
@@ -2714,8 +2716,7 @@ See also `helpful-callable' and `helpful-variable'."
           "Variable: "
           (helpful--variable-at-point)
           #'helpful--variable-p)))
-  (funcall helpful-switch-buffer-function (helpful--buffer symbol nil))
-  (helpful-update))
+  (helpful--update-and-switch-buffer symbol nil))
 
 (defun helpful--variable-at-point-exactly ()
   "Return the symbol at point, if it's a bound variable."
