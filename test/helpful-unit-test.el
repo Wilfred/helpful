@@ -669,9 +669,9 @@ associated a lambda with a keybinding."
 (ert-deftest helpful--keymap-keys--anonymous-fns ()
   (let* ((keymap (make-keymap)))
     (define-key keymap (kbd "a")
-      (lambda () (message)))
+      (lambda () (interactive) (message "")))
     (define-key keymap (kbd "a")
-      (byte-compile-sexp (lambda () (message))))
+      (byte-compile (lambda () (interactive) (message ""))))
 
     ;; Don't crash on anonymous functions in a keymap.
     (helpful--keymap-keys keymap)))
