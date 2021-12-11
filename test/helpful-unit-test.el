@@ -566,6 +566,13 @@ associated a lambda with a keybinding."
     (with-current-buffer buf
       (helpful-update))))
 
+(ert-deftest helpful--unnamed-func-with-docstring ()
+  (let* ((fun (lambda (x) "Foo" x))
+         (buf (helpful--buffer fun t)))
+    ;; Don't crash when we show the buffer.
+    (with-current-buffer buf
+      (helpful-update))))
+
 (ert-deftest helpful--unnamed-compiled-func ()
   "Ensure we handle unnamed byte-compiled functions.
 

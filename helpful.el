@@ -2257,7 +2257,7 @@ state of the current symbol."
           (insert (helpful--format-docstring docstring)))
         (when version-info
           (insert "\n\n" (s-word-wrap 70 version-info)))
-        (when (helpful--in-manual-p helpful--sym)
+        (when (and (symbolp helpful--sym) (helpful--in-manual-p helpful--sym))
           (insert "\n\n")
           (insert (helpful--make-manual-button helpful--sym)))))
 
