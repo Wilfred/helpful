@@ -417,7 +417,7 @@ variables defined without `defvar'."
   ;; Emacs instance.
   (skip-unless (null (get-buffer "python.el.gz")))
 
-  (-let [(buf pos opened) (helpful--definition 'python-indent-offset nil)]
+  (-let [(buf _pos opened) (helpful--definition 'python-indent-offset nil)]
     (should (bufferp buf))
     (should opened)))
 
@@ -435,7 +435,7 @@ variables defined without `defvar'."
 		   (lambda (_format-string &rest _args))))
           (eval (eval-sexp-add-defvars (edebug-read-top-level-form)) t))
 
-        (-let [(buf pos opened) (helpful--definition 'test-foo-edebug-defn t)]
+        (-let [(buf _pos _opened) (helpful--definition 'test-foo-edebug-defn t)]
           (should buf))))))
 
 (ert-deftest helpful--definition-defstruct ()
@@ -764,14 +764,14 @@ in."
       (c . (11))))))
 
 (ert-deftest helpful--source ()
-  (-let* (((buf pos opened) (helpful--definition #'helpful--source t))
+  (-let* (((buf pos _opened) (helpful--definition #'helpful--source t))
           (source (helpful--source #'helpful--source t buf pos)))
     (should
      (s-starts-with-p "(defun " source))))
 
 (ert-deftest helpful--source-autoloaded ()
   "We should include the autoload cookie."
-  (-let* (((buf pos opened) (helpful--definition #'helpful-at-point t))
+  (-let* (((buf pos _opened) (helpful--definition #'helpful-at-point t))
           (source (helpful--source #'helpful-at-point t buf pos)))
     (should
      (s-starts-with-p ";;;###autoload" source))))
@@ -780,7 +780,7 @@ in."
   "We should return the raw sexp for functions where we can't
 find the source code."
   (eval '(defun test-foo-defined-interactively () 42))
-  (-let* (((buf pos opened) (helpful--definition #'test-foo-defined-interactively t)))
+  (-let* (((buf pos _opened) (helpful--definition #'test-foo-defined-interactively t)))
     (should
      (not
       (null
