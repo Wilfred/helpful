@@ -1317,13 +1317,17 @@ If it fails, attempt to partially macroexpand FORM."
 (defun helpful--tree-any-p (pred tree)
   "Walk TREE, applying PRED to every subtree.
 Return t if PRED ever returns t."
-  (cond
-   ((null tree) nil)
-   ((funcall pred tree) t)
-   ((not (consp tree)) nil)
-   (t (or
-       (helpful--tree-any-p pred (car tree))
-       (helpful--tree-any-p pred (cdr tree))))))
+  (catch 'found
+    (let ((stack (list tree)))
+      (while stack
+        (let ((next (pop stack)))
+          (cond
+           ((funcall pred next)
+            (throw 'found t))
+           ((consp next)
+            (push (car next) stack)
+            (push (cdr next) stack))))))
+    nil))
 
 (defun helpful--find-by-macroexpanding (buf sym callable-p)
   "Search BUF for the definition of SYM by macroexpanding

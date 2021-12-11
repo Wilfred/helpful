@@ -1072,3 +1072,7 @@ find the source code."
   "Ensure that we can describe an autoloaded function
 that has advice attached before it is loadedl."
   (helpful-function 'ruby-mode))
+
+(ert-deftest helpful--tree-any-p ()
+  (should (helpful--tree-any-p (lambda (x) (eq x 1)) '((((1))))))
+  (should (helpful--tree-any-p (lambda (x) (eq x 1)) (cons 2 1))))

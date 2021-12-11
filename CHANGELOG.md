@@ -8,6 +8,8 @@ Fixed issue with displaying circular data structures.
 Fixed a crash in `helpful-variable` in files that weren't
 syntactically valid lisp.
 
+Fixed stack overflow in macroexpanding large s-expressions (#279).
+
 # v0.18
 
 Show the original value for custom variables whose value has changed.
