@@ -2470,7 +2470,14 @@ For example, \"(some-func FOO &optional BAR)\"."
              ((symbolp sym)
               (help-function-arglist sym))
              ((byte-code-function-p sym)
-              (aref sym 0))
+              ;; argdesc can be a list of arguments or an integer
+              ;; encoding the min/max number of arguments. See
+              ;; Byte-Code Function Objects in the elisp manual.
+              (let ((argdesc (aref sym 0)))
+                (if (consp argdesc)
+                    argdesc
+                  ;; TODO: properly handle argdesc values.
+                  nil)))
              (t
               ;; Interpreted function (lambda ...)
               (cadr sym))))

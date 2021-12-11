@@ -1,3 +1,5 @@
+;;; helpful-unit-test.el -*- lexical-binding: t; -*-
+
 (require 'ert)
 (require 'edebug)
 (require 'helpful)
