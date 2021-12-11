@@ -2300,7 +2300,11 @@ state of the current symbol."
      "\n\n"
      (helpful--make-references-button helpful--sym helpful--callable-p))
 
-    (when (and helpful--callable-p source (not primitive-p))
+    (when (and
+           helpful--callable-p
+           (symbolp helpful--sym)
+           source
+           (not primitive-p))
       (insert
        " "
        (helpful--make-callees-button helpful--sym source)))
