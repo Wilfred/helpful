@@ -114,16 +114,32 @@ can make Helpful very slow.")
    ((functionp symbol) "function")
    ((special-form-p symbol) "special form")))
 
+(defun helpful-default-buffer-name (symbol callable-p)
+  "The default `helpful-buffer-name-function'."
+  (format "*helpful %s*"
+          (if (symbolp symbol)
+              (format "%s: %s"
+                      (helpful--kind-name symbol callable-p)
+                      symbol)
+            "lambda")))
+
+(defun helpful-shorter-buffer-name (symbol callable-p)
+  "An alternative `helpful-buffer-name-function'.
+Return what `helpful-default-buffer-name' returns, but with the
+leading \"*helpful \" replaced by just \"*\"."
+  (->> (helpful-default-buffer-name symbol callable-p)
+       (replace-regexp-in-string "\\`*helpful " "*")))
+
+(defvar helpful-buffer-name-function #'helpful-default-buffer-name
+  "The function used to create a buffer name for a symbol.
+
+See `helpful-default-buffer-name' and `helpful-shorter-buffer-name'
+for examples.")
+
 (defun helpful--buffer (symbol callable-p)
   "Return a buffer to show help for SYMBOL in."
   (let* ((current-buffer (current-buffer))
-         (buf-name
-          (format "*helpful %s*"
-                  (if (symbolp symbol)
-                      (format "%s: %s"
-                              (helpful--kind-name symbol callable-p)
-                              symbol)
-                    "lambda")))
+         (buf-name (funcall helpful-buffer-name-function symbol callable-p))
          (buf (get-buffer buf-name)))
     (unless buf
       ;; If we need to create the buffer, ensure we don't exceed
