@@ -1837,7 +1837,7 @@ OBJ may be a symbol or a compiled function object."
   "Return non-nil if function SYM is autoloaded."
   (-when-let (file-name (buffer-file-name buf))
     (setq file-name (s-chop-suffix ".gz" file-name))
-    (help-fns--autoloaded-p sym file-name)))
+    (help-fns--autoloaded-p sym)))
 
 (defun helpful--compiled-p (sym)
   "Return non-nil if function SYM is byte-compiled"
@@ -2434,9 +2434,9 @@ state of the current symbol."
   "Remove mentions of advice from DOCSTRING."
   (let* ((lines (s-lines docstring))
          (relevant-lines
-          (--drop-while
-           (or (s-starts-with-p ":around advice:" it)
-               (s-starts-with-p "This function has :around advice:" it))
+          (--take-while
+           (not (or (s-starts-with-p ":around advice:" it)
+                    (s-starts-with-p "This function has :around advice:" it)))
            lines)))
     (s-trim (s-join "\n" relevant-lines))))
 
