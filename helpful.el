@@ -1837,7 +1837,11 @@ OBJ may be a symbol or a compiled function object."
   "Return non-nil if function SYM is autoloaded."
   (-when-let (file-name (buffer-file-name buf))
     (setq file-name (s-chop-suffix ".gz" file-name))
-    (help-fns--autoloaded-p sym file-name)))
+    (condition-case nil
+        (help-fns--autoloaded-p sym file-name)
+      ; new in Emacs 29.0.50
+      ; see https://github.com/Wilfred/helpful/pull/283
+      (error (help-fns--autoloaded-p sym)))))
 
 (defun helpful--compiled-p (sym)
   "Return non-nil if function SYM is byte-compiled"
