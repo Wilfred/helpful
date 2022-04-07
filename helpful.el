@@ -748,6 +748,17 @@ whether the symbol represents a variable or a callable."
   "Describe the symbol that this BUTTON represents."
   (info (button-get button 'info-node)))
 
+(define-button-type 'helpful-shortdoc-button
+  'action #'helpful--shortdoc
+  'info-node nil
+  'follow-link t
+  'help-echo "View this Shortdoc group")
+
+(defun helpful--shortdoc (button)
+  "Describe the symbol that this BUTTON represents."
+  (shortdoc-display-group (button-get button 'shortdoc-group)
+                          (button-get button 'symbol)))
+
 (defun helpful--split-first-line (docstring)
   "If the first line is a standalone sentence, ensure we have a
 blank line afterwards."
@@ -1256,6 +1267,11 @@ If the source code cannot be found, return the sexp used."
       ;; TODO: offer to download C sources for current version.
       (throw 'source (indirect-function sym)))))
 
+(defun helpful--has-shortdoc-p (sym)
+  "Return non-nil if shortdoc.el is available and SYM is in a shortdoc group."
+  (and (featurep 'shortdoc)
+       (shortdoc-function-groups sym)))
+
 (defun helpful--in-manual-p (sym)
   "Return non-nil if SYM is in an Info manual."
   (let ((completions
@@ -1731,6 +1747,21 @@ POSITION-HEADS takes the form ((123 (defun foo)) (456 (defun bar)))."
            (return-value (--map (helpful--outer-sexp buf it) positions)))
       (kill-buffer buf)
       return-value)))
+
+(defun helpful--make-shortdoc-sentence (sym)
+  "Make a line for shortdoc groups of SYM."
+  (when (featurep 'shortdoc)
+    (-when-let (groups (--map (helpful--button
+                               (symbol-name it)
+                               'helpful-shortdoc-button
+                               'shortdoc-group it)
+                              (shortdoc-function-groups sym)))
+      (if (= 1 (length groups))
+          (format "Other relevant functions are documented in the %s group."
+                  (car groups))
+        (format "Other relevant functions are documented in the %s groups."
+                (concat (s-join ", " (butlast groups))
+                        " and " (car (last groups))))))))
 
 (defun helpful--make-manual-button (sym)
   "Make manual button for SYM."
@@ -2261,6 +2292,11 @@ state of the current symbol."
           (insert (helpful--format-docstring docstring)))
         (when version-info
           (insert "\n\n" (s-word-wrap 70 version-info)))
+        (when (and (symbolp helpful--sym)
+                   helpful--callable-p
+                   (helpful--has-shortdoc-p helpful--sym))
+          (insert "\n\n")
+          (insert (helpful--make-shortdoc-sentence helpful--sym)))
         (when (and (symbolp helpful--sym) (helpful--in-manual-p helpful--sym))
           (insert "\n\n")
           (insert (helpful--make-manual-button helpful--sym)))))
