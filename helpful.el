@@ -114,16 +114,18 @@ can make Helpful very slow.")
    ((functionp symbol) "function")
    ((special-form-p symbol) "special form")))
 
+(defvar-local helpful--previous-symbol-and-callable nil
+  "`helpful--sym' and `helpful--callable-p' of the previous helpful buffer.
+Set when this buffer was initialized.")
+(defvar-local helpful--next-symbol-and-callable nil
+  "`helpful--sym' and `helpful--callable-p' of the next helpful buffer.
+Set when creating another helpful buffer from this one.")
+
 (defun helpful--buffer (symbol callable-p)
   "Return a buffer to show help for SYMBOL in."
   (let* ((current-buffer (current-buffer))
-         (buf-name
-          (format "*helpful %s*"
-                  (if (symbolp symbol)
-                      (format "%s: %s"
-                              (helpful--kind-name symbol callable-p)
-                              symbol)
-                    "lambda")))
+         (current-symbol-and-callable (list helpful--sym helpful--callable-p))
+         (buf-name (helpful--buffer-name symbol callable-p))
          (buf (get-buffer buf-name)))
     (unless buf
       ;; If we need to create the buffer, ensure we don't exceed
@@ -142,9 +144,11 @@ can make Helpful very slow.")
 
       (setq buf (get-buffer-create buf-name)))
 
+    (setq helpful--next-symbol-and-callable (list symbol callable-p))
     ;; Initialise the buffer with the symbol and associated data.
     (with-current-buffer buf
       (helpful-mode)
+      (setq helpful--previous-symbol-and-callable current-symbol-and-callable)
       (setq helpful--sym symbol)
       (setq helpful--callable-p callable-p)
       (setq helpful--start-buffer current-buffer)
@@ -153,6 +157,14 @@ can make Helpful very slow.")
           (setq-local comment-start "//")
         (setq-local comment-start ";")))
     buf))
+
+(defun helpful--buffer-name (symbol callable-p)
+  (format "*helpful %s*"
+          (if (symbolp symbol)
+              (format "%s: %s"
+                      (helpful--kind-name symbol callable-p)
+                      symbol)
+            "lambda")))
 
 (defface helpful-heading
   '((t (:weight bold)))
@@ -2615,11 +2627,24 @@ Returns the symbol."
                            default-val)))
 
 (defun helpful--update-and-switch-buffer (symbol callable-p)
-  "Update and switch to help buffer for SYMBOL."
-  (let ((buf (helpful--buffer symbol callable-p)))
-    (with-current-buffer buf
-      (helpful-update))
-    (funcall helpful-switch-buffer-function buf)))
+  "Update and switch to help buffer for SYMBOL.
+Re-initialise the buffer when found an existing one, else create it."
+  (helpful--do-update-and-switch-buffer
+   (helpful--buffer symbol callable-p)))
+
+(defun helpful--do-update-and-switch-buffer (buffer)
+  "Update the helpful BUFFER and switch to it."
+  (with-current-buffer buffer
+    (helpful-update))
+  (funcall helpful-switch-buffer-function buffer))
+
+(defun helpful--update-and-switch-buffer-no-reinitialize (symbol callable-p)
+  "Like `helpful--update-and-switch-buffer' but doesn't
+re-initialise if an available buffer is found."
+  (let ((buf (helpful--buffer-name symbol callable-p)))
+    (if (get-buffer buf)
+        (helpful--do-update-and-switch-buffer buf)
+      (helpful--update-and-switch-buffer symbol callable-p))))
 
 ;;;###autoload
 (defun helpful-function (symbol)
@@ -2898,6 +2923,20 @@ imenu."
                   defun-end t)
             (helpful--flash-region (match-beginning 0) (match-end 0))))))))
 
+(defun helpful-go-back ()
+  "Go back to the previous helpful buffer."
+  (interactive)
+  (-let (((sym callable-p) helpful--previous-symbol-and-callable))
+    (when sym
+      (helpful--update-and-switch-buffer-no-reinitialize sym callable-p))))
+
+(defun helpful-go-forward ()
+  "Go to the next helpful buffer."
+  (interactive)
+  (-let (((sym callable-p) helpful--next-symbol-and-callable))
+    (when sym
+      (helpful--update-and-switch-buffer-no-reinitialize sym callable-p))))
+
 (defun helpful-kill-buffers ()
   "Kill all `helpful-mode' buffers.
 
@@ -2917,6 +2956,12 @@ See also `helpful-max-buffers'."
 
     (define-key map (kbd "n") #'forward-button)
     (define-key map (kbd "p") #'backward-button)
+
+    (define-key map (kbd "C-c C-b") #'helpful-go-back)
+    (define-key map (kbd "l") #'helpful-go-back)
+    (define-key map (kbd "C-c C-f") #'helpful-go-forward)
+    (define-key map (kbd "r") #'helpful-go-forward)
+
     map)
   "Keymap for `helpful-mode'.")
 
