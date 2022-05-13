@@ -1,4 +1,6 @@
-# v0.19 (unreleased)
+# v0.20 (unreleased)
+
+# v0.19 (released 12th May 2022)
 
 Fixed a hang when looking at functions that had advice but hadn't yet
 been loaded by the autoloader (#179, #191).
