@@ -119,7 +119,7 @@ bar")))
   (should
    (equal
     (helpful--docstring #'test-foo-advised t)
-    "Docstring here too.")))
+    "Docstring here too.\n\nThis function has :around advice: `ad-Advice-test-foo-advised'.")))
 
 (defun test-foo-no-docstring ()
   nil)
