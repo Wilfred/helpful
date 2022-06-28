@@ -30,6 +30,17 @@ so:
 (global-set-key (kbd "C-h k") #'helpful-key)
 ```
 
+Alternatively, to replace the default functions with Helpful versions
+everwhere the help command is used (by default, `C-h` and `F1`) you
+can do:
+
+``` emacs-lisp
+(define-key 'help-command "f" 'helpful-callable)
+
+(define-key 'help-command "v" 'helpful-variable)
+(define-key 'help-command "k" 'helpful-key)
+```
+
 I also recommend the following keybindings to get the most out of
 helpful:
 
