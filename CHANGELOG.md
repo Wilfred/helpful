@@ -1,5 +1,8 @@
 # v0.20 (unreleased)
 
+Added support for viewing help for symbols not bound as variables or
+functions.
+
 # v0.19 (released 12th May 2022)
 
 Fixed a hang when looking at functions that had advice but hadn't yet
