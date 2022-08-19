@@ -6,7 +6,7 @@
 ;; URL: https://github.com/Wilfred/helpful
 ;; Keywords: help, lisp
 ;; Version: 0.20
-;; Package-Requires: ((emacs "25") (dash "2.18.0") (s "1.11.0") (f "0.20.0") (elisp-refs "1.2"))
+;; Package-Requires: ((emacs "25.1") (dash "2.18.0") (s "1.11.0") (f "0.20.0") (elisp-refs "1.2"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -2617,10 +2617,11 @@ Returns the symbol."
 
 (defun helpful--update-and-switch-buffer (symbol callable-p)
   "Update and switch to help buffer for SYMBOL."
-  (let ((buf (helpful--buffer symbol callable-p)))
-    (with-current-buffer buf
-      (helpful-update))
-    (funcall helpful-switch-buffer-function buf)))
+  (save-mark-and-excursion
+    (let ((buf (helpful--buffer symbol callable-p)))
+      (with-current-buffer buf
+        (helpful-update))
+      (funcall helpful-switch-buffer-function buf))))
 
 ;;;###autoload
 (defun helpful-function (symbol)
