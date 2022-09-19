@@ -54,6 +54,7 @@
 (require 'edebug)
 (require 'trace)
 (require 'imenu)
+(require 'cc-langs)
 
 (defvar-local helpful--sym nil)
 (defvar-local helpful--callable-p nil)
@@ -1385,7 +1386,6 @@ the `emacs-lisp-mode' syntax table active but skip any hooks."
         (opened nil)
         ;; Skip running hooks that may prompt the user.
         (find-file-hook nil)
-        (after-change-major-mode-hook nil)
         ;; If we end up opening a buffer, don't bother with file
         ;; variables. It prompts the user, and we discard the buffer
         ;; afterwards anyway.
@@ -1400,12 +1400,16 @@ the `emacs-lisp-mode' syntax table active but skip any hooks."
 
     (unless (-contains-p initial-buffers buf)
       (setq opened t)
-      ;; If it's a freshly opened buffer, we need to switch to the
-      ;; correct mode so we can search correctly. Enable the mode, but
-      ;; don't bother with mode hooks, because we just need the syntax
-      ;; table for searching.
-      (with-current-buffer buf
-        (delay-mode-hooks (normal-mode t))))
+
+      (let ((syntax-table emacs-lisp-mode-syntax-table))
+        (when (s-ends-with-p ".c" path)
+          (setq syntax-table (make-syntax-table))
+          (c-populate-syntax-table syntax-table))
+
+        ;; If it's a freshly opened buffer, we need to set the syntax
+        ;; table so we can search correctly.
+        (with-current-buffer buf
+          (set-syntax-table syntax-table))))
 
     (list buf opened)))
 
