@@ -1376,6 +1376,39 @@ interesting forms in BUF."
                   (throw 'found (scan-sexps (point) -1)))))
           (end-of-file nil))))))
 
+(defun helpful--open-if-needed (path)
+  "Return a list (BUF OPENED) where BUF is a buffer visiting PATH.
+If a buffer already exists, return that. If not, open PATH with
+the `emacs-lisp-mode' syntax table active but skip any hooks."
+  (let ((initial-buffers (buffer-list))
+        (buf nil)
+        (opened nil)
+        ;; Skip running hooks that may prompt the user.
+        (find-file-hook nil)
+        (after-change-major-mode-hook nil)
+        ;; If we end up opening a buffer, don't bother with file
+        ;; variables. It prompts the user, and we discard the buffer
+        ;; afterwards anyway.
+        (enable-local-variables nil))
+    ;; Opening large .c files can be slow (e.g. when looking at
+    ;; `defalias'), especially if the user has configured mode hooks.
+    ;;
+    ;; Bind `auto-mode-alist' to nil, so we open the buffer in
+    ;; `fundamental-mode' if it isn't already open.
+    (let ((auto-mode-alist nil))
+      (setq buf (find-file-noselect path)))
+
+    (unless (-contains-p initial-buffers buf)
+      (setq opened t)
+      ;; If it's a freshly opened buffer, we need to switch to the
+      ;; correct mode so we can search correctly. Enable the mode, but
+      ;; don't bother with mode hooks, because we just need the syntax
+      ;; table for searching.
+      (with-current-buffer buf
+        (delay-mode-hooks (normal-mode t))))
+
+    (list buf opened)))
+
 (defun helpful--definition (sym callable-p)
   "Return a list (BUF POS OPENED) where SYM is defined.
 
@@ -1390,14 +1423,7 @@ buffer."
         (library-name nil)
         (buf nil)
         (pos nil)
-        (opened nil)
-        ;; Skip running hooks that may prompt the user.
-        (find-file-hook nil)
-        (after-change-major-mode-hook nil)
-        ;; If we end up opening a buffer, don't bother with file
-        ;; variables. It prompts the user, and we discard the buffer
-        ;; afterwards anyway.
-        (enable-local-variables nil))
+        (opened nil))
     ;; We shouldn't be called on primitive functions if we don't have
     ;; a directory of Emacs C sourcecode.
     (cl-assert
@@ -1412,25 +1438,9 @@ buffer."
       (list nil nil nil))
      ((and callable-p library-name)
       (-when-let (src-path (helpful--library-path library-name))
-        ;; Opening large .c files can be slow (e.g. when looking at
-        ;; `defalias'), especially if the user has configured mode hooks.
-        ;;
-        ;; Bind `auto-mode-alist' to nil, so we open the buffer in
-        ;; `fundamental-mode' if it isn't already open.
-        (let ((auto-mode-alist nil))
-          ;; Open `src-path' ourselves, so we can widen before searching.
-          (setq buf (find-file-noselect src-path)))
-
-        (unless (-contains-p initial-buffers buf)
-          (setq opened t))
-
-        ;; If it's a freshly opened buffer, we need to switch to the
-        ;; correct mode so we can search correctly. Enable the mode, but
-        ;; don't bother with mode hooks, because we just need the syntax
-        ;; table for searching.
-        (when opened
-          (with-current-buffer buf
-            (delay-mode-hooks (normal-mode t))))
+        (-let [(src-buf src-opened) (helpful--open-if-needed src-path)]
+          (setq buf src-buf)
+          (setq opened src-opened))
 
         ;; Based on `find-function-noselect'.
         (with-current-buffer buf
