@@ -1421,6 +1421,7 @@ buffer."
   (let ((initial-buffers (buffer-list))
         (primitive-p (helpful--primitive-p sym callable-p))
         (library-name nil)
+        (src-path nil)
         (buf nil)
         (pos nil)
         (opened nil))
@@ -1430,14 +1431,23 @@ buffer."
      (or find-function-C-source-directory
          (not primitive-p)))
 
-    (when (and (symbolp sym) callable-p)
-      (setq library-name (cdr (find-function-library sym))))
+    (when (symbolp sym)
+      (if callable-p
+          (setq library-name (cdr (find-function-library sym)))
+        ;; Based on `find-variable-noselect'.
+        (setq library-name
+              (or
+               (symbol-file sym 'defvar)
+               (help-C-file-name sym 'var)))))
+
+    (when library-name
+      (setq src-path (helpful--library-path library-name)))
 
     (cond
      ((and (not (symbolp sym)) (functionp sym))
       (list nil nil nil))
      ((and callable-p library-name)
-      (-when-let (src-path (helpful--library-path library-name))
+      (when src-path
         (-let [(src-buf src-opened) (helpful--open-if-needed src-path)]
           (setq buf src-buf)
           (setq opened src-opened))
@@ -1467,19 +1477,24 @@ buffer."
                         edebug-info)]
           (setq buf (marker-buffer marker))
           (setq pos (marker-position marker)))))
-     ((not callable-p)
-      (condition-case _err
-          (-let [(sym-buf . sym-pos) (find-definition-noselect sym 'defvar)]
-            (setq buf sym-buf)
-            (unless (-contains-p initial-buffers buf)
-              (setq opened t))
-            (setq pos sym-pos))
-        (search-failed nil)
-        ;; If your current Emacs instance doesn't match the source
-        ;; code configured in find-function-C-source-directory, we can
-        ;; get an error about not finding source. Try
-        ;; `default-tab-width' against Emacs trunk.
-        (error nil))))
+     ((and (not callable-p) src-path)
+      (-let [(src-buf src-opened) (helpful--open-if-needed src-path)]
+        (setq buf src-buf)
+        (setq opened src-opened)
+
+        (with-current-buffer buf
+          ;; `find-function-search-for-symbol' moves point. Prevent
+          ;; that.
+          (save-excursion
+            (condition-case _err
+                (setq pos (cdr (find-variable-noselect sym 'defvar)))
+              (search-failed nil)
+              ;; If your current Emacs instance doesn't match the source
+              ;; code configured in find-function-C-source-directory, we can
+              ;; get an error about not finding source. Try
+              ;; `default-tab-width' against Emacs trunk.
+              (error nil)))))))
+
     (list buf pos opened)))
 
 (defun helpful--reference-positions (sym callable-p buf)

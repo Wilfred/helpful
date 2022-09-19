@@ -1057,6 +1057,15 @@ find the source code."
   (should
    (s-contains-p "Original Value\n123" (buffer-string))))
 
+(ert-deftest helpful--preserve-position ()
+  "Show the original value for defcustom variables."
+  (-let [(buf _pos _opened) (helpful--definition 'helpful-test-custom-var nil)]
+    (with-current-buffer buf
+      (goto-char (point-min))
+      (save-current-buffer
+        (helpful-variable 'helpful-test-custom-var))
+      (should (eq (point) (point-min))))))
+
 (ert-deftest helpful--package-version ()
   "Report when a variable was added"
   (helpful-variable 'helpful-test-custom-var)
