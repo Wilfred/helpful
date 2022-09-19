@@ -1418,8 +1418,7 @@ the buffer when done.
 
 POS is the position of the start of the definition within the
 buffer."
-  (let ((initial-buffers (buffer-list))
-        (primitive-p (helpful--primitive-p sym callable-p))
+  (let ((primitive-p (helpful--primitive-p sym callable-p))
         (library-name nil)
         (src-path nil)
         (buf nil)
