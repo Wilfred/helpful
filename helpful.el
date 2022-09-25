@@ -1248,7 +1248,8 @@ If the source code cannot be found, return the sexp used."
                     (forward-char)
                     (narrow-to-region pos (point)))
                 ;; Narrow to the top-level definition.
-                (narrow-to-defun t))
+                (let ((parse-sexp-ignore-comments t))
+                  (narrow-to-defun t)))
 
               ;; If there was a preceding comment, POS will be
               ;; after that comment. Move the position to include that comment.
