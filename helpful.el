@@ -109,6 +109,7 @@ can make Helpful very slow.")
 (defun helpful--kind-name (symbol callable-p)
   "Describe what kind of symbol this is."
   (cond
+   ((not (helpful--bound-p symbol)) "unbound symbol")
    ((not callable-p) "variable")
    ((commandp symbol) "command")
    ((macrop symbol) "macro")
@@ -307,6 +308,57 @@ Return SYM otherwise."
            syms-and-vals)))
     (when lines
       (s-join "\n" lines))))
+
+(defun helpful--format-references-to-unbound (sym)
+  "Return a string describing references to unbound SYM."
+  (let* ((jka-compr-verbose nil)
+         (loaded-paths (elisp-refs--loaded-paths))
+         (loaded-src-bufs (mapcar #'elisp-refs--contents-buffer loaded-paths))
+         ;; Each item is (((form start end) ...) . buffer)
+         (forms-and-bufs (elisp-refs--search-1
+                          loaded-src-bufs
+                          ;; This function should return:
+                          ;; ((form start end) (form start end) ...)
+                          (lambda (buf)
+                            (with-current-buffer buf
+                              (goto-char (point-min))
+                              (let (results)
+                                (while (re-search-forward
+                                        (format "\\b%s\\b" sym)
+                                        nil t)
+                                  (-let (((start-pos . end-pos)
+                                          (bounds-of-thing-at-point 'sexp)))
+                                    (push (list (read (buffer-substring-no-properties
+                                                       start-pos end-pos))
+                                                start-pos
+                                                end-pos)
+                                          results)))
+                                (if results
+                                    (nreverse results)
+                                  (kill-buffer)
+                                  ;; We have to return nil to tell
+                                  ;; elisp-refs that nothing is found.
+                                  nil)))))))
+    (->> forms-and-bufs
+         (--map (-let* (((matches . buf) it)
+                        (path (buffer-local-value 'elisp-refs--path buf)))
+                  (unwind-protect
+                      (format
+                       "%s%s\n%s\n"
+                       (propertize "File: " 'face 'bold)
+                       (helpful--navigate-button path path)
+                       (helpful--format-position-heads
+                        ;; Convert matches into what
+                        ;; `helpful--format-position-heads' expects
+                        (--map
+                         (-let (((_form start _end) it))
+                           (list start
+                                 (cadr (helpful--outer-sexp buf start))))
+                         matches)
+                        path))
+                    ;; Make sure we don't leave behind temporary buffers
+                    (kill-buffer buf))))
+         (s-join "\n"))))
 
 (define-button-type 'helpful-forget-button
   'action #'helpful--forget
@@ -1982,12 +2034,19 @@ OBJ may be a symbol or a compiled function object."
             "buffer-local"
             'helpful-info-button
             'info-node "(elisp)Buffer-Local Variables"))
+          (unbound-button
+           (helpful--button
+            "unbound"
+            'helpful-info-button
+            'info-node "(elisp)Void Variables"))
           (autoloaded-p
            (and callable-p buf (helpful--autoloaded-p sym buf)))
           (compiled-p
            (and callable-p (helpful--compiled-p sym)))
           (native-compiled-p
            (and callable-p (helpful--native-compiled-p sym)))
+          (unbound-p
+           (not (helpful--bound-p sym)))
           (buttons
            (list
             (if alias-p alias-button)
@@ -1996,7 +2055,8 @@ OBJ may be a symbol or a compiled function object."
             (if compiled-p compiled-button)
             (if native-compiled-p native-compiled-button)
             (if (and (not callable-p) (local-variable-if-set-p sym))
-                buffer-local-button)))
+                buffer-local-button)
+            (if unbound-p unbound-button)))
           (description
            (helpful--join-and (-non-nil buttons)))
           (kind
@@ -2010,6 +2070,7 @@ OBJ may be a symbol or a compiled function object."
                       'helpful-describe-exactly-button
                       'symbol canonical-sym
                       'callable-p callable-p)))
+            (unbound-p "symbol")
             ((not callable-p) "variable")
             ((macrop sym) "macro")
             ((helpful--kbd-macro-p sym) keyboard-macro-button)
@@ -2028,6 +2089,7 @@ OBJ may be a symbol or a compiled function object."
              (primitive-p
               "defined in C source code")
              ((helpful--kbd-macro-p sym) nil)
+             (unbound-p nil)
              (t
               "without a source file"))))
 
@@ -2206,11 +2268,14 @@ state of the current symbol."
   (cl-assert (not (null helpful--sym)))
   (unless (buffer-live-p helpful--associated-buffer)
     (setq helpful--associated-buffer nil))
+
   (helpful--ensure-loaded)
-  (-let* ((val
+  (-let* ((unbound-p (not (helpful--bound-p helpful--sym)))
+          (val
            ;; Look at the value before setting `inhibit-read-only', so
            ;; users can see the correct value of that variable.
-           (unless helpful--callable-p
+           (unless (or helpful--callable-p
+                       unbound-p)
              (helpful--sym-value helpful--sym helpful--associated-buffer)))
           (inhibit-read-only t)
           (start-line (line-number-at-pos))
@@ -2248,7 +2313,8 @@ state of the current symbol."
        (helpful--heading "Signature")
        (helpful--syntax-highlight (helpful--signature helpful--sym))))
 
-    (when (not helpful--callable-p)
+    (when (and (not helpful--callable-p)
+               (not unbound-p))
       (helpful--insert-section-break)
       (let* ((sym helpful--sym)
              (multiple-views-p
@@ -2343,34 +2409,38 @@ state of the current symbol."
 
     (helpful--insert-section-break)
 
-    (insert
-     (helpful--heading "References")
-     (let ((src-button
-            (when source-path
-              (helpful--navigate-button
-               (file-name-nondirectory source-path)
-               source-path
-               (or pos
-                   0)))))
-       (cond
-        ((and source-path references)
-         (format "References in %s:\n%s"
-                 src-button
-                 (helpful--format-position-heads references source-path)))
-        ((and source-path primitive-p)
-         (format
-          "Finding references in a .%s file is not supported."
-          (f-ext source-path)))
-        (source-path
-         (format "%s is unused in %s."
-                 helpful--sym
-                 src-button))
-        ((and primitive-p (null find-function-C-source-directory))
-         "C code is not yet loaded.")
-        (t
-         "Could not find source file.")))
-     "\n\n"
-     (helpful--make-references-button helpful--sym helpful--callable-p))
+    (unless unbound-p
+      (insert
+       (helpful--heading "References")
+       (let ((src-button
+              (when source-path
+                (helpful--navigate-button
+                 (file-name-nondirectory source-path)
+                 source-path
+                 (or pos
+                     0)))))
+         (cond
+          ((and source-path references)
+           (format "References in %s:\n%s"
+                   src-button
+                   (helpful--format-position-heads references source-path)))
+          ((and source-path primitive-p)
+           (format
+            "Finding references in a .%s file is not supported."
+            (f-ext source-path)))
+          (source-path
+           (format "%s is unused in %s."
+                   helpful--sym
+                   src-button))
+          ((and primitive-p (null find-function-C-source-directory))
+           "C code is not yet loaded.")
+          (t
+           "Could not find source file.")))
+       (if unbound-p
+           ""
+         (concat
+          "\n\n"
+          (helpful--make-references-button helpful--sym helpful--callable-p)))))
 
     (when (and
            helpful--callable-p
@@ -2401,7 +2471,8 @@ state of the current symbol."
            (and helpful--callable-p (not primitive-p)))
           (can-forget
            (and (not (special-form-p helpful--sym))
-                (not primitive-p))))
+                (not primitive-p)
+                (not unbound-p))))
       (when (or can-edebug can-trace can-disassemble can-forget)
         (helpful--insert-section-break)
         (insert (helpful--heading "Debugging")))
@@ -2437,7 +2508,8 @@ state of the current symbol."
     (when helpful--callable-p
       (helpful--insert-implementations))
 
-    (helpful--insert-section-break)
+    (unless unbound-p
+      (helpful--insert-section-break))
 
     (when (or source-path primitive-p)
       (insert
@@ -2486,12 +2558,19 @@ state of the current symbol."
              ";; Could not find alias source code, showing raw function object.\n")
            (helpful--pretty-print source)))))))
 
-    (helpful--insert-section-break)
+    (unless unbound-p
+      (helpful--insert-section-break))
 
     (-when-let (formatted-props (helpful--format-properties helpful--sym))
       (insert
        (helpful--heading "Symbol Properties")
        formatted-props))
+
+    (when unbound-p
+      (helpful--insert-section-break)
+      (insert
+       (helpful--heading "References")
+       (helpful--format-references-to-unbound helpful--sym)))
 
     (goto-char (point-min))
     (forward-line (1- start-line))
@@ -2730,7 +2809,8 @@ See also `helpful-macro', `helpful-function' and `helpful-command'."
 
 This differs from `boundp' because we do not consider nil, t
 or :foo."
-  (or (fboundp symbol)
+  (or (functionp symbol)
+      (fboundp symbol)
       (helpful--variable-p symbol)))
 
 (defun helpful--bookmark-jump (bookmark)
@@ -2794,7 +2874,19 @@ See also `helpful-callable' and `helpful-variable'."
      ((and c-var-sym (boundp c-var-sym))
       (helpful-variable c-var-sym))
      (t
-      (user-error "Not bound: %S" symbol)))))
+      (helpful-unbound-symbol symbol)))))
+
+;;;###autoload
+(defun helpful-unbound-symbol (symbol)
+  "Show help for SYMBOL, an unbound symbol."
+  (interactive
+   (list (helpful--read-symbol
+          "Unbound symbol: "
+          (helpful--symbol-at-point)
+          (lambda (sym)
+            (and (not (helpful--bound-p sym))
+                 (symbol-plist sym))))))
+  (helpful--update-and-switch-buffer symbol nil))
 
 ;;;###autoload
 (defun helpful-variable (symbol)
