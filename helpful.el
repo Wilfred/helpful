@@ -797,6 +797,7 @@ bound) or else highlight."
        'callable-p nil))
      ((and (fboundp sym) (or
                           (s-starts-with-p " command" after-txt)
+                          (s-ends-with-p "command " before-txt)
                           (s-ends-with-p "function " before-txt)))
       (helpful--button
        sym-name
