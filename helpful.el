@@ -1760,7 +1760,7 @@ POSITION-HEADS takes the form ((123 (defun foo)) (456 (defun bar)))."
       (with-temp-buffer
         (declare-function cl--generic-describe "cl-generic" (function))
         (cl--generic-describe func)
-        (setf (point) (point-min))
+        (goto-char (point-min))
         (when (re-search-forward "^Implementations:$" nil t)
           (setq content (buffer-substring (point) (point-max)))))
       (when content
