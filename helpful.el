@@ -980,7 +980,8 @@ vector suitable for `key-description', and COMMAND is a smbol."
    ;; Text of the form \\[foo-command]
    (rx "\\[" (group (+ (not (in "]")))) "]")
    (lambda (it)
-     (let* ((symbol-name (match-string 1 it))
+     (let* ((button-face (if (>= emacs-major-version 28) 'help-key-binding 'button))
+            (symbol-name (match-string 1 it))
             (symbol (intern symbol-name))
             (key (where-is-internal symbol keymap t))
             (key-description
@@ -991,7 +992,8 @@ vector suitable for `key-description', and COMMAND is a smbol."
         key-description
         'helpful-describe-exactly-button
         'symbol symbol
-        'callable-p t)))
+        'callable-p t
+        'face button-face)))
    str
    t
    t))
@@ -1632,7 +1634,9 @@ Includes keybindings for aliases, unlike
           (push
            (format "%s %s"
                    (propertize map 'face 'font-lock-variable-name-face)
-                   key)
+                   (if (>= emacs-major-version 28)
+                       (propertize key 'face 'help-key-binding)
+                     key))
            (if (eq map 'global-map) global-lines mode-lines)))))
     (setq global-lines (-sort #'string< global-lines))
     (setq mode-lines (-sort #'string< mode-lines))
