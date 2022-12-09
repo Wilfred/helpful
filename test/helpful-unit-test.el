@@ -293,7 +293,16 @@ symbol (not a form)."
      (get-text-property 0 'button formatted)))
   ;; If we have quotes around a key sequence, we should not propertize
   ;; it as the button styling will no longer be visible.
-  (-let [formatted (helpful--format-docstring "`\\[set-mark-command]'")]
+  (-let* ((emacs-major-version 28)
+         (formatted (helpful--format-docstring "`\\[set-mark-command]'")))
+    (should
+     (string-equal formatted "C-SPC"))
+    (should
+     (eq
+      (get-text-property 0 'face formatted)
+      'help-key-binding)))
+  (-let* ((emacs-major-version 27)
+         (formatted (helpful--format-docstring "`\\[set-mark-command]'")))
     (should
      (string-equal formatted "C-SPC"))
     (should
