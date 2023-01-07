@@ -1961,6 +1961,11 @@ OBJ may be a symbol or a compiled function object."
             "special form"
             'helpful-info-button
             'info-node "(elisp)Special Forms"))
+          (user-option-button
+           (helpful--button
+            "customizable"
+            'helpful-info-button
+            'info-node "(elisp)Variable Definitions"))
           (keyboard-macro-button
            (helpful--button
             "keyboard macro"
@@ -2004,6 +2009,8 @@ OBJ may be a symbol or a compiled function object."
             (if (and callable-p (commandp sym)) interactive-button)
             (if compiled-p compiled-button)
             (if native-compiled-p native-compiled-button)
+            (if (and (not callable-p) (custom-variable-p sym))
+                user-option-button)
             (if (and (not callable-p) (local-variable-if-set-p sym))
                 buffer-local-button)))
           (description
