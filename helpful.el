@@ -625,6 +625,24 @@ overrides that to include previously opened buffers."
       (eval-expression expr))
     (helpful-update)))
 
+(define-button-type 'helpful-reset-button
+  'action #'helpful--reset
+  'symbol nil
+  'buffer nil
+  'follow-link t
+  'help-echo "Reset the value of this symbol")
+
+(defun helpful--reset (button)
+  "Reset the value of this symbol to its standard value."
+  (let* ((sym (button-get button 'symbol))
+         (buf (button-get button 'buffer))
+         (standard-value (car (helpful--original-value sym))))
+    (save-current-buffer
+      (when buf
+        (set-buffer buf))
+      (set sym standard-value))
+    (helpful-update)))
+
 (define-button-type 'helpful-view-literal-button
   'action #'helpful--view-literal
   'help-echo "Toggle viewing as a literal")
@@ -1823,6 +1841,14 @@ POSITION-HEADS takes the form ((123 (defun foo)) (456 (defun bar)))."
    'symbol sym
    'buffer buffer))
 
+(defun helpful--make-reset-button (sym buffer)
+  "Make a reset button for SYM in BUFFER."
+  (helpful--button
+   "Reset"
+   'helpful-reset-button
+   'symbol sym
+   'buffer buffer))
+
 (defun helpful--make-toggle-literal-button ()
   "Make set button for SYM in BUFFER."
   (helpful--button
@@ -2315,6 +2341,8 @@ state of the current symbol."
         (when (memq (helpful--sym-value helpful--sym helpful--associated-buffer) '(nil t))
           (insert (helpful--make-toggle-button helpful--sym helpful--associated-buffer) " "))
         (insert (helpful--make-set-button helpful--sym helpful--associated-buffer))
+        (when (helpful--original-value-differs-p helpful--sym)
+          (insert " " (helpful--make-reset-button helpful--sym helpful--associated-buffer)))
         (when (custom-variable-p helpful--sym)
           (insert " " (helpful--make-customize-button helpful--sym)))))
 
