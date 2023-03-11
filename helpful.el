@@ -2948,6 +2948,10 @@ See also `helpful-max-buffers'."
 (defvar helpful-mode-map
   (let* ((map (make-sparse-keymap)))
     (define-key map (kbd "g") #'helpful-update)
+    (define-key map [remap revert-buffer] #'helpful-update)
+    (when (fboundp 'revert-buffer-quick)
+      (define-key map [remap revert-buffer-quick] #'helpful-update))
+
     (define-key map (kbd "RET") #'helpful-visit-reference)
 
     (define-key map (kbd "TAB") #'forward-button)
