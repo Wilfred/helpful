@@ -56,6 +56,10 @@
 (require 'imenu)
 (require 'cc-langs)
 
+(declare-function org-link-types "ol" ())
+(declare-function org-link-store-props "ol" (&rest plist))
+(declare-function org-link-get-parameter "ol" (type key))
+
 (defvar-local helpful--sym nil)
 (defvar-local helpful--callable-p nil)
 (defvar-local helpful--associated-buffer nil
@@ -1580,7 +1584,7 @@ same bindings as `global-map'."
          (when (and key-sequences (not (eq keymap-sym 'widget-global-map)))
            (push (cons (symbol-name keymap-sym) key-sequences)
                  matching-keymaps))))
-     (-zip keymap-syms keymap-sym-vals))
+     (-zip-pair keymap-syms keymap-sym-vals))
 
     ;; Look for this command in keymaps used by minor modes that
     ;; aren't bound to variables.
