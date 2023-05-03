@@ -167,7 +167,7 @@ can make Helpful very slow.")
 
 (defun helpful--heading (text)
   "Propertize TEXT as a heading."
-  (format "%s\n" (propertize text 'face 'helpful-heading)))
+  (propertize (concat text "\n") 'face 'helpful-heading))
 
 (defun helpful--format-closure (sym form)
   "Given a closure, return an equivalent defun form."
