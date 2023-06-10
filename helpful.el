@@ -2735,12 +2735,13 @@ See also `helpful-macro', `helpful-function' and `helpful-command'."
            (not (eq symbol t)))))
 
 (defun helpful--bound-p (symbol)
-  "Return non-nil if SYMBOL is a variable or callable.
+  "Return non-nil if SYMBOL is a variable, callable, or face.
 
 This differs from `boundp' because we do not consider nil, t
 or :foo."
   (or (fboundp symbol)
-      (helpful--variable-p symbol)))
+      (helpful--variable-p symbol)
+      (facep symbol)))
 
 (defun helpful--bookmark-jump (bookmark)
   "Create and switch to helpful bookmark BOOKMARK."
@@ -2799,7 +2800,7 @@ calls (helpful-variable SYM) when the key `v' is pressed in the prompt."
 
 ;;;###autoload
 (defun helpful-symbol (symbol)
-  "Show help for SYMBOL, a variable, function or macro.
+  "Show help for SYMBOL, a variable, function, macro, or face.
 
 See also `helpful-callable' and `helpful-variable'."
   (interactive
@@ -2820,6 +2821,12 @@ See also `helpful-callable' and `helpful-variable'."
       (push (list #'helpful-callable "[c]allable" ?c) choices))
     (when (boundp symbol)
       (push (list #'helpful-variable "[v]ariable" ?v) choices))
+    (when (facep symbol)
+      (push (list (lambda (face)
+                    (describe-face face)
+                    (funcall helpful-switch-buffer-function (help-buffer)))
+                  "[f]ace" ?f)
+            choices))
     (cond
      ((null choices)
       (user-error "Not bound: %S" symbol))
