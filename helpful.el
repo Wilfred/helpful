@@ -2775,6 +2775,28 @@ nil if SYMBOL doesn't begin with \"F\" or \"V\"."
         prefix
         (s-replace "_" "-" string))))))
 
+(defun helpful--disambiguate (sym choices)
+  "Prompt the user to disambiguate SYM via a `read-char-choice' selection.
+
+CHOICES is a list of tuples of the form (FN DESC CHAR), where
+
+  CHAR is the input character associated with the choice
+  DESC is a short description of the choice to display in the prompt.
+  FN is the function being chosen, which takes SYM as an argument.
+
+For instance, the choice (#'helpful-variable \"[v]ariable\" ?v)
+calls (helpful-variable SYM) when the key `v' is pressed in the prompt."
+  (let* ((prompt (format "%s is ambiguous: describe %s ?"
+                         (propertize (symbol-name sym) 'face font-lock-keyword-face)
+                         (mapconcat (-lambda ((_ desc _)) desc)
+                                    choices " / ")))
+         (chars (mapcar (-lambda ((_ _ char)) char)
+                        choices))
+         (lookup (mapcar (-lambda ((fn _ char)) (cons char fn))
+                         choices))
+         (input (read-char-choice prompt chars)))
+    (funcall (alist-get input lookup) sym)))
+
 ;;;###autoload
 (defun helpful-symbol (symbol)
   "Show help for SYMBOL, a variable, function or macro.
@@ -2785,25 +2807,25 @@ See also `helpful-callable' and `helpful-variable'."
           "Symbol: "
           (helpful--symbol-at-point)
           #'helpful--bound-p)))
-  (let ((c-var-sym (helpful--convert-c-name symbol t))
-        (c-fn-sym (helpful--convert-c-name symbol nil)))
+  (let (choices)
+    (when-let (c-var-sym (helpful--convert-c-name symbol t))
+      (push (list (lambda (_) (helpful-variable c-var-sym))
+                  "c-style [V]ariable" ?V)
+            choices))
+    (when-let (c-fn-sym (helpful--convert-c-name symbol nil))
+      (push (list (lambda (_) (helpful-callable c-fn-sym))
+                  "c-style [F]unction" ?F)
+            choices))
+    (when (fboundp symbol)
+      (push (list #'helpful-callable "[c]allable" ?c) choices))
+    (when (boundp symbol)
+      (push (list #'helpful-variable "[v]ariable" ?v) choices))
     (cond
-     ((and (boundp symbol) (fboundp symbol))
-      (if (y-or-n-p
-           (format "%s is a both a variable and a callable, show variable?"
-                   symbol))
-          (helpful-variable symbol)
-        (helpful-callable symbol)))
-     ((fboundp symbol)
-      (helpful-callable symbol))
-     ((boundp symbol)
-      (helpful-variable symbol))
-     ((and c-fn-sym (fboundp c-fn-sym))
-      (helpful-callable c-fn-sym))
-     ((and c-var-sym (boundp c-var-sym))
-      (helpful-variable c-var-sym))
-     (t
-      (user-error "Not bound: %S" symbol)))))
+     ((null choices)
+      (user-error "Not bound: %S" symbol))
+     ((= 1 (length choices))
+      (funcall (caar choices) symbol))
+     (t (helpful--disambiguate symbol choices)))))
 
 ;;;###autoload
 (defun helpful-variable (symbol)
