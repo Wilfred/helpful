@@ -1,4 +1,6 @@
-# v0.21 (unreleased)
+# v0.22 (unreleased)
+
+# v0.21 (released 30th July 2023)
 
 Added more keybindings (`C-h x`, remapped `revert-buffer` and
 `revert-buffer-quick`).
