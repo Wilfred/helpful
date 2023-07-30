@@ -1,5 +1,8 @@
 # v0.21 (unreleased)
 
+Added more keybindings (`C-h x`, remapped `revert-buffer` and
+`revert-buffer-quick`).
+
 # v0.20 (released 30th July 2023)
 
 Fixed support for Emacs 29.
