@@ -1,4 +1,8 @@
-# v0.20 (unreleased)
+# v0.21 (unreleased)
+
+# v0.20 (released 30th July 2023)
+
+Fixed support for Emacs 29.
 
 Added support for storing org-mode links from inside Helpful buffers.
 
