@@ -3007,6 +3007,33 @@ See also `helpful-max-buffers'."
 (defun helpful--org-link-follow (link _)
   (helpful-symbol (intern link)))
 
+(defun helpful--outline-function (&optional bound move backward looking-at)
+  "`outline-search-function' for `helpful-mode`.
+See documentation of `outline-search-function' for BOUND, MOVE,
+BACKWARD and LOOKING-AT."
+  (if looking-at
+      (eq 'helpful-heading (get-text-property (point) 'face))
+    (let ((heading-found nil)
+          (bound (if bound bound (if backward (point-min) (point-max)))))
+      (save-excursion
+        (when (eq 'helpful-heading (get-text-property (point) 'face))
+          (forward-line (if backward -1 1)))
+        (if backward
+            (while (not (or (eq (point) bound)
+                            (eq 'helpful-heading (get-text-property (point) 'face))))
+              (goto-char (or (previous-single-property-change (point) 'face nil bound)
+                             bound)))
+          (goto-char (or (text-property-any (point) bound 'face 'helpful-heading)
+                         bound)))
+        (when (eq 'helpful-heading (get-text-property (point) 'face))
+          (setq heading-found (point))))
+      (if heading-found
+          (progn
+            (goto-char heading-found)
+            (set-match-data (list heading-found heading-found)))
+        (when move
+          (goto-char bound) nil)))))
+
 (define-derived-mode helpful-mode special-mode "Helpful"
   "Major mode for *Helpful* buffers."
   (add-hook 'xref-backend-functions #'elisp--xref-backend nil t)
@@ -3018,6 +3045,10 @@ See also `helpful-max-buffers'."
   ;; Enable users to bookmark helpful buffers.
   (set (make-local-variable 'bookmark-make-record-function)
        #'helpful--bookmark-make-record)
+
+  ;; Enable outline support for Emacs 29 and newer
+  (unless (< emacs-major-version 29)
+    (setq-local outline-search-function #'helpful--outline-function))
 
   ;; This function should normally only be called once after Org and
   ;; helpful are loaded. To avoid using `eval-after-load' (which is
