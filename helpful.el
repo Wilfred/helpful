@@ -1498,7 +1498,7 @@ buffer."
           ;; that.
           (save-excursion
             (condition-case _err
-                (setq pos (cdr (find-variable-noselect sym 'defvar)))
+                (setq pos (cdr (find-variable-noselect sym library-name)))
               (search-failed nil)
               ;; If your current Emacs instance doesn't match the source
               ;; code configured in find-function-C-source-directory, we can
