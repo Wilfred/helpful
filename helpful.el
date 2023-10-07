@@ -793,16 +793,17 @@ bound) or else highlight."
        sym-name)
       (propertize sym-name
                   'face 'font-lock-builtin-face))
-     ((and (boundp sym) (s-ends-with-p "variable " before-txt))
+     ((and (boundp sym) (s-ends-with-p "variable " (downcase before-txt)))
       (helpful--button
        sym-name
        'helpful-describe-exactly-button
        'symbol sym
        'callable-p nil))
-     ((and (fboundp sym) (or
-                          (s-starts-with-p " command" after-txt)
-                          (s-ends-with-p "command " before-txt)
-                          (s-ends-with-p "function " before-txt)))
+     ((and (fboundp sym)
+           (or
+            (s-starts-with-p " command" (downcase after-txt))
+            (s-ends-with-p "command " (downcase before-txt))
+            (s-ends-with-p "function " (downcase before-txt))))
       (helpful--button
        sym-name
        'helpful-describe-exactly-button
