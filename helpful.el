@@ -98,6 +98,12 @@ To disable cleanup entirely, set this variable to nil. See also
   :type 'function
   :group 'helpful)
 
+(defcustom helpful-set-variable-function
+  (if (< 29 emacs-major-version) #'setopt #'setq)
+  "Function used by `helpful--set' to interactively set variables."
+  :type 'function
+  :group 'helpful)
+
 ;; TODO: explore whether more basic highlighting is fast enough to
 ;; handle larger functions. See `c-font-lock-init' and its use of
 ;; font-lock-keywords-1.
@@ -600,6 +606,7 @@ overrides that to include previously opened buffers."
   (let* ((sym (button-get button 'symbol))
          (buf (button-get button 'buffer))
          (sym-value (helpful--sym-value sym buf))
+         (set-func (symbol-name helpful-set-variable-function))
          ;; Inspired by `counsel-read-setq-expression'.
          (expr
           (minibuffer-with-setup-hook
@@ -608,7 +615,7 @@ overrides that to include previously opened buffers."
                               #'elisp-eldoc-documentation-function)
                 (run-hooks 'eval-expression-minibuffer-setup-hook)
                 (goto-char (minibuffer-prompt-end))
-                (forward-char (length (format "(setq %S " sym))))
+                (forward-char (length (format "(%s %S " set-func sym))))
             (read-from-minibuffer
              "Eval: "
              (format
@@ -616,9 +623,9 @@ overrides that to include previously opened buffers."
                       (and (symbolp sym-value)
                            (not (null sym-value))
                            (not (keywordp sym-value))))
-                  "(setq %s '%S)"
-                "(setq %s %S)")
-              sym sym-value)
+                  "(%s %s '%S)"
+                "(%s %s %S)")
+              set-func sym sym-value)
              read-expression-map t
              'read-expression-history))))
     (save-current-buffer
