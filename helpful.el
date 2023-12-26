@@ -2712,7 +2712,7 @@ See also `helpful-function'."
      ((null sym)
       (user-error "No command is bound to %s"
                   (key-description key-sequence)))
-     ((commandp sym)
+     ((commandp sym t)
       (helpful--update-and-switch-buffer sym t))
      (t
       (user-error "%s is bound to %s which is not a command"
