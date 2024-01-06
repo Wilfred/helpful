@@ -1,0 +1,5 @@
+.cask
+*.elc
+
+emacs-25.3
+emacs-25.3.tar.gz
