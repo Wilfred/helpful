@@ -782,6 +782,12 @@ in."
     (should
      (s-starts-with-p "(defun " source))))
 
+(ert-deftest helpful--source-c-fn ()
+  (-let* (((buf pos _opened) (helpful--definition 'mode-line-format nil))
+          (source (helpful--source 'mode-line-format nil buf pos)))
+    (should
+     (s-starts-with-p "DEFVAR" (s-trim-left source)))))
+
 (ert-deftest helpful--source-autoloaded ()
   "We should include the autoload cookie."
   (-let* (((buf pos _opened) (helpful--definition #'helpful-at-point t))
