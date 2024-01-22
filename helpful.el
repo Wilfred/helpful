@@ -1259,7 +1259,10 @@ If the source code cannot be found, return the sexp used."
                   ;; function.
                   (progn
                     (setq pos (line-beginning-position))
-                    (forward-list)
+                    ;; HACK Use the elisp syntax table even though the file is a
+                    ;; C file. This is a temporary workaround for issue #329.
+                    (with-syntax-table emacs-lisp-mode-syntax-table
+                      (forward-list))
                     (forward-char)
                     (narrow-to-region pos (point)))
                 ;; Narrow to the top-level definition.
