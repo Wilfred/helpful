@@ -1,8 +1,60 @@
-# v0.18 (unreleased)
+# v0.22 (unreleased)
+
+# v0.21 (released 30th July 2023)
+
+Added more keybindings (`C-h x`, remapped `revert-buffer` and
+`revert-buffer-quick`).
+
+# v0.20 (released 30th July 2023)
+
+Fixed support for Emacs 29.
+
+Added support for storing org-mode links from inside Helpful buffers.
+
+# v0.19 (released 12th May 2022)
+
+Fixed a hang when looking at functions that had advice but hadn't yet
+been loaded by the autoloader (#179, #191).
+
+Fixed issue with displaying circular data structures.
+
+Fixed a crash in `helpful-variable` in files that weren't
+syntactically valid lisp.
+
+Fixed stack overflow in macroexpanding large s-expressions (#279).
+
+# v0.18
 
 Show the original value for custom variables whose value has changed.
 
 Report the package version when custom variables were added.
+
+Fixed a crash on assigning byte-compiled objects to keybindings.
+
+Fixed an issue with advice being shown in docstrings on Emacs 27+.
+
+Symbol links in docstrings are now smarter in cases like "function
+`foo'".
+
+## Improvements to the default symbol offered
+
+Functions:
+
+* If the symbol at point is a bound function, offer that.
+* If point is at a function call, offer that.
+
+Variables:
+
+* If the symbol at point is a bound variable, offer that.
+* If point is at a `defvar` or `defcustom` call, offer that variable.
+
+Symbols:
+
+* If the symbol at point is a bound function, offer that.
+* Try the function, then the variable heuristics described above.
+
+This should also make transitioning from help.el easier, and should
+improve helpful in literate org-mode files.
 
 # v0.17
 
@@ -46,7 +98,7 @@ Set `comment-start` inside helpful buffers, to fix external packages
 relying on that variable.
 
 Helpful now always autoloads callables if they aren't already
-loaded. This is consistent with help.el (unless you've overriden
+loaded. This is consistent with help.el (unless you've overridden
 `help-enable-auto-load`), produces more useful results, and fixes
 crashes rendering some docstrings.
 

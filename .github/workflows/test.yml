@@ -1,0 +1,50 @@
+name: Run test suite
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        emacs_version:
+          - '27.1'
+          - '28.1'
+          - '29.1'
+
+    steps:
+    - uses: purcell/setup-emacs@master
+      with:
+        version: ${{ matrix.emacs_version }}
+    - uses: conao3/setup-cask@master
+
+    - uses: actions/checkout@v2
+
+    - name: Install dependencies with Cask
+      run: cask install
+
+    - name: Download Emacs source code
+      run: "./download_emacs_src.sh"
+
+    - name: Run tests
+      env:
+        COVERALLS_FLAG_NAME: Emacs ${{ matrix.emacs_version }}
+        COVERALLS_PARALLEL: 1
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Run tests under both interpreted and compiled elisp.
+      run: cask exec ert-runner
+    - name: Run tests (compiled elisp)
+      env:
+        COVERALLS_FLAG_NAME: Emacs ${{ matrix.emacs_version }} compiled
+        COVERALLS_PARALLEL: 1
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Run tests under both interpreted and compiled elisp.
+      run: |
+        cask build
+        cask exec ert-runner
+
+  finalize:
+    runs-on: ubuntu-latest
+    if: always()
+    needs: test
+    steps:
+    - run: curl "https://coveralls.io/webhook?repo_name=$GITHUB_REPOSITORY&repo_token=${{ secrets.GITHUB_TOKEN }}" -d "payload[build_num]=$GITHUB_RUN_NUMBER&payload[status]=done"

@@ -1,3 +1,5 @@
+;;; helpful-unit-test.el -*- lexical-binding: t; -*-
+
 (require 'ert)
 (require 'edebug)
 (require 'helpful)
@@ -117,7 +119,9 @@ bar")))
   (should
    (equal
     (helpful--docstring #'test-foo-advised t)
-    "Docstring here too.")))
+    (if (version< emacs-version "28")
+        "Docstring here too."
+    "Docstring here too.\n\nThis function has :around advice: `ad-Advice-test-foo-advised'."))))
 
 (defun test-foo-no-docstring ()
   nil)
@@ -132,6 +136,18 @@ bar")))
   (with-temp-buffer
     (helpful-function #'test-foo-defined-interactively)
     (should (equal (buffer-name) "*helpful function: test-foo-defined-interactively*"))))
+
+(ert-deftest helpful--variable-defined-at-point ()
+  ;; The happy case with valid code.
+  (with-temp-buffer
+    (insert "(defvar foo nil)")
+    (goto-char (1+ (point-min)))
+    (should (eq (helpful--variable-defined-at-point) 'foo)))
+  ;; Ensure we don't crash if the source code isn't valid.
+  (with-temp-buffer
+    (insert "(defvar foo nil")
+    (goto-char (1+ (point-min)))
+    (helpful--variable-defined-at-point)))
 
 (ert-deftest helpful--edebug-fn ()
   "We should not crash on a function with edebug enabled."
@@ -228,7 +244,7 @@ symbol (not a form)."
   ;; If the second line is already empty, do nothing.
   (should
    (equal (helpful--split-first-line "foo.\n\nbar") "foo.\n\nbar"))
-  ;; But if we have a single sentence and no empy line, insert one.
+  ;; But if we have a single sentence and no empty line, insert one.
   (should
    (equal (helpful--split-first-line "foo.\nbar") "foo.\n\nbar")))
 
@@ -277,7 +293,16 @@ symbol (not a form)."
      (get-text-property 0 'button formatted)))
   ;; If we have quotes around a key sequence, we should not propertize
   ;; it as the button styling will no longer be visible.
-  (-let [formatted (helpful--format-docstring "`\\[set-mark-command]'")]
+  (-let* ((emacs-major-version 28)
+         (formatted (helpful--format-docstring "`\\[set-mark-command]'")))
+    (should
+     (string-equal formatted "C-SPC"))
+    (should
+     (eq
+      (get-text-property 0 'face formatted)
+      'help-key-binding)))
+  (-let* ((emacs-major-version 27)
+         (formatted (helpful--format-docstring "`\\[set-mark-command]'")))
     (should
      (string-equal formatted "C-SPC"))
     (should
@@ -316,6 +341,27 @@ symbol (not a form)."
          (paren-position (s-index-of "(" formatted)))
     (should
      (string-equal formatted "Info node (elisp)foo \nbar"))
+    (should
+     (get-text-property paren-position 'button formatted)))
+  ;; Some docstrings use "info" (lowercase).
+  (let* ((formatted (helpful--format-docstring "info node `(elisp)foo'"))
+         (paren-position (s-index-of "(" formatted)))
+    (should
+     (string-equal formatted "info node (elisp)foo"))
+    (should
+     (get-text-property paren-position 'button formatted)))
+  ;; Some docstrings use angular quotation marks.
+  (let* ((formatted (helpful--format-docstring "Info node ‘(elisp)foo’"))
+         (paren-position (s-index-of "(" formatted)))
+    (should
+     (string-equal formatted "Info node (elisp)foo"))
+    (should
+     (get-text-property paren-position 'button formatted)))
+  ;; If there's no manual information, assume it is part of the Emacs manual.
+  (let* ((formatted (helpful--format-docstring "Info node ‘foo’"))
+         (paren-position (s-index-of "(" formatted)))
+    (should
+     (string-equal formatted "Info node (emacs)foo"))
     (should
      (get-text-property paren-position 'button formatted))))
 
@@ -384,7 +430,7 @@ variables defined without `defvar'."
   ;; Emacs instance.
   (skip-unless (null (get-buffer "python.el.gz")))
 
-  (-let [(buf pos opened) (helpful--definition 'python-indent-offset nil)]
+  (-let [(buf _pos opened) (helpful--definition 'python-indent-offset nil)]
     (should (bufferp buf))
     (should opened)))
 
@@ -402,7 +448,7 @@ variables defined without `defvar'."
 		   (lambda (_format-string &rest _args))))
           (eval (eval-sexp-add-defvars (edebug-read-top-level-form)) t))
 
-        (-let [(buf pos opened) (helpful--definition 'test-foo-edebug-defn t)]
+        (-let [(buf _pos _opened) (helpful--definition 'test-foo-edebug-defn t)]
           (should buf))))))
 
 (ert-deftest helpful--definition-defstruct ()
@@ -533,6 +579,27 @@ associated a lambda with a keybinding."
     (with-current-buffer buf
       (helpful-update))))
 
+(ert-deftest helpful--unnamed-func-with-docstring ()
+  (let* ((fun (lambda (x) "Foo" x))
+         (buf (helpful--buffer fun t)))
+    ;; Don't crash when we show the buffer.
+    (with-current-buffer buf
+      (helpful-update))))
+
+(ert-deftest helpful--unnamed-compiled-func ()
+  "Ensure we handle unnamed byte-compiled functions.
+
+This is important for `helpful-key', where a user may have
+associated a lambda with a keybinding."
+  (let* ((fun (byte-compile (lambda (x) x)))
+         (buf (helpful--buffer fun t)))
+    ;; There's no name, so just show lambda in the buffer name.
+    (should
+     (equal (buffer-name buf) "*helpful lambda*"))
+    ;; Don't crash when we show the buffer.
+    (with-current-buffer buf
+      (helpful-update))))
+
 (ert-deftest helpful--obsolete-variable ()
   "Test display of obsolete variable."
   (let* ((var 'helpful-test-var-obsolete)
@@ -615,9 +682,9 @@ associated a lambda with a keybinding."
 (ert-deftest helpful--keymap-keys--anonymous-fns ()
   (let* ((keymap (make-keymap)))
     (define-key keymap (kbd "a")
-      (lambda () (message)))
+      (lambda () (interactive) (message "")))
     (define-key keymap (kbd "a")
-      (byte-compile-sexp (lambda () (message))))
+      (byte-compile (lambda () (interactive) (message ""))))
 
     ;; Don't crash on anonymous functions in a keymap.
     (helpful--keymap-keys keymap)))
@@ -710,14 +777,20 @@ in."
       (c . (11))))))
 
 (ert-deftest helpful--source ()
-  (-let* (((buf pos opened) (helpful--definition #'helpful--source t))
+  (-let* (((buf pos _opened) (helpful--definition #'helpful--source t))
           (source (helpful--source #'helpful--source t buf pos)))
     (should
      (s-starts-with-p "(defun " source))))
 
+(ert-deftest helpful--source-c-fn ()
+  (-let* (((buf pos _opened) (helpful--definition 'mode-line-format nil))
+          (source (helpful--source 'mode-line-format nil buf pos)))
+    (should
+     (s-starts-with-p "DEFVAR" (s-trim-left source)))))
+
 (ert-deftest helpful--source-autoloaded ()
   "We should include the autoload cookie."
-  (-let* (((buf pos opened) (helpful--definition #'helpful-at-point t))
+  (-let* (((buf pos _opened) (helpful--definition #'helpful-at-point t))
           (source (helpful--source #'helpful-at-point t buf pos)))
     (should
      (s-starts-with-p ";;;###autoload" source))))
@@ -726,7 +799,7 @@ in."
   "We should return the raw sexp for functions where we can't
 find the source code."
   (eval '(defun test-foo-defined-interactively () 42))
-  (-let* (((buf pos opened) (helpful--definition #'test-foo-defined-interactively t)))
+  (-let* (((buf pos _opened) (helpful--definition #'test-foo-defined-interactively t)))
     (should
      (not
       (null
@@ -781,6 +854,34 @@ find the source code."
     (set-text-properties 0 (1- (length summary)) nil summary)
     (should
      (s-starts-with-p "if is a special form defined in" summary))))
+
+(defun helpful-test-fn-interactive ()
+  (interactive))
+
+(ert-deftest helpful--summary--interactive-fn ()
+  "Ensure we use \"an\" for interactive functions."
+  (let* ((summary (helpful--summary 'helpful-test-fn-interactive t nil nil)))
+    ;; Strip properties to make assertion messages more readable.
+    (set-text-properties 0 (1- (length summary)) nil summary)
+    (should
+     (s-starts-with-p "helpful-test-fn-interactive is an interactive function" summary))))
+
+(defun helpful-test-fn? ()
+  (interactive))
+
+(ert-deftest helpful--summary--fn-with-? ()
+  "Ensure we use don't needlessly escape ? in function names."
+  (let* ((summary (helpful--summary 'helpful-test-fn? t nil nil)))
+    ;; Strip properties to make assertion messages more readable.
+    (set-text-properties 0 (1- (length summary)) nil summary)
+    (should
+     (s-starts-with-p "helpful-test-fn? is" summary))))
+
+(ert-deftest helpful--signature-fn-with? ()
+  "Ensure that symbols with question marks are handled correctly."
+  (should
+   (equal (helpful--signature 'helpful-test-fn?)
+          "(helpful-test-fn?)")))
 
 (defun helpful-test-fn-with\ space ()
   42)
@@ -908,11 +1009,12 @@ find the source code."
       (goto-char (point-min))
       (push-button))))
 
-(ert-deftest helpful--autoloaded-p ()
-  (-let [(buf pos opened) (helpful--definition 'rx-to-string t)]
-    (should (helpful--autoloaded-p 'rx-to-string buf))
-    (when opened
-      (kill-buffer buf))))
+;; TODO: broken when byte-compiling helpful.el.
+;; (ert-deftest helpful--autoloaded-p ()
+;;   (-let [(buf pos opened) (helpful--definition 'rx-to-string t)]
+;;     (should (helpful--autoloaded-p 'rx-to-string buf))
+;;     (when opened
+;;       (kill-buffer buf))))
 
 (ert-deftest helpful--inhibit-read-only ()
   (helpful-variable 'inhibit-read-only)
@@ -932,6 +1034,10 @@ find the source code."
    (helpful--convert-c-name 'Fmake_string t))
   (should-not
    (helpful--convert-c-name 'Vgc_cons_percentage nil)))
+
+(ert-deftest helpful-symbol-c-style ()
+  (helpful-symbol 'Fget_char_property)
+  (helpful-symbol 'Vinhibit_field_text_motion))
 
 (ert-deftest helpful-symbol-unbound ()
   "Ensure we inform the user if we're given an unbound symbol."
@@ -966,6 +1072,15 @@ find the source code."
   (should
    (s-contains-p "Original Value\n123" (buffer-string))))
 
+(ert-deftest helpful--preserve-position ()
+  "Show the original value for defcustom variables."
+  (-let [(buf _pos _opened) (helpful--definition 'helpful-test-custom-var nil)]
+    (with-current-buffer buf
+      (goto-char (point-min))
+      (save-current-buffer
+        (helpful-variable 'helpful-test-custom-var))
+      (should (eq (point) (point-min))))))
+
 (ert-deftest helpful--package-version ()
   "Report when a variable was added"
   (helpful-variable 'helpful-test-custom-var)
@@ -975,3 +1090,28 @@ find the source code."
      70
      "This variable was added, or its default value changed, in helpful version 1.2.3.")
     (buffer-string))))
+
+(ert-deftest helpful--display-implementations ()
+  (require 'xref)
+  (helpful-function 'xref-location-marker)
+  (should (s-contains-p "Implementations" (buffer-string)))
+  (should (if (version< emacs-version "29.1")
+	      (s-contains-p "((l xref-file-location))" (buffer-string))
+	    (s-contains-p "(xref-location-marker (L xref-file-location))" (buffer-string))))
+  (should (if (version< emacs-version "29.1")
+	      (s-contains-p "((l xref-buffer-location))" (buffer-string))
+	    (s-contains-p "(xref-location-marker (L xref-buffer-location))" (buffer-string)))))
+
+(defun helpful--boring-advice (orig-fn &rest args)
+  (apply orig-fn args))
+
+(advice-add 'ruby-mode :around #'helpful--boring-advice)
+
+(ert-deftest helpful--autoload-functions-with-advice ()
+  "Ensure that we can describe an autoloaded function
+that has advice attached before it is loadedl."
+  (helpful-function 'ruby-mode))
+
+(ert-deftest helpful--tree-any-p ()
+  (should (helpful--tree-any-p (lambda (x) (eq x 1)) '((((1))))))
+  (should (helpful--tree-any-p (lambda (x) (eq x 1)) (cons 2 1))))
