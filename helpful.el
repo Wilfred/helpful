@@ -1317,8 +1317,8 @@ Return nil otherwise."
        (package-version
         (format
          "This variable was added, or its default value changed, in %s version %s."
-         (car package-version)
-         (cdr package-version)))
+         (or (car-safe package-version) "unknown")
+         (or (cdr-safe package-version) "unknown")))
        (emacs-version
         (format
          "This variable was added, or its default value changed, in Emacs %s."
