@@ -2259,7 +2259,7 @@ state of the current symbol."
              (local-p (and
                        helpful--associated-buffer
                        (local-variable-p sym helpful--associated-buffer)))
-             (local-set-p (local-variable-if-set-p sym))
+             (local-set-p (local-variable-if-set-p sym helpful--associated-buffer))
              (multiple-views-p
               (or (stringp val)
                   (keymapp val)
@@ -2296,7 +2296,7 @@ state of the current symbol."
             sym
             (car (helpful--original-value sym)))
            "\n\n"))
-        (when (and local-p (not local-set-p))
+        (when (or local-p (not local-set-p))
           (insert
            (helpful--heading "Global Value")
            (helpful--format-value
