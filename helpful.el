@@ -458,7 +458,6 @@ or disable if already enabled."
 (define-button-type 'helpful-navigate-button
   'action #'helpful--navigate
   'path nil
-  'position nil
   'follow-link t
   'help-echo "Navigate to definition")
 
@@ -471,21 +470,26 @@ If narrowing is in effect, widen if POS isn't in the narrowed area."
   (goto-char pos))
 
 (defun helpful--navigate (button)
-  "Navigate to the path this BUTTON represents."
-  (find-file (substring-no-properties (button-get button 'path)))
-  ;; We use `get-text-property' to work around an Emacs 25 bug:
-  ;; http://git.savannah.gnu.org/cgit/emacs.git/commit/?id=f7c4bad17d83297ee9a1b57552b1944020f23aea
-  (-when-let (pos (get-text-property button 'position
-                                     (marker-buffer button)))
+  "Navigate to the definition."
+  (-let* (((buf . pos)
+           (if helpful--callable-p
+               ;; Don't use find-function-noselect because it follows aliases
+               ;; (which fails for built-in functions).
+               (find-function-search-for-symbol
+                helpful--sym
+                nil
+                (button-get button 'path))
+             (find-variable-noselect helpful--sym))))
+    (funcall helpful-switch-buffer-function buf)
+    (run-hooks 'find-function-after-hook)
     (helpful--goto-char-widen pos)))
 
-(defun helpful--navigate-button (text path &optional pos)
-  "Return a button that opens PATH and puts point at POS."
+(defun helpful--navigate-button (text path)
+  "Return a button that opens PATH and puts point at definition."
   (helpful--button
    text
    'helpful-navigate-button
-   'path path
-   'position pos))
+   'path path))
 
 (define-button-type 'helpful-buffer-button
   'action #'helpful--switch-to-buffer
@@ -2042,21 +2046,21 @@ OBJ may be a symbol or a compiled function object."
             ((helpful--kbd-macro-p sym) keyboard-macro-button)
             (t "function")))
           (defined
-            (cond
-             (buf
-              (let ((path (buffer-file-name buf)))
-                (if path
-                    (format
-                     "defined in %s"
-                     (helpful--navigate-button
-                      (file-name-nondirectory path) path pos))
-                  (format "defined in buffer %s"
-                          (helpful--buffer-button buf pos)))))
-             (primitive-p
-              "defined in C source code")
-             ((helpful--kbd-macro-p sym) nil)
-             (t
-              "without a source file"))))
+           (cond
+            (buf
+             (let ((path (buffer-file-name buf)))
+               (if path
+                   (format
+                    "defined in %s"
+                    (helpful--navigate-button
+                     (file-name-nondirectory path) path))
+                 (format "defined in buffer %s"
+                         (helpful--buffer-button buf pos)))))
+            (primitive-p
+             "defined in C source code")
+            ((helpful--kbd-macro-p sym) nil)
+            (t
+             "without a source file"))))
 
     (s-word-wrap
      70
@@ -2376,9 +2380,7 @@ state of the current symbol."
             (when source-path
               (helpful--navigate-button
                (file-name-nondirectory source-path)
-               source-path
-               (or pos
-                   0)))))
+               source-path))))
        (cond
         ((and source-path references)
          (format "References in %s:\n%s"
@@ -2479,8 +2481,7 @@ state of the current symbol."
                       'face 'font-lock-comment-face)
           (helpful--navigate-button
            (f-abbrev source-path)
-           source-path
-           pos)
+           source-path)
           "\n"))
         (primitive-p
          (concat
