@@ -606,7 +606,9 @@ overrides that to include previously opened buffers."
   (let* ((sym (button-get button 'symbol))
          (buf (button-get button 'buffer))
          (sym-value (helpful--sym-value sym buf))
-         (set-func (symbol-name helpful-set-variable-function))
+         (set-func (if (local-variable-p sym buf)
+                       "setq"
+                     (symbol-name helpful-set-variable-function)))
          ;; Inspired by `counsel-read-setq-expression'.
          (expr
           (minibuffer-with-setup-hook
