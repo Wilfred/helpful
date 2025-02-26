@@ -2570,7 +2570,9 @@ For example, \"(some-func FOO &optional BAR)\"."
             (cond
              ((symbolp sym)
               (help-function-arglist sym))
-             ((byte-code-function-p sym)
+             ((or (byte-code-function-p sym)
+                  (if (fboundp 'interpreted-function-p)
+                      (interpreted-function-p sym)))
               ;; argdesc can be a list of arguments or an integer
               ;; encoding the min/max number of arguments. See
               ;; Byte-Code Function Objects in the elisp manual.
