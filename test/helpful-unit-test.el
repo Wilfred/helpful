@@ -734,7 +734,9 @@ associated a lambda with a keybinding."
   (should
    (equal
     (length (helpful--keymaps-containing #'helpful--dummy-command))
-    2))
+    (if (< emacs-major-version 30)
+        2
+      3)))
 
   ;; Undo keybinding.
   (global-set-key (kbd "C-c M-S-c") nil)
