@@ -3041,7 +3041,7 @@ See also `helpful-max-buffers'."
   "Store \"help\" type link when in a helpful buffer."
   (when (derived-mode-p 'helpful-mode)
     ;; Create a "help" link instead of a dedicated "helpful" link: the
-    ;; author of the Org document uses helful, but this is not
+    ;; author of the Org document uses helpful, but this is not
     ;; necessarily the case of the reader of the document.
     (org-link-store-props :type "help"
                           :link (format "help:%s" helpful--sym)
