@@ -338,6 +338,37 @@ Return SYM otherwise."
       (message "Forgot %s %s." kind sym)
       (kill-buffer (current-buffer)))))
 
+(define-button-type 'helpful-remove-all-advice-button
+  'action #'helpful--remove-all-advice
+  'symbol nil
+  'follow-link t
+  'help-echo "Remove all advices")
+
+(defun helpful--remove-all-advice (button)
+  "Remove all advices on the symbol given by BUTTON."
+  (let ((sym (button-get button 'symbol)))
+    (ad-unadvise sym)
+    (advice-mapc
+     (lambda (advice _when)
+       (advice-remove sym advice))
+     sym)
+    (helpful-update)))
+
+(define-button-type 'helpful-remove-advice-button
+  'action #'helpful--remove-advice
+  'symbol nil
+  'advice nil
+  'face '(error button)
+  'follow-link t
+  'help-echo "Remove this advice")
+
+(defun helpful--remove-advice (button)
+  "Remove an advice on the symbol as specified by BUTTON."
+  (advice-remove
+   (button-get button 'symbol)
+   (button-get button 'advice))
+  (helpful-update))
+
 (define-button-type 'helpful-c-source-directory
   'action #'helpful--c-source-directory
   'follow-link t
@@ -550,8 +581,8 @@ overrides that to include previously opened buffers."
             (t
              (--first (and (not (s-starts-with-p " " it))
                            (not (s-starts-with-p "*" it)))
-                      names))
-            )))
+                      names)))))
+
     (get-buffer
      (completing-read
       prompt
@@ -1690,6 +1721,28 @@ without the advice. Assumes function has been loaded."
   (advice--cd*r
    (advice--symbol-function sym)))
 
+(defun helpful--advices (sym)
+  "Return advices of SYM.
+
+Each advice is returned as a list (WHERE FUNC)."
+  (let ((func (advice--symbol-function sym))
+        result)
+    (while (advice--p func)
+      ;; Do not include the activated old style advice
+      (unless (s-starts-with-p
+               "ad-Advice"
+               (format "%s" (advice--car func)))
+        (push (list
+               ;; This can also be done with `advice--where', but that
+               ;; isn't available in Emacs 25
+               (car
+                (--last (eq (aref func 1) (cadr it))
+                        advice--where-alist))
+               (advice--car func))
+              result))
+      (setq func (advice--cdr func)))
+    (nreverse result)))
+
 (defun helpful--advised-p (sym)
   "Does SYM have advice associated with it?"
   (and (symbolp sym)
@@ -1704,8 +1757,8 @@ syntax highlight it."
                (format "'%S" (cadr name))
              (format "%S" name)))
           (formatted-def
-           (format "(%s %s ...)" def formatted-name))
-          )
+           (format "(%s %s ...)" def formatted-name)))
+
     (helpful--syntax-highlight formatted-def)))
 
 (defun helpful--format-reference (head longest-head ref-count position path)
@@ -1924,8 +1977,8 @@ OBJ may be a symbol or a compiled function object."
     (setq file-name (s-chop-suffix ".gz" file-name))
     (condition-case nil
         (help-fns--autoloaded-p sym file-name)
-      ; new in Emacs 29.0.50
-      ; see https://github.com/Wilfred/helpful/pull/283
+      ;; new in Emacs 29.0.50
+      ;; see https://github.com/Wilfred/helpful/pull/283
       (error (help-fns--autoloaded-p sym)))))
 
 (defun helpful--compiled-p (sym)
@@ -2410,12 +2463,44 @@ state of the current symbol."
        " "
        (helpful--make-callees-button helpful--sym source)))
 
-    (when (helpful--advised-p helpful--sym)
+    (when (and helpful--callable-p
+               (helpful--advised-p helpful--sym))
       (helpful--insert-section-break)
       (insert
        (helpful--heading "Advice")
-       (format "This %s is advised."
-               (if (macrop helpful--sym) "macro" "function"))))
+       (-if-let (advices (helpful--advices helpful--sym))
+           ;; nadvice.el
+           (s-join "\n"
+                   (--map
+                    (let ((where (car it))
+                          (func (cadr it)))
+                      (format "%s %s %s\n  %s"
+                              (helpful--button
+                               "[X]"
+                               'helpful-remove-advice-button
+                               'symbol helpful--sym
+                               'advice func)
+                              (helpful--propertize-sym-ref
+                               (format "%s" where)
+                               "" "")
+                              (helpful--button
+                               (if (symbolp func)
+                                   (format "%s" func)
+                                 "#<anonymous-function>")
+                               'helpful-describe-exactly-button
+                               'symbol func
+                               'callable-p t)
+                              (-when-let (docstring (helpful--docstring func t))
+                                (car (s-lines docstring)))))
+                    advices))
+         ;; old style advice
+         (format "This %s is advised."
+                 (if (macrop helpful--sym) "macro" "function")))
+       "\n\n"
+       (helpful--button
+        "Remove all advices"
+        'helpful-remove-all-advice-button
+        'symbol helpful--sym)))
 
     (let ((can-edebug
            (helpful--can-edebug-p helpful--sym helpful--callable-p buf pos))
@@ -2534,10 +2619,15 @@ state of the current symbol."
 (defun helpful--skip-advice (docstring)
   "Remove mentions of advice from DOCSTRING."
   (let* ((lines (s-lines docstring))
+         (where-types (--map (symbol-name (car it))
+                             advice--where-alist))
          (relevant-lines
-          (--drop-while
-           (or (s-starts-with-p ":around advice:" it)
-               (s-starts-with-p "This function has :around advice:" it))
+          (--remove
+           (s-matches-p
+            (format
+             (rx bol (opt "This function has ") "%s advice: ")
+             (regexp-opt where-types))
+            it)
            lines)))
     (s-trim (s-join "\n" relevant-lines))))
 

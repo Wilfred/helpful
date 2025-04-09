@@ -31,6 +31,10 @@
   "Docstring here too."
   nil)
 
+(defun test-foo-advised-new-style ()
+  "Another docstring."
+  nil)
+
 (autoload 'some-unused-function "somelib.el")
 
 (defadvice test-foo-advised (before test-advice1 activate)
@@ -40,6 +44,26 @@
 (defadvice test-foo-advised (after test-advice2 activate)
   "Placeholder advice 2."
   nil)
+
+(define-advice test-foo-advised-new-style (:around (func))
+  "New style placeholder advice 1."
+  (funcall func))
+
+(define-advice test-foo-advised-new-style (:after ())
+  "New style placeholder advice 2."
+  nil)
+
+(ert-deftest helpful--advises-old-style ()
+  "Old style advices should not be listed."
+  (should (not (helpful--advices 'test-foo-advised))))
+
+(ert-deftest helpful--advises-new-style ()
+  "Return new style advises."
+  (should
+   (equal
+    (helpful--advices 'test-foo-advised-new-style)
+    '((:after (closure (t) nil "New style placeholder advice 2." nil))
+      (:around (closure (t) (func) "New style placeholder advice 1." (funcall func)))))))
 
 (ert-deftest helpful--docstring ()
   "Basic docstring fetching."
@@ -119,9 +143,14 @@ bar")))
   (should
    (equal
     (helpful--docstring #'test-foo-advised t)
-    (if (version< emacs-version "28")
-        "Docstring here too."
-    "Docstring here too.\n\nThis function has :around advice: `ad-Advice-test-foo-advised'."))))
+    "Docstring here too.")))
+
+(ert-deftest helpful--docstring-advice-new-style ()
+  "New style advice should be stripped."
+  (should
+   (equal
+    (helpful--docstring #'test-foo-advised-new-style t)
+    "Another docstring.")))
 
 (defun test-foo-no-docstring ()
   nil)
