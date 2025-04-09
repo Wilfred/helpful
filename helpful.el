@@ -2280,6 +2280,10 @@ state of the current symbol."
     (when (not helpful--callable-p)
       (helpful--insert-section-break)
       (let* ((sym helpful--sym)
+             (local-p (and
+                       helpful--associated-buffer
+                       (local-variable-p sym helpful--associated-buffer)))
+             (local-set-p (local-variable-if-set-p sym helpful--associated-buffer))
              (multiple-views-p
               (or (stringp val)
                   (keymapp val)
@@ -2296,9 +2300,7 @@ state of the current symbol."
           (cond
            ;; Buffer-local variable and we're looking at the value in
            ;; a specific buffer.
-           ((and
-             helpful--associated-buffer
-             (local-variable-p sym helpful--associated-buffer))
+           (local-p
             (format "Value in %s"
                     (helpful--button
                      (format "#<buffer %s>" (buffer-name helpful--associated-buffer))
@@ -2306,8 +2308,7 @@ state of the current symbol."
                      'buffer helpful--associated-buffer
                      'position pos)))
            ;; Buffer-local variable but default/global value.
-           ((local-variable-if-set-p sym)
-            "Global Value")
+           (local-set-p "Global Value")
            ;; This variable is not buffer-local.
            (t "Value")))
          (helpful--format-value sym val)
@@ -2319,22 +2320,23 @@ state of the current symbol."
             sym
             (car (helpful--original-value sym)))
            "\n\n"))
+        (when (or local-p (not local-set-p))
+          (insert
+           (helpful--heading "Global Value")
+           (helpful--format-value
+            sym
+            (helpful--sym-value sym nil))
+           "\n\n"))
         (when multiple-views-p
           (insert (helpful--make-toggle-literal-button) " "))
 
-        (when (local-variable-if-set-p sym)
+        (when local-set-p
           (insert
            (helpful--button
             "Buffer values"
             'helpful-associated-buffer-button
             'symbol sym
             'prompt-p t)
-           " "
-           (helpful--button
-            "Global value"
-            'helpful-associated-buffer-button
-            'symbol sym
-            'prompt-p nil)
            " "))
         (when (memq (helpful--sym-value helpful--sym helpful--associated-buffer) '(nil t))
           (insert (helpful--make-toggle-button helpful--sym helpful--associated-buffer) " "))
