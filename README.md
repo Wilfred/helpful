@@ -64,6 +64,9 @@ Helpful will try really hard to show the source code. It shows the
 source code for interactively defined functions (unlike the built-in
 Help) and falls back to the raw sexp if no source is available.
 
+Set `helpful-hide-docstring-in-source` to hide the docstring in source
+code.
+
 ### View Callers
 
 ![screenshot](screenshots/helpful_refs.png)
