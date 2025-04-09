@@ -1074,6 +1074,19 @@ find the source code."
   (should
    (s-contains-p "Original Value\n123" (buffer-string))))
 
+(ert-deftest helpful--reset-only-if-original-value-differs ()
+  "Show the reset button for defcustom variables that have been modified."
+  (let ((previous-value helpful-test-custom-var))
+    (helpful-variable 'helpful-test-custom-var)
+    (should
+     (s-contains-p "Set Reset Customize\n" (buffer-string)))
+    (button-activate (button-at (+ 1 (string-match "Reset" (buffer-string)))))
+    (should (equal helpful-test-custom-var
+                   (eval (car (get 'helpful-test-custom-var 'standard-value)))))
+    (should
+     (s-contains-p "Set Customize\n" (buffer-string)))
+    (setq helpful-test-custom-var previous-value)))
+
 (ert-deftest helpful--preserve-position ()
   "Show the original value for defcustom variables."
   (-let [(buf _pos _opened) (helpful--definition 'helpful-test-custom-var nil)]
